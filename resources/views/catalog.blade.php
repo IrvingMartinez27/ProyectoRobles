@@ -1,287 +1,545 @@
 <!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robles Sport - Catálogo</title>
+@vite(['resources/css/app.css'])
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+    body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1a1c1c; min-height: 100dvh; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Kinetic Admin - Product Catalog</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "tertiary": "#8d1c00",
-                        "surface-bright": "#f9f9f9",
-                        "primary-fixed-dim": "#b9c3ff",
-                        "tertiary-container": "#b82800",
-                        "on-secondary-fixed": "#1b1b1b",
-                        "primary-fixed": "#dde1ff",
-                        "on-background": "#1a1c1c",
-                        "inverse-primary": "#b9c3ff",
-                        "on-secondary-fixed-variant": "#474747",
-                        "on-primary-fixed": "#001257",
-                        "error": "#ba1a1a",
-                        "surface-container-low": "#f3f3f4",
-                        "tertiary-fixed-dim": "#ffb4a2",
-                        "secondary": "#5e5e5e",
-                        "background": "#f9f9f9",
-                        "on-primary": "#ffffff",
-                        "tertiary-fixed": "#ffdad2",
-                        "surface-variant": "#e2e2e2",
-                        "on-primary-fixed-variant": "#0033c0",
-                        "on-tertiary-fixed": "#3d0700",
-                        "on-surface-variant": "#434657",
-                        "outline-variant": "#c4c5da",
-                        "on-surface": "#1a1c1c",
-                        "inverse-surface": "#2f3131",
-                        "error-container": "#ffdad6",
-                        "secondary-fixed-dim": "#c6c6c6",
-                        "surface": "#f9f9f9",
-                        "surface-container-highest": "#e2e2e2",
-                        "surface-container-high": "#e8e8e8",
-                        "secondary-fixed": "#e2e2e2",
-                        "on-secondary": "#ffffff",
-                        "on-secondary-container": "#646464",
-                        "outline": "#747688",
-                        "inverse-on-surface": "#f0f1f1",
-                        "primary-container": "#0047ff",
-                        "on-primary-container": "#d4d9ff",
-                        "surface-dim": "#dadada",
-                        "surface-container-lowest": "#ffffff",
-                        "primary": "#0035c5",
-                        "on-tertiary-fixed-variant": "#8a1c00",
-                        "secondary-container": "#e2e2e2",
-                        "on-tertiary": "#ffffff",
-                        "surface-container": "#eeeeee",
-                        "on-error": "#ffffff",
-                        "surface-tint": "#0046fa",
-                        "on-error-container": "#93000a",
-                        "on-tertiary-container": "#ffd1c6"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.125rem",
-                        "lg": "0.25rem",
-                        "xl": "0.5rem",
-                        "full": "0.75rem"
-                    },
-                    "fontFamily": {
-                        "headline": ["Inter"],
-                        "body": ["Inter"],
-                        "label": ["Inter"]
-                    }
-                }
-            }
-        }
-    </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        body { font-family: 'Inter', sans-serif; }
-    </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
+    /* modal */
+    #modal-nuevo-producto { display: none; }
+    #modal-nuevo-producto.activo { display: flex; }
+
+    /* filtros activos */
+    .filtro-btn.activo { background: #1a1c1c; color: #ffffff; }
+    .filtro-btn { transition: all 0.2s; }
+
+    /* cards */
+    .producto-card { transition: all 0.2s; }
+    .producto-card:hover .producto-imagen { transform: scale(1.05); }
+    .producto-imagen { transition: transform 0.7s ease; }
+
+    /* imagen placeholder cuando no hay img */
+    .img-placeholder {
+        width: 100%;
+        height: 100%;
+        background: #f3f3f4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-  </style>
-  </head>
-<body class="bg-surface-container-lowest text-on-surface antialiased">
-<!-- TopAppBar -->
-<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl docked full-width top-0 z-50 border-b border-[#c4c5da]/15 shadow-none flex items-center justify-between px-6 py-4 w-full sticky">
-<div class="flex items-center gap-4">
-<span class="material-symbols-outlined text-[#0035c5] dark:text-blue-500 cursor-pointer" data-icon="menu">menu</span>
-<span class="font-black tracking-tighter text-xl text-[#1a1c1c] dark:text-white uppercase">KINETIC ADMIN</span>
-</div>
-<nav class="hidden md:flex items-center space-x-8">
-<a class="text-[#1a1c1c]/50 dark:text-slate-400 font-medium hover:bg-[#f3f3f4] transition-colors px-3 py-1" href="#">Home</a>
-<a class="text-[#1a1c1c]/50 dark:text-slate-400 font-medium hover:bg-[#f3f3f4] transition-colors px-3 py-1" href="#">Sales</a>
-<a class="text-[#0035c5] dark:text-blue-400 font-bold px-3 py-1 border-b-2 border-[#0035c5]" href="#">Catalog</a>
-<a class="text-[#1a1c1c]/50 dark:text-slate-400 font-medium hover:bg-[#f3f3f4] transition-colors px-3 py-1" href="#">Inventory</a>
-<a class="text-[#1a1c1c]/50 dark:text-slate-400 font-medium hover:bg-[#f3f3f4] transition-colors px-3 py-1" href="#">Customers</a>
-</nav>
-<div class="flex items-center gap-4">
-<span class="material-symbols-outlined text-[#1a1c1c] dark:text-slate-400 cursor-pointer" data-icon="search">search</span>
-<span class="material-symbols-outlined text-[#1a1c1c] dark:text-slate-400 cursor-pointer" data-icon="account_circle">account_circle</span>
-</div>
-</header>
-<main class="max-w-[1440px] mx-auto px-6 py-12 pb-24">
-<!-- Editorial Header Section -->
-<section class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
-<div class="max-w-2xl">
-<p class="text-primary font-bold tracking-widest text-[10px] uppercase mb-4">Inventory Management</p>
-<h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-on-surface mb-6">Product Catalog</h1>
-<p class="text-secondary text-lg leading-relaxed max-w-xl">
-                    Curating the visual identity of our collection. Manage availability, metadata, and visual assets for the kinetic seasonal drop.
-                </p>
-</div>
-<div class="flex gap-4">
-<button class="bg-on-surface text-white px-8 py-4 font-bold tracking-tight hover:opacity-90 transition-all flex items-center gap-2">
-<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
-                    New Product
+</style>
+</head>
+
+<body class="bg-white text-[#1a1c1c]">
+
+<!-- NAV -->
+<nav class="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4 w-full bg-white/80 backdrop-blur-xl border-b border-[#c4c5da]/20">
+    <div class="flex items-center gap-4">
+        <button onclick="abrirSidebar()" class="hover:opacity-70 transition-opacity">
+            <span class="material-symbols-outlined text-[#0035c5]">menu</span>
+        </button>
+        <span class="font-black tracking-tighter text-xl text-[#1a1c1c]">Robles Sport</span>
+    </div>
+
+    <div class="relative group">
+        <button class="flex items-center gap-2 hover:opacity-80 transition-all">
+            <span class="material-symbols-outlined text-[#0035c5]">account_circle</span>
+        </button>
+        <div class="absolute right-0 top-full mt-2 w-48 bg-white border border-[#c4c5da]/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div class="px-4 py-3 border-b border-[#c4c5da]/20">
+                <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Sesión activa</p>
+                <p class="text-sm font-bold text-[#1a1c1c] mt-1">{{ Auth::user()->name ?? 'Usuario' }}</p>
+            </div>
+            <div class="px-4 py-3 border-b border-[#c4c5da]/20">
+                <p class="text-[10px] text-[#747688] font-semibold">{{ Auth::user()->email ?? '' }}</p>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-colors">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                    Cerrar sesión
                 </button>
-</div>
-</section>
-<!-- Product Filter & Grid -->
-<div class="flex gap-4 mb-12 overflow-x-auto pb-2">
-<button class="px-6 py-2 bg-on-surface text-white text-xs font-bold uppercase tracking-widest">All Items</button>
-<button class="px-6 py-2 bg-surface-container-high text-on-surface text-xs font-bold uppercase tracking-widest hover:bg-surface-variant transition-colors">Apparel</button>
-<button class="px-6 py-2 bg-surface-container-high text-on-surface text-xs font-bold uppercase tracking-widest hover:bg-surface-variant transition-colors">Footwear</button>
-<button class="px-6 py-2 bg-surface-container-high text-on-surface text-xs font-bold uppercase tracking-widest hover:bg-surface-variant transition-colors">Accessories</button>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-16 gap-x-8">
-<!-- Product Card 1 -->
-<div class="group flex flex-col space-y-6">
-<div class="aspect-[4/5] bg-surface-container-low overflow-hidden relative">
-<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Minimalist fashion portrait of a premium black wool coat on a clean white studio background with soft architectural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4x_uPxGxt5S-qi_TO6vNnGiIkIu0cjZTCFDBijUfRP0GwzOPUcsAf4_AdfKqBPB4gYwFikpQRcn2wDd6kXhZIACGr1xLZQLkk5KNmfbgNGdkowxBrJ_0wYU-1h8n0sSag_2VxwUTosI1bSVvBPkLBl_NLpjGKorlG06LN1IGfqLpbPpNEJsZB-okY1JYjUH8N4Kmp7oTOouJ6-4CRJUtb1vXIBWSHljzKWyDzT453BHH_U-5u8ipNe9qyI7M8T1Pq100JYRACveA"/>
-<div class="absolute top-4 left-4 bg-primary text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">In Stock</div>
-</div>
-<div class="flex flex-col space-y-2">
-<div class="flex justify-between items-start">
-<h3 class="text-xl font-bold tracking-tight">Structured Wool Blazer</h3>
-<span class="text-primary font-bold text-sm">$450.00</span>
-</div>
-<p class="text-secondary/60 font-mono text-[10px] tracking-widest uppercase">ID: KNT-2024-001</p>
-<div class="pt-4 border-t border-outline-variant/15 mt-2">
-<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3">Inventory Breakdown</p>
-<div class="flex flex-wrap gap-2">
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">S: <span class="text-primary">12</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">M: <span class="text-primary">08</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">L: <span class="text-primary">05</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">XL: <span class="text-error">01</span></span>
-</div>
-</div>
-</div>
-</div>
-<!-- Product Card 2 -->
-<div class="group flex flex-col space-y-6">
-<div class="aspect-[4/5] bg-surface-container-low overflow-hidden relative">
-<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close up shot of high-quality white organic cotton sweatshirt material showing detailed fabric texture in bright day light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVGgc8TxiyqGMv-SjMVW7PciNVM6cedwHIua6pBbBDAaKoXnxe4XJwjqLDKiCzsZqjQarJXzX5zQOVuWvj0B8ohBRW9fdYdHNwJzJIT-1qICJa5hPqnJfWCyWap5p1uWJsYftgZVkF-04lZoRvQrzv2RPfN3ndS-vc-lyj90olC0yfHImEwjmD6X1QesGr9hAPksLSn1G4eZZmt3qqKWaxvt0783lUKa-uA4CmIcXqhmW2-ZZcTVvfnyREUVtnAmYEIy5ldsOiQEg"/>
-<div class="absolute top-4 left-4 bg-on-surface text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">Low Stock</div>
-</div>
-<div class="flex flex-col space-y-2">
-<div class="flex justify-between items-start">
-<h3 class="text-xl font-bold tracking-tight">Essential Organic Crew</h3>
-<span class="text-primary font-bold text-sm">$120.00</span>
-</div>
-<p class="text-secondary/60 font-mono text-[10px] tracking-widest uppercase">ID: KNT-2024-002</p>
-<div class="pt-4 border-t border-outline-variant/15 mt-2">
-<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3">Inventory Breakdown</p>
-<div class="flex flex-wrap gap-2">
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">S: <span class="text-primary">04</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">M: <span class="text-error">02</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">L: <span class="text-primary">06</span></span>
-</div>
-</div>
-</div>
-</div>
-<!-- Product Card 3 -->
-<div class="group flex flex-col space-y-6">
-<div class="aspect-[4/5] bg-surface-container-low overflow-hidden relative">
-<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Professional studio photography of sleek black leather boots with polished finish on a grey reflective surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkehBss3CI5YvFs4v2TI8oS1Ae3Kj75eO6HZhBe3GhwigUiR2IVKuBDe330f_huXhngE-lN24gn8xDdnfdjBtfEXe-c19IlXD4xc7hVZTDTJJ8vKGF6xFUUMhXRYWXocciUb71nYBTUE65CaN0Qgu_eGakT8xLzIh10zqwTdmXsb21KCPlaVGivmE72y_NnqpD3BZt8o0TvRE62Bye2zblkjw1WhZ06Ka5JlCUefUa1bDH-okAgel-6SL6Cj1Z8PSv1o43ICOdatA"/>
-</div>
-<div class="flex flex-col space-y-2">
-<div class="flex justify-between items-start">
-<h3 class="text-xl font-bold tracking-tight">Chrome Leather Derby</h3>
-<span class="text-primary font-bold text-sm">$385.00</span>
-</div>
-<p class="text-secondary/60 font-mono text-[10px] tracking-widest uppercase">ID: KNT-2024-009</p>
-<div class="pt-4 border-t border-outline-variant/15 mt-2">
-<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3">Inventory Breakdown</p>
-<div class="flex flex-wrap gap-2">
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">40: <span class="text-primary">15</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">42: <span class="text-primary">22</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">44: <span class="text-primary">09</span></span>
-</div>
-</div>
-</div>
-</div>
-<!-- Product Card 4 -->
-<div class="group flex flex-col space-y-6">
-<div class="aspect-[4/5] bg-surface-container-low overflow-hidden relative">
-<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Editorial close-up of a designer minimalist handbag in beige leather with silver hardware accents against a harsh shadow backdrop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAN7hRGBBKBrR7pyrD5260Tw2Y5oJJBhBAmV0qk5W4oAjHl77CJTVOceb2RGEdaBii8PDKhovXMgY88EcnowpiVmixIO6Zq8Qy2UQesZ7rRt6VG3RvKtWeifdenYI7W49xjM_etCqRFO1AQcB2zvIN8qXpLvll1Q67OIrxd57lJW5vyrzouMzHvcKQnNZcCEf8CSZBGu-v57b-h6R6ONFqhOy6EKpYE5pDFsxzBEdNyfx4XvTMPKxVXRjCRSDu-qe4yExm7D_ujYVM"/>
-<div class="absolute top-4 left-4 bg-tertiary text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">Out of Stock</div>
-</div>
-<div class="flex flex-col space-y-2">
-<div class="flex justify-between items-start">
-<h3 class="text-xl font-bold tracking-tight">Kinetic Tote 40</h3>
-<span class="text-primary font-bold text-sm">$890.00</span>
-</div>
-<p class="text-secondary/60 font-mono text-[10px] tracking-widest uppercase">ID: KNT-2024-114</p>
-<div class="pt-4 border-t border-outline-variant/15 mt-2">
-<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3">Inventory Breakdown</p>
-<div class="flex flex-wrap gap-2">
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">UNI: <span class="text-error">00</span></span>
-</div>
-</div>
-</div>
-</div>
-<!-- Additional Row to show grid flow -->
-<div class="group flex flex-col space-y-6">
-<div class="aspect-[4/5] bg-surface-container-low overflow-hidden relative">
-<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="High-end fashion photography of a crisp white cotton shirt with unique architectural collar design on a minimalist hangers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCL3CLWQqtQf82ioF0-CIijE91jsxHOHpLOOrjRbFuKnGYvOHM6AJlpgwr4NNRTwkYUQLtUwXef8D7AAp_nWLPLnW2T7M7jtqzWGNu1dYLbZdcSUC4pyjS92B2JmAcPJDoqsRZqgyjCEJxRQ8KINUeKWnFjqEJW9APB1koA9zRfRDcw3CO0ESv-L-7VmOsbZNgkID-G4k3z9eJWNDfNd-iwWP_xwBHUUTicZC5OTw1zOWV8fDDUSE8b3TGL5REkD8ZotTLdv3ApOIQ"/>
-</div>
-<div class="flex flex-col space-y-2">
-<div class="flex justify-between items-start">
-<h3 class="text-xl font-bold tracking-tight">Articulated Oxford</h3>
-<span class="text-primary font-bold text-sm">$195.00</span>
-</div>
-<p class="text-secondary/60 font-mono text-[10px] tracking-widest uppercase">ID: KNT-2024-042</p>
-<div class="pt-4 border-t border-outline-variant/15 mt-2">
-<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3">Inventory Breakdown</p>
-<div class="flex flex-wrap gap-2">
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">M: <span class="text-primary">18</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">L: <span class="text-primary">24</span></span>
-</div>
-</div>
-</div>
-</div>
-<div class="group flex flex-col space-y-6">
-<div class="aspect-[4/5] bg-surface-container-low overflow-hidden relative">
-<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Flat lay photography of high-quality raw denim jeans showing selvedge detail and heavy fabric weight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXQvpjNZ32-VBGThfC0pdCVHTb-OFAVTezBIRY0X2gxCIKX17vymHnXa4_81FeiN8RgfFD3UjDJNGVO7laVsPcDPMtizPnnWpRSlFIqr3JAJHf5kAfb1qyBW-N0OA2ka67EzyRQMn-B1-gUK0cAUqMUacYhDon7_SFi2oTTJX5pioixdOSLySaCkm-vUuKdfHa08S6F91AAFF7vDsmax1I19hJgz-fgBkREwvRT8HsHga4P1ShsHw1x_0RM-lGg-1bQzDcZiGZdGw"/>
-</div>
-<div class="flex flex-col space-y-2">
-<div class="flex justify-between items-start">
-<h3 class="text-xl font-bold tracking-tight">14oz Raw Selvedge</h3>
-<span class="text-primary font-bold text-sm">$280.00</span>
-</div>
-<p class="text-secondary/60 font-mono text-[10px] tracking-widest uppercase">ID: KNT-2024-056</p>
-<div class="pt-4 border-t border-outline-variant/15 mt-2">
-<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-3">Inventory Breakdown</p>
-<div class="flex flex-wrap gap-2">
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">30: <span class="text-primary">05</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">32: <span class="text-primary">12</span></span>
-<span class="bg-surface-container text-on-surface px-3 py-1 text-[11px] font-bold">34: <span class="text-primary">08</span></span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</main>
-<!-- BottomNavBar (Mobile Only) -->
-<nav class="md:hidden fixed bottom-0 w-full z-50 bg-white/80 backdrop-blur-xl border-t border-[#c4c5da]/15 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] flex justify-around items-center h-16 px-4">
-<div class="flex flex-col items-center justify-center text-[#1a1c1c]/50 pt-2 hover:text-[#0035c5] transition-all">
-<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold">Home</span>
-</div>
-<div class="flex flex-col items-center justify-center text-[#1a1c1c]/50 pt-2 hover:text-[#0035c5] transition-all">
-<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold">Sales</span>
-</div>
-<div class="flex flex-col items-center justify-center text-[#0035c5] border-t-2 border-[#0035c5] pt-2">
-<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold">Catalog</span>
-</div>
-<div class="flex flex-col items-center justify-center text-[#1a1c1c]/50 pt-2 hover:text-[#0035c5] transition-all">
-<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold">Inventory</span>
-</div>
-<div class="flex flex-col items-center justify-center text-[#1a1c1c]/50 pt-2 hover:text-[#0035c5] transition-all">
-<span class="material-symbols-outlined" data-icon="group">group</span>
-<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold">Customers</span>
-</div>
+            </form>
+        </div>
+    </div>
 </nav>
-</body></html>
+
+<main class="max-w-[1440px] mx-auto px-6 py-12 pb-24">
+
+    <!-- HEADER -->
+    <section class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div class="max-w-2xl">
+            <p class="text-[#0035c5] font-bold tracking-widest text-[10px] uppercase mb-4">Gestión de inventario</p>
+            <h1 class="text-5xl md:text-7xl font-bold tracking-tighter text-[#1a1c1c] mb-6">Catálogo de productos</h1>
+            <p class="text-[#5e5e5e] text-lg leading-relaxed max-w-xl">
+                Administra la disponibilidad, información y existencias de los productos de Robles Sport.
+            </p>
+        </div>
+        <div>
+            {}
+            <button onclick="abrirModal()"
+                    class="bg-[#1a1c1c] text-white px-8 py-4 font-bold tracking-tight hover:opacity-90 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">add</span>
+                Nuevo producto
+            </button>
+        </div>
+    </section>
+
+    <!-- FILTROS -->
+    {{-- estos botones filtran las tarjetas por categoria, el JS lo maneja abajo --}}
+    <div class="flex gap-4 mb-12 overflow-x-auto pb-2">
+        <button class="filtro-btn activo px-6 py-2 bg-[#1a1c1c] text-white text-xs font-bold uppercase tracking-widest"
+                onclick="filtrar('todos', this)">Todos</button>
+        <button class="filtro-btn px-6 py-2 bg-[#e8e8e8] text-[#1a1c1c] text-xs font-bold uppercase tracking-widest hover:bg-[#e2e2e2]"
+                onclick="filtrar('ropa', this)">Ropa</button>
+        <button class="filtro-btn px-6 py-2 bg-[#e8e8e8] text-[#1a1c1c] text-xs font-bold uppercase tracking-widest hover:bg-[#e2e2e2]"
+                onclick="filtrar('calzado', this)">Calzado</button>
+        <button class="filtro-btn px-6 py-2 bg-[#e8e8e8] text-[#1a1c1c] text-xs font-bold uppercase tracking-widest hover:bg-[#e2e2e2]"
+                onclick="filtrar('accesorios', this)">Accesorios</button>
+    </div>
+
+    <!-- GRID DE PRODUCTOS -->
+    {{-- cuando conectes la bd asegurate de mandar $productos con: id, nombre, precio, categoria, stock, tallas, imagen, estado --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-16 gap-x-8" id="grid-productos">
+
+        @forelse($productos ?? [] as $producto)
+        <div class="producto-card group flex flex-col space-y-6" data-categoria="{{ $producto['categoria'] }}">
+
+            {{-- recuadro de imagen, si no hay imagen muestra un placeholder gris --}}
+            <div class="aspect-[4/5] bg-[#f3f3f4] overflow-hidden relative">
+                @if(isset($producto['imagen']) && $producto['imagen'])
+                    <img class="producto-imagen w-full h-full object-cover"
+                         src="{{ $producto['imagen'] }}"
+                         alt="{{ $producto['nombre'] }}"/>
+                @else
+                    <div class="img-placeholder">
+                        <span class="material-symbols-outlined text-[#c4c5da] text-6xl">image</span>
+                    </div>
+                @endif
+
+                {{-- badge de estado: en stock, poco stock, sin stock --}}
+                @if($producto['stock'] === 'disponible')
+                    <div class="absolute top-4 left-4 bg-[#0035c5] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">En stock</div>
+                @elseif($producto['stock'] === 'poco')
+                    <div class="absolute top-4 left-4 bg-[#1a1c1c] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">Poco stock</div>
+                @elseif($producto['stock'] === 'agotado')
+                    <div class="absolute top-4 left-4 bg-[#8d1c00] text-white text-[10px] font-bold px-3 py-1 uppercase tracking-widest">Sin stock</div>
+                @endif
+            </div>
+
+            <div class="flex flex-col space-y-2">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-xl font-bold tracking-tight">{{ $producto['nombre'] }}</h3>
+                    <span class="text-[#0035c5] font-bold text-sm">${{ number_format($producto['precio'], 2) }}</span>
+                </div>
+                <p class="text-[#5e5e5e]/60 font-mono text-[10px] tracking-widest uppercase">ID: {{ $producto['id'] }}</p>
+
+                {{-- desglose de tallas/existencias --}}
+                <div class="pt-4 border-t border-[#c4c5da]/20 mt-2">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-[#1a1c1c]/40 mb-3">Desglose de inventario</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($producto['tallas'] ?? [] as $talla => $cantidad)
+                        <span class="bg-[#eeeeee] text-[#1a1c1c] px-3 py-1 text-[11px] font-bold">
+                            {{ $talla }}: <span class="{{ $cantidad <= 2 ? 'text-red-600' : 'text-[#0035c5]' }}">{{ str_pad($cantidad, 2, '0', STR_PAD_LEFT) }}</span>
+                        </span>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+        @empty
+        {{-- si no hay productos de la bd muestra los recuadros vacios de placeholder --}}
+        @for($i = 0; $i < 6; $i++)
+        <div class="producto-card group flex flex-col space-y-6">
+            <div class="aspect-[4/5] bg-[#f3f3f4] overflow-hidden relative flex items-center justify-center">
+                <span class="material-symbols-outlined text-[#c4c5da] text-6xl">image</span>
+            </div>
+            <div class="flex flex-col space-y-2">
+                <div class="flex justify-between items-start">
+                    <div class="h-4 bg-[#f3f3f4] w-32 rounded"></div>
+                    <div class="h-4 bg-[#f3f3f4] w-16 rounded"></div>
+                </div>
+                <div class="h-3 bg-[#f3f3f4] w-24 rounded mt-1"></div>
+                <div class="pt-4 border-t border-[#c4c5da]/20 mt-2">
+                    <div class="h-3 bg-[#f3f3f4] w-32 rounded mb-3"></div>
+                    <div class="flex gap-2">
+                        <div class="h-6 bg-[#f3f3f4] w-12 rounded"></div>
+                        <div class="h-6 bg-[#f3f3f4] w-12 rounded"></div>
+                        <div class="h-6 bg-[#f3f3f4] w-12 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endfor
+        @endforelse
+
+    </div>
+</main>
+
+<!-- MODAL NUEVO PRODUCTO -->
+{{-- este modal se abre al dar click en "nuevo producto" --}}
+{{-- cuando conectes la bd la ruta del form debe ser route('productos.store') o como la llames --}}
+<div id="modal-nuevo-producto"
+     class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm">
+
+    <div class="bg-white w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+
+        <!-- cabecera del modal -->
+        <div class="flex items-center justify-between px-8 py-6 border-b border-[#c4c5da]/20">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-[#0035c5] mb-1">Catálogo</p>
+                <h2 class="text-2xl font-bold tracking-tight">Nuevo producto</h2>
+            </div>
+            <button onclick="cerrarModal()"
+                    class="p-2 hover:bg-[#f3f3f4] transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- formulario -->
+        {{-- aqui conectas la ruta para guardar el producto, algo como action="{{ route('productos.store') }}" --}}
+        <form method="POST" action="#" enctype="multipart/form-data" class="px-8 py-6 space-y-6">
+            @csrf
+
+            <!-- nombre -->
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Nombre del producto</label>
+                <input type="text"
+                       name="nombre"
+                       placeholder="Ej. Tenis Nike Air Max"
+                       class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] transition-colors bg-[#f9f9f9]"/>
+            </div>
+
+            <!-- precio y categoria en la misma fila -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Precio</label>
+                    <input type="number"
+                           name="precio"
+                           placeholder="0.00"
+                           step="0.01"
+                           class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] transition-colors bg-[#f9f9f9]"/>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Categoría</label>
+                    {{-- aqui conectas las categorias desde la bd si quieres que sean dinamicas --}}
+                    <select name="categoria"
+                            class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] transition-colors bg-[#f9f9f9]">
+                        <option value="ropa">Ropa</option>
+                        <option value="calzado">Calzado</option>
+                        <option value="accesorios">Accesorios</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- imagen -->
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Imagen del producto</label>
+                <div class="border border-dashed border-[#c4c5da]/60 p-8 text-center bg-[#f9f9f9] cursor-pointer hover:border-[#0035c5] transition-colors"
+                     onclick="document.getElementById('input-imagen').click()">
+                    <span class="material-symbols-outlined text-[#c4c5da] text-4xl mb-2 block">upload</span>
+                    <p class="text-xs text-[#747688] font-semibold">Haz click para subir una imagen</p>
+                    <p class="text-[10px] text-[#747688]/60 mt-1">PNG, JPG hasta 5MB</p>
+                    <input type="file" id="input-imagen" name="imagen" accept="image/*" class="hidden"
+                           onchange="previsualizarImagen(this)"/>
+                </div>
+                <img id="preview-imagen" src="" alt="Preview" class="hidden mt-2 w-full max-h-48 object-contain border border-[#c4c5da]/20"/>
+            </div>
+
+            <!-- tallas/existencias -->
+            <div class="flex flex-col gap-3">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Tallas y existencias</label>
+                <div id="tallas-container" class="space-y-2">
+                    {{-- esto agrega filas de talla + cantidad, el JS lo maneja --}}
+                    <div class="flex gap-3 items-center talla-fila">
+                        <input type="text" name="tallas[]" placeholder="Talla (ej. S, M, 42)" 
+                               class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
+                        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0"
+                               class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
+                        <button type="button" onclick="eliminarTalla(this)"
+                                class="p-2 hover:bg-[#f3f3f4] transition-colors text-[#747688]">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" onclick="agregarTalla()"
+                        class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#0035c5] hover:opacity-70 transition-opacity mt-1">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                    Agregar talla
+                </button>
+            </div>
+
+            <!-- estado de stock -->
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Estado de stock</label>
+                <select name="stock"
+                        class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] transition-colors bg-[#f9f9f9]">
+                    <option value="disponible">En stock</option>
+                    <option value="poco">Poco stock</option>
+                    <option value="agotado">Sin stock</option>
+                </select>
+            </div>
+
+            <!-- botones del form -->
+            <div class="flex gap-3 pt-4 border-t border-[#c4c5da]/20">
+                <button type="submit"
+                        class="flex-1 bg-[#0035c5] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">
+                    GUARDAR PRODUCTO
+                </button>
+                <button type="button" onclick="cerrarModal()"
+                        class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
+                    CANCELAR
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- BOTTOM NAV (móvil) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-16 px-4 bg-white/80 backdrop-blur-xl border-t border-[#c4c5da]/20">
+    <a href="/dashboard" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Inicio</span>
+    </a>
+    <a href="/sales" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Ventas</span>
+    </a>
+    <a href="/catalog" class="flex flex-col items-center text-[#0035c5] border-t-2 border-[#0035c5] pt-2">
+        <span class="material-symbols-outlined">shopping_bag</span>
+        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span>
+    </a>
+    <a href="/inventario" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Stock</span>
+    </a>
+    <a href="#" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
+        <span class="material-symbols-outlined">group</span>
+        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Clientes</span>
+    </a>
+</nav>
+
+<script>
+// abre el modal de nuevo producto
+function abrirModal() {
+    document.getElementById('modal-nuevo-producto').classList.add('activo');
+    document.body.style.overflow = 'hidden';
+}
+
+// cierra el modal
+function cerrarModal() {
+    document.getElementById('modal-nuevo-producto').classList.remove('activo');
+    document.body.style.overflow = '';
+}
+
+// cierra el modal si le das click fuera de el
+document.getElementById('modal-nuevo-producto').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+});
+
+// agrega una nueva fila de talla + cantidad al formulario
+function agregarTalla() {
+    const container = document.getElementById('tallas-container');
+    const fila = document.createElement('div');
+    fila.className = 'flex gap-3 items-center talla-fila';
+    fila.innerHTML = `
+        <input type="text" name="tallas[]" placeholder="Talla (ej. S, M, 42)"
+               class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
+        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0"
+               class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
+        <button type="button" onclick="eliminarTalla(this)"
+                class="p-2 hover:bg-[#f3f3f4] transition-colors text-[#747688]">
+            <span class="material-symbols-outlined text-sm">delete</span>
+        </button>
+    `;
+    container.appendChild(fila);
+}
+
+// elimina una fila de talla
+function eliminarTalla(btn) {
+    const fila = btn.closest('.talla-fila');
+    if (document.querySelectorAll('.talla-fila').length > 1) {
+        fila.remove();
+    }
+}
+
+// muestra preview de la imagen antes de subir
+function previsualizarImagen(input) {
+    const preview = document.getElementById('preview-imagen');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// filtra los productos por categoria al dar click en los botones
+function filtrar(categoria, btn) {
+    // actualizo el boton activo
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+    btn.classList.add('activo');
+
+    // muestro u oculto las tarjetas segun la categoria
+    document.querySelectorAll('.producto-card').forEach(card => {
+        if (categoria === 'todos' || card.dataset.categoria === categoria) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+
+    <!-- SIDEBAR OVERLAY -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 opacity-0 invisible transition-all duration-300"
+         onclick="cerrarSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <div id="sidebar" class="fixed left-[-300px] top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 transition-all duration-300 overflow-y-auto">
+
+        <!-- LOGO BOX -->
+        <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
+            <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
+                <div class="w-8 h-8 bg-[#0035c5] flex items-center justify-center shrink-0">
+                    <span class="text-white font-black text-sm">R</span>
+                </div>
+                <div>
+                    <p class="font-black text-sm tracking-tighter text-[#1a1c1c]">Robles Sport</p>
+                    <p class="text-[9px] font-bold uppercase tracking-widest text-[#747688] mt-0.5">Panel de administración</p>
+                </div>
+            </div>
+            <button onclick="cerrarSidebar()" class="p-2 hover:bg-[#f3f3f4] transition-colors ml-3">
+                <span class="material-symbols-outlined text-[#747688] text-lg">close</span>
+            </button>
+        </div>
+
+        <!-- NAVEGACIÓN -->
+        <div class="flex-1">
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-5 pt-4 pb-2">Navegación</p>
+
+            <!-- INICIO -->
+            <button onclick="toggleMenu('inicio')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                    Inicio
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-inicio">expand_more</span>
+            </button>
+            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-inicio">
+                <a href="{{ route('dashboard') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver rendimiento diario</a>
+                <a href="{{ route('resumen') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Resumen diario</a>
+                <a href="{{ route('reporte') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Reporte completo</a>
+            </div>
+
+            <!-- VENTAS -->
+            <button onclick="toggleMenu('ventas')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+                    Ventas
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-ventas">expand_more</span>
+            </button>
+            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-ventas">
+                <a href="{{ route('sales') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Abrir registro</a>
+                <a href="{{ route('sales') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver ventas del día</a>
+            </div>
+
+            <!-- CATÁLOGO -->
+            <button onclick="toggleMenu('catalogo')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+                    Catálogo
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-catalogo">expand_more</span>
+            </button>
+            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-catalogo">
+                <a href="{{ route('catalog') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver productos</a>
+                <a href="{{ route('catalog') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Nuevo producto</a>
+            </div>
+
+            <!-- INVENTARIO -->
+            <button onclick="toggleMenu('inventario')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+                    Inventario
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-inventario">expand_more</span>
+            </button>
+            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-inventario">
+                <a href="{{ route('inventario') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver inventario</a>
+                <a href="{{ route('inventario') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver stock bajo</a>
+            </div>
+
+            <!-- CLIENTES -->
+            <button onclick="toggleMenu('clientes')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[18px]">group</span>
+                    Clientes
+                </div>
+                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-clientes">expand_more</span>
+            </button>
+            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-clientes">
+                <a href="#" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver clientes</a>
+                <a href="#" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Agregar cliente</a>
+            </div>
+        </div>
+
+        <!-- FOOTER CON USUARIO -->
+        <div class="border-t border-[#c4c5da]/15 p-5">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">
+                    <span class="text-white font-black text-xs">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-[#1a1c1c]">{{ Auth::user()->name ?? 'Usuario' }}</p>
+                    <p class="text-[10px] text-[#747688]">{{ Auth::user()->email ?? '' }}</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 transition-colors">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function abrirSidebar() {
+        document.getElementById('sidebar').style.left = '0';
+        document.getElementById('sidebar-overlay').classList.remove('opacity-0', 'invisible');
+        document.getElementById('sidebar-overlay').classList.add('opacity-100', 'visible');
+        document.body.style.overflow = 'hidden';
+    }
+    function cerrarSidebar() {
+        document.getElementById('sidebar').style.left = '-300px';
+        document.getElementById('sidebar-overlay').classList.add('opacity-0', 'invisible');
+        document.getElementById('sidebar-overlay').classList.remove('opacity-100', 'visible');
+        document.body.style.overflow = '';
+    }
+    function toggleMenu(id) {
+        const menu = document.getElementById('menu-' + id);
+        const chevron = document.getElementById('chevron-' + id);
+        const isOpen = menu.style.maxHeight && menu.style.maxHeight !== '0px';
+        document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.maxHeight = '0px');
+        document.querySelectorAll('[id^="chevron-"]').forEach(c => c.style.transform = 'rotate(0deg)');
+        if (!isOpen) {
+            menu.style.maxHeight = menu.scrollHeight + 'px';
+            chevron.style.transform = 'rotate(180deg)';
+        }
+    }
+    </script>
+
+</body>
+</html>

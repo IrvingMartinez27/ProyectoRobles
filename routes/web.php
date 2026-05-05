@@ -69,7 +69,13 @@ Route::get('/reporte', function () {
     return view('reporte');
 })->name('reporte');
 
-// 👉 REPONER INVENTARIO
+// REPONER INVENTARIO
 Route::post('/reponer', function (Request $request) {
     return view('reponer');
 })->name('reponer');
+
+Route::get('/inventario', function () {
+    return view('inventario', [
+        'productos' => []
+    ]);
+})->name('inventario');

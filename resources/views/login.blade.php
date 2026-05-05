@@ -68,7 +68,7 @@
 
             <!-- LOGO -->
             <div class="relative z-10 text-white flex flex-col gap-4 max-w-sm">
-                <img src="/images/logo-white.svg" alt="Logo Blanco" class="w-64 h-auto object-contain"/>
+                <img src="/images/logo-rb-white.svg" alt="Logo Blanco" class="w-64 h-auto object-contain"/>
             </div>
         </section>
 
