@@ -327,7 +327,7 @@
         <span class="material-symbols-outlined">inventory_2</span>
         <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Stock</span>
     </a>
-    <a href="#" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
+    <a href="/clientes" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
         <span class="material-symbols-outlined">group</span>
         <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Clientes</span>
     </a>
@@ -486,7 +486,7 @@ function buscar(query) {
                 <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-clientes">expand_more</span>
             </button>
             <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-clientes">
-                <a href="#" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver clientes</a>
+                <a href="/clientes" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver clientes</a>
                 <a href="#" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Agregar cliente</a>
             </div>
         </div>
