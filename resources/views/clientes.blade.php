@@ -53,6 +53,17 @@
     </div>
 </nav>
 
+<!-- BREADCRUMB -->
+    <div class="pt-24 px-6 max-w-7xl mx-auto">
+        <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#747688] py-3">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-1 hover:text-[#0035c5] transition-colors">
+                <span class="material-symbols-outlined text-[14px]">grid_view</span>
+                Inicio
+            </a>
+            <span class="material-symbols-outlined text-[14px] text-[#c4c5da]">chevron_right</span>
+            <span class="text-[#1a1c1c]">Clientes</span>
+        </div>
+    </div>
 <main class="max-w-[1440px] mx-auto px-6 py-12 pb-24">
 
     <!-- HEADER -->
@@ -348,194 +359,130 @@
 </div>
 
 <!-- SIDEBAR OVERLAY -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 opacity-0 invisible transition-all duration-300"
-     onclick="cerrarSidebar()"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 opacity-0 invisible transition-all duration-300"
+         onclick="cerrarSidebar()"></div>
 
-<!-- SIDEBAR -->
-<div id="sidebar" class="fixed top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 overflow-y-auto" style="left: -300px;">
-    <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
-        <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
-            <div class="w-8 h-8 bg-[#0035c5] flex items-center justify-center shrink-0">
-                <span class="text-white font-black text-sm">R</span>
+    <!-- SIDEBAR -->
+    <div id="sidebar" class="fixed top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 overflow-y-auto" style="left: -300px;">
+
+        <!-- LOGO BOX -->
+        <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
+            <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
+                <div class="w-8 h-8 bg-[#0035c5] flex items-center justify-center shrink-0">
+                    <span class="text-white font-black text-sm">R</span>
+                </div>
+                <div>
+                    <p class="font-black text-sm tracking-tighter text-[#1a1c1c]">Robles Sport</p>
+                    <p class="text-[9px] font-bold uppercase tracking-widest text-[#747688] mt-0.5">Panel de administración</p>
+                </div>
             </div>
-            <div>
-                <p class="font-black text-sm tracking-tighter text-[#1a1c1c]">Robles Sport</p>
-                <p class="text-[9px] font-bold uppercase tracking-widest text-[#747688] mt-0.5">Panel de administración</p>
-            </div>
-        </div>
-        <button onclick="cerrarSidebar()" class="p-2 hover:bg-[#f3f3f4] transition-colors ml-3">
-            <span class="material-symbols-outlined text-[#747688] text-lg">close</span>
-        </button>
-    </div>
-
-    <div class="flex-1">
-        <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-5 pt-4 pb-2">Navegación</p>
-
-        <button onclick="toggleMenu('inicio')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-            <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">dashboard</span>Inicio</div>
-            <span class="material-symbols-outlined text-[16px] text-[#c4c5da]" id="chevron-inicio">expand_more</span>
-        </button>
-        <div class="overflow-hidden max-h-0 transition-all duration-300" id="menu-inicio">
-            <a href="{{ route('dashboard') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver rendimiento diario</a>
-            <a href="{{ route('resumen') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Resumen diario</a>
-            <a href="{{ route('reporte') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Reporte completo</a>
-        </div>
-
-        <button onclick="toggleMenu('ventas')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-            <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">receipt_long</span>Ventas</div>
-            <span class="material-symbols-outlined text-[16px] text-[#c4c5da]" id="chevron-ventas">expand_more</span>
-        </button>
-        <div class="overflow-hidden max-h-0 transition-all duration-300" id="menu-ventas">
-            <a href="{{ route('sales') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Abrir registro</a>
-            <a href="{{ route('sales') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver ventas del día</a>
-        </div>
-
-        <button onclick="toggleMenu('catalogo')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-            <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">shopping_bag</span>Catálogo</div>
-            <span class="material-symbols-outlined text-[16px] text-[#c4c5da]" id="chevron-catalogo">expand_more</span>
-        </button>
-        <div class="overflow-hidden max-h-0 transition-all duration-300" id="menu-catalogo">
-            <a href="{{ route('catalog') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver productos</a>
-            <a href="{{ route('catalog') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Nuevo producto</a>
-        </div>
-
-        <button onclick="toggleMenu('inventario')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-            <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">inventory_2</span>Inventario</div>
-            <span class="material-symbols-outlined text-[16px] text-[#c4c5da]" id="chevron-inventario">expand_more</span>
-        </button>
-        <div class="overflow-hidden max-h-0 transition-all duration-300" id="menu-inventario">
-            <a href="{{ route('inventario') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver inventario</a>
-            <a href="{{ route('inventario') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver stock bajo</a>
-        </div>
-
-        <button onclick="toggleMenu('clientes')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#0035c5] hover:bg-[#f3f3f4] transition-colors border-l-2 border-[#0035c5]">
-            <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[18px]">group</span>Clientes</div>
-            <span class="material-symbols-outlined text-[16px] text-[#0035c5]" id="chevron-clientes">expand_more</span>
-        </button>
-        <div class="overflow-hidden max-h-0 transition-all duration-300" id="menu-clientes">
-            <a href="{{ route('clientes') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver clientes</a>
-            <a href="#" onclick="cerrarSidebar(); abrirModalCliente();" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Agregar cliente</a>
-        </div>
-    </div>
-
-    <div class="border-t border-[#c4c5da]/15 p-5">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">
-                <span class="text-white font-black text-xs">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
-            </div>
-            <div>
-                <p class="text-sm font-bold text-[#1a1c1c]">{{ Auth::user()->name ?? 'Usuario' }}</p>
-                <p class="text-[10px] text-[#747688]">{{ Auth::user()->email ?? '' }}</p>
-            </div>
-        </div>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 transition-colors">
-                <span class="material-symbols-outlined text-sm">logout</span>
-                Cerrar sesión
+            <button onclick="cerrarSidebar()" class="p-2 hover:bg-[#f3f3f4] transition-colors ml-3">
+                <span class="material-symbols-outlined text-[#747688] text-lg">close</span>
             </button>
-        </form>
-    </div>
-</div>
+        </div>
 
-<!-- BOTTOM NAV (móvil) -->
-<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-16 px-4 bg-white/80 backdrop-blur-xl border-t border-[#c4c5da]/20">
-    <a href="/dashboard" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">dashboard</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Inicio</span>
-    </a>
-    <a href="/sales" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">receipt_long</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Ventas</span>
-    </a>
-    <a href="/catalog" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">shopping_bag</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span>
-    </a>
-    <a href="/inventario" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">inventory_2</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Stock</span>
-    </a>
-    <a href="/clientes" class="flex flex-col items-center text-[#0035c5] border-t-2 border-[#0035c5] pt-2">
-        <span class="material-symbols-outlined">group</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Clientes</span>
-    </a>
-</nav>
+        <!-- ACCIONES RAPIDAS -->
+        <div class="flex-1 p-4 space-y-1">
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Acciones rápidas</p>
+            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()" class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>Ir al inicio
+            </a>
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-<script>
-// sidebar
-function abrirSidebar() {
-    document.getElementById('sidebar').style.left = '0';
-    document.getElementById('sidebar-overlay').classList.remove('opacity-0', 'invisible');
-    document.getElementById('sidebar-overlay').classList.add('opacity-100', 'visible');
-    document.body.style.overflow = 'hidden';
-}
-function cerrarSidebar() {
-    document.getElementById('sidebar').style.left = '-300px';
-    document.getElementById('sidebar-overlay').classList.add('opacity-0', 'invisible');
-    document.getElementById('sidebar-overlay').classList.remove('opacity-100', 'visible');
-    document.body.style.overflow = '';
-}
-function toggleMenu(id) {
-    const menu = document.getElementById('menu-' + id);
-    const chevron = document.getElementById('chevron-' + id);
-    const isOpen = menu.style.maxHeight && menu.style.maxHeight !== '0px';
-    document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.maxHeight = '0px');
-    document.querySelectorAll('[id^="chevron-"]').forEach(c => c.style.transform = 'rotate(0deg)');
-    if (!isOpen) {
-        menu.style.maxHeight = menu.scrollHeight + 'px';
-        chevron.style.transform = 'rotate(180deg)';
-    }
-}
+            <!-- INICIO -->
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inicio</p>
+            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">point_of_sale</span>
+                Abrir registro de ventas
+            </a>
+            <a href="{{ route('resumen') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">summarize</span>
+                Ver resumen diario
+            </a>
+            <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">bar_chart</span>
+                Ver reporte completo
+            </a>
 
-// modal nuevo cliente
-function abrirModalCliente() {
-    document.getElementById('modal-nuevo-cliente').classList.add('activo');
-    document.body.style.overflow = 'hidden';
-}
-function cerrarModalCliente() {
-    document.getElementById('modal-nuevo-cliente').classList.remove('activo');
-    document.body.style.overflow = '';
-}
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-// modal historial de compras
-// cuando conectes la bd aqui van las compras del cliente
-function abrirHistorial(cliente) {
-    document.getElementById('historial-nombre').textContent = cliente.nombre;
-    document.getElementById('historial-total').textContent = '$' + parseFloat(cliente.total_gastado ?? 0).toFixed(2);
+            <!-- VENTAS -->
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Ventas</p>
+            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                Nueva venta
+            </a>
 
-    const lista = document.getElementById('historial-lista');
-    if (cliente.compras && cliente.compras.length > 0) {
-        lista.innerHTML = cliente.compras.map(c => `
-            <div class="grid grid-cols-12 px-8 py-4 border-b border-[#c4c5da]/10 hover:bg-[#f9f9f9] transition-colors">
-                <div class="col-span-3 font-mono text-[10px] text-[#747688] uppercase">#${c.id}</div>
-                <div class="col-span-3 text-sm text-[#747688]">${c.fecha}</div>
-                <div class="col-span-3 text-sm">${c.num_productos} artículo(s)</div>
-                <div class="col-span-3 text-right font-black text-[#0035c5]">$${parseFloat(c.total).toFixed(2)}</div>
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
+
+            <!-- CATALOGO -->
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Catálogo</p>
+            <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">shopping_bag</span>
+                Ir al catálogo
+            </a>
+
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
+
+            <!-- INVENTARIO -->
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inventario</p>
+            <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all">
+                <span class="material-symbols-outlined text-[16px]">warning</span>
+                Ver stock bajo
+            </a>
+
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
+
+            <!-- CLIENTES -->
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Clientes</p>
+            <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">person_add</span>
+                Nuevo cliente
+            </a>
+        </div>
+
+        <!-- FOOTER USUARIO -->
+        <div class="border-t border-[#c4c5da]/15 p-5">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">
+                    <span class="text-white font-black text-xs">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-[#1a1c1c]">{{ Auth::user()->name ?? 'Usuario' }}</p>
+                    <p class="text-[10px] text-[#747688]">{{ Auth::user()->email ?? '' }}</p>
+                </div>
             </div>
-        `).join('');
-    } else {
-        lista.innerHTML = '<div class="px-8 py-16 text-center text-[#747688] text-sm">Sin compras registradas</div>';
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 transition-colors">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function abrirSidebar() {
+        document.getElementById('sidebar').style.left = '0';
+        document.getElementById('sidebar-overlay').classList.remove('opacity-0', 'invisible');
+        document.getElementById('sidebar-overlay').classList.add('opacity-100', 'visible');
+        document.body.style.overflow = 'hidden';
     }
-
-    document.getElementById('modal-historial').classList.add('activo');
-    document.body.style.overflow = 'hidden';
-}
-function cerrarHistorial() {
-    document.getElementById('modal-historial').classList.remove('activo');
-    document.body.style.overflow = '';
-}
-
-// buscar cliente por nombre o email
-function buscarCliente(query) {
-    const q = query.toLowerCase();
-    document.querySelectorAll('.fila-cliente').forEach(fila => {
-        const nombre = fila.dataset.nombre ?? '';
-        const email = fila.dataset.email ?? '';
-        fila.style.display = (nombre.includes(q) || email.includes(q)) ? '' : 'none';
-    });
-}
-</script>
+    function cerrarSidebar() {
+        document.getElementById('sidebar').style.left = '-300px';
+        document.getElementById('sidebar-overlay').classList.add('opacity-0', 'invisible');
+        document.getElementById('sidebar-overlay').classList.remove('opacity-100', 'visible');
+        document.body.style.overflow = '';
+    }
+    </script>
 
 </body>
 </html>

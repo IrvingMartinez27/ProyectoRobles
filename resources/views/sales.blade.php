@@ -57,7 +57,18 @@
     </div>
 </nav>
 
-<main class="min-h-screen pt-24 pb-20 md:pb-8 px-4 md:px-8 max-w-[1600px] mx-auto">
+<!-- BREADCRUMB -->
+    <div class="pt-24 px-6 max-w-7xl mx-auto">
+        <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#747688] py-3">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-1 hover:text-[#0035c5] transition-colors">
+                <span class="material-symbols-outlined text-[14px]">grid_view</span>
+                Inicio
+            </a>
+            <span class="material-symbols-outlined text-[14px] text-[#c4c5da]">chevron_right</span>
+            <span class="text-[#1a1c1c]">Ventas</span>
+        </div>
+    </div>
+<main class="min-h-screen pb-20 md:pb-8 px-4 md:px-8 max-w-[1600px] mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- LISTA DE VENTAS -->
@@ -325,7 +336,7 @@ function enviarDigital() {
          onclick="cerrarSidebar()"></div>
 
     <!-- SIDEBAR -->
-    <div id="sidebar" class="fixed left-[-300px] top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 transition-all duration-300 overflow-y-auto">
+    <div id="sidebar" class="fixed top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 overflow-y-auto" style="left: -300px;">
 
         <!-- LOGO BOX -->
         <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
@@ -343,78 +354,74 @@ function enviarDigital() {
             </button>
         </div>
 
-        <!-- NAVEGACIÓN -->
-        <div class="flex-1">
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-5 pt-4 pb-2">Navegación</p>
+        <!-- ACCIONES RAPIDAS -->
+        <div class="flex-1 p-4 space-y-1">
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Acciones rápidas</p>
+            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()" class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>Ir al inicio
+            </a>
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
             <!-- INICIO -->
-            <button onclick="toggleMenu('inicio')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px]">dashboard</span>
-                    Inicio
-                </div>
-                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-inicio">expand_more</span>
-            </button>
-            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-inicio">
-                <a href="{{ route('dashboard') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver rendimiento diario</a>
-                <a href="{{ route('resumen') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Resumen diario</a>
-                <a href="{{ route('reporte') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Reporte completo</a>
-            </div>
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inicio</p>
+            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">point_of_sale</span>
+                Abrir registro de ventas
+            </a>
+            <a href="{{ route('resumen') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">summarize</span>
+                Ver resumen diario
+            </a>
+            <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">bar_chart</span>
+                Ver reporte completo
+            </a>
+
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
             <!-- VENTAS -->
-            <button onclick="toggleMenu('ventas')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-                    Ventas
-                </div>
-                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-ventas">expand_more</span>
-            </button>
-            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-ventas">
-                <a href="{{ route('sales') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Abrir registro</a>
-                <a href="{{ route('sales') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver ventas del día</a>
-            </div>
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Ventas</p>
+            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                Nueva venta
+            </a>
 
-            <!-- CATÁLOGO -->
-            <button onclick="toggleMenu('catalogo')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
-                    Catálogo
-                </div>
-                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-catalogo">expand_more</span>
-            </button>
-            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-catalogo">
-                <a href="{{ route('catalog') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver productos</a>
-                <a href="{{ route('catalog') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Nuevo producto</a>
-            </div>
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
+
+            <!-- CATALOGO -->
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Catálogo</p>
+            <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">shopping_bag</span>
+                Ir al catálogo
+            </a>
+
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
             <!-- INVENTARIO -->
-            <button onclick="toggleMenu('inventario')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px]">inventory_2</span>
-                    Inventario
-                </div>
-                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-inventario">expand_more</span>
-            </button>
-            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-inventario">
-                <a href="{{ route('inventario') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver inventario</a>
-                <a href="{{ route('inventario') }}" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver stock bajo</a>
-            </div>
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inventario</p>
+            <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all">
+                <span class="material-symbols-outlined text-[16px]">warning</span>
+                Ver stock bajo
+            </a>
+
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
             <!-- CLIENTES -->
-            <button onclick="toggleMenu('clientes')" class="w-full flex items-center justify-between px-5 py-3 text-[11px] font-black uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] transition-colors">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-[18px]">group</span>
-                    Clientes
-                </div>
-                <span class="material-symbols-outlined text-[16px] text-[#c4c5da] transition-transform duration-300" id="chevron-clientes">expand_more</span>
-            </button>
-            <div class="overflow-hidden transition-all duration-300 max-h-0" id="menu-clientes">
-                <a href="/clientes" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Ver clientes</a>
-                <a href="#" class="block pl-14 pr-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-[#5e5e5e] hover:text-[#0035c5] hover:bg-[#f9f9f9] transition-all">— Agregar cliente</a>
-            </div>
+            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Clientes</p>
+            <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">person_add</span>
+                Nuevo cliente
+            </a>
         </div>
 
-        <!-- FOOTER CON USUARIO -->
+        <!-- FOOTER USUARIO -->
         <div class="border-t border-[#c4c5da]/15 p-5">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">
@@ -447,17 +454,6 @@ function enviarDigital() {
         document.getElementById('sidebar-overlay').classList.add('opacity-0', 'invisible');
         document.getElementById('sidebar-overlay').classList.remove('opacity-100', 'visible');
         document.body.style.overflow = '';
-    }
-    function toggleMenu(id) {
-        const menu = document.getElementById('menu-' + id);
-        const chevron = document.getElementById('chevron-' + id);
-        const isOpen = menu.style.maxHeight && menu.style.maxHeight !== '0px';
-        document.querySelectorAll('[id^="menu-"]').forEach(m => m.style.maxHeight = '0px');
-        document.querySelectorAll('[id^="chevron-"]').forEach(c => c.style.transform = 'rotate(0deg)');
-        if (!isOpen) {
-            menu.style.maxHeight = menu.scrollHeight + 'px';
-            chevron.style.transform = 'rotate(180deg)';
-        }
     }
     </script>
 
