@@ -22,16 +22,24 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'telefono' => 'required'
+            'name'     => 'required',
+            'telefono' => 'required|unique:clients,telefono',
+        ], [
+            'name.required'     => 'El nombre es obligatorio.',
+            'telefono.required' => 'El teléfono es obligatorio.',
+            'telefono.unique'   => 'Este teléfono ya está registrado.',
         ]);
 
-        $nameCompleto = $request->name . ' ' . $request->apellido;
+        $nameCompleto = trim($request->name . ' ' . $request->apellido);
+
+        if (Client::whereRaw('LOWER(name) = ?', [strtolower($nameCompleto)])->exists()) {
+            return back()->withErrors(['name' => 'Ya existe un cliente con ese nombre.'])->withInput();
+        }
 
         Client::create([
-            'name' => $nameCompleto,
-            'telefono' => $request->telefono,
-            'direccion' => 'N/A'
+            'name'      => $nameCompleto,
+            'telefono'  => $request->telefono,
+            'direccion' => $request->direccion,
         ]);
 
         return redirect()->route('clientes');
