@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\ClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,10 +85,7 @@ Route::get('/inventario', function () {
     ]);
 })->name('inventario');
 
-// Muestra la lista de clientes con top compradores e historial de compras
-// Por ahora manda arreglos vacios, tu companero los reemplaza con las queries reales
-Route::get('/clientes', fn() => view('clientes', [
-    'clientes'       => [],
-    'topCompradores' => [],
-    'nuevosEsteMes'  => 0
-]))->name('clientes');
+Route::get('/clientes', [ClientController::class, 'index'])->name('clientes');
+Route::post('/clientes', [ClientController::class, 'store'])->name('clientes.store');
+Route::put('/clientes/{client}', [ClientController::class, 'update'])->name('clientes.update');
+Route::delete('/clientes/{client}', [ClientController::class, 'destroy'])->name('clientes.destroy');

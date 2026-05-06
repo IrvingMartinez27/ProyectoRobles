@@ -79,7 +79,7 @@
             {{-- cards de resumen rapido --}}
             <div class="bg-[#f3f3f4] px-6 py-4 text-center">
                 <p class="text-[10px] font-black uppercase tracking-widest text-[#747688] mb-1">Total clientes</p>
-                <p class="text-3xl font-black text-[#1a1c1c]">{{ count($clientes ?? []) }}</p>
+                <p class="text-3xl font-black text-[#1a1c1c]">{{ $clientes->count() }}</p>
             </div>
             <div class="bg-[#0035c5] px-6 py-4 text-center">
                 <p class="text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">Nuevos este mes</p>
@@ -187,78 +187,60 @@
                         <th class="text-right px-6 py-4 text-[10px] font-black tracking-widest uppercase text-[#747688]">Acción</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @forelse($clientes ?? [] as $cliente)
-                    <tr class="fila-cliente border-b border-[#c4c5da]/10 transition-colors"
-                        data-nombre="{{ strtolower($cliente['nombre']) }}"
-                        data-email="{{ strtolower($cliente['email']) }}">
+              <tbody>
+@forelse($clientes as $cliente)
+<tr class="fila-cliente border-b border-[#c4c5da]/10 transition-colors"
+    data-nombre="{{ strtolower($cliente->name) }}"
+    data-email="">
 
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 bg-[#0035c5]/10 flex items-center justify-center shrink-0">
-                                    <span class="text-[#0035c5] font-black text-xs">
-                                        {{ strtoupper(substr($cliente['nombre'], 0, 1)) }}{{ strtoupper(substr(strstr($cliente['nombre'], ' '), 1, 1)) }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p class="font-bold text-sm uppercase">{{ $cliente['nombre'] }}</p>
-                                    @if(($cliente['num_compras'] ?? 0) >= 5)
-                                    <span class="text-[9px] font-black px-1.5 py-0.5 bg-[#0035c5] text-white uppercase tracking-widest">Frecuente</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </td>
+    <td class="px-6 py-4">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-[#0035c5]/10 flex items-center justify-center shrink-0">
+                <span class="text-[#0035c5] font-black text-xs">
+                    {{ strtoupper(substr($cliente->name, 0, 1)) }}
+                </span>
+            </div>
+            <div>
+                <p class="font-bold text-sm uppercase">{{ $cliente->name }}</p>
+            </div>
+        </div>
+    </td>
 
-                        <td class="px-6 py-4">
-                            <p class="text-sm text-[#747688]">{{ $cliente['email'] }}</p>
-                        </td>
+    <td class="px-6 py-4">
+        <p class="text-sm text-[#747688]">—</p>
+    </td>
 
-                        <td class="px-6 py-4">
-                            <p class="text-sm text-[#747688]">{{ $cliente['telefono'] ?? '—' }}</p>
-                        </td>
+    <td class="px-6 py-4">
+        <p class="text-sm text-[#747688]">{{ $cliente->telefono }}</p>
+    </td>
 
-                        <td class="px-6 py-4 text-center">
-                            <span class="text-lg font-black">{{ $cliente['num_compras'] ?? 0 }}</span>
-                        </td>
+    <td class="px-6 py-4 text-center">
+        <span class="text-lg font-black">0</span>
+    </td>
 
-                        <td class="px-6 py-4 text-center">
-                            <span class="text-sm font-black text-[#0035c5]">${{ number_format($cliente['total_gastado'] ?? 0, 2) }}</span>
-                        </td>
+    <td class="px-6 py-4 text-center">
+        <span class="text-sm font-black text-[#0035c5]">$0.00</span>
+    </td>
 
-                        <td class="px-6 py-4">
-                            <p class="text-sm text-[#747688]">{{ $cliente['ultima_compra'] ?? '—' }}</p>
-                        </td>
+    <td class="px-6 py-4">
+        <p class="text-sm text-[#747688]">—</p>
+    </td>
 
-                        <td class="px-6 py-4 text-right">
-                            {{-- al dar click abre el modal con el historial de compras del cliente --}}
-                            <button onclick="abrirHistorial({{ json_encode($cliente) }})"
-                                    class="px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#1a1c1c] hover:text-white hover:border-[#1a1c1c] transition-all flex items-center gap-1 ml-auto">
-                                <span class="material-symbols-outlined text-sm">history</span>
-                                Historial
-                            </button>
-                        </td>
+    <td class="px-6 py-4 text-right">
+        <button onclick="abrirHistorial({{ $cliente->toJson() }})"
+                class="px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#1a1c1c] hover:text-white hover:border-[#1a1c1c] transition-all flex items-center gap-1 ml-auto">
+            <span class="material-symbols-outlined text-sm">history</span>
+            Historial
+        </button>
+    </td>
 
-                    </tr>
-                    @empty
-                    {{-- placeholders --}}
-                    @for($i = 0; $i < 5; $i++)
-                    <tr class="border-b border-[#c4c5da]/10">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 bg-[#f3f3f4] shrink-0"></div>
-                                <div class="h-3 bg-[#f3f3f4] w-28 rounded"></div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-36 rounded"></div></td>
-                        <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-24 rounded"></div></td>
-                        <td class="px-6 py-4 text-center"><div class="h-4 bg-[#f3f3f4] w-6 rounded mx-auto"></div></td>
-                        <td class="px-6 py-4 text-center"><div class="h-3 bg-[#f3f3f4] w-16 rounded mx-auto"></div></td>
-                        <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-20 rounded"></div></td>
-                        <td class="px-6 py-4 text-right"><div class="h-8 bg-[#f3f3f4] w-20 rounded ml-auto"></div></td>
-                    </tr>
-                    @endfor
-                    @endforelse
-                </tbody>
+</tr>
+@empty
+<tr>
+    <td colspan="7" class="text-center py-10 text-[#747688]">Sin clientes</td>
+</tr>
+@endforelse
+</tbody>
             </table>
         </div>
     </section>
@@ -280,12 +262,12 @@
             </button>
         </div>
         {{-- aqui conectas la ruta para guardar el cliente, algo como action="{{ route('clientes.store') }}" --}}
-        <form method="POST" action="#" class="px-8 py-6 space-y-5">
+        <form method="POST" action="{{ route('clientes.store') }}" class="px-8 py-6 space-y-5">
             @csrf
             <div class="grid grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
                     <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Nombre</label>
-                    <input type="text" name="nombre" placeholder="Ej. Juan"
+                    <input type="text" name="name" placeholder="Ej. Juan"
                            class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
                 </div>
                 <div class="flex flex-col gap-1">
@@ -483,6 +465,15 @@
         document.body.style.overflow = '';
     }
     </script>
+    <script>
+function abrirModalCliente() {
+    document.getElementById('modal-nuevo-cliente').classList.add('activo');
+}
+
+function cerrarModalCliente() {
+    document.getElementById('modal-nuevo-cliente').classList.remove('activo');
+}
+</script>
 
 </body>
 </html>
