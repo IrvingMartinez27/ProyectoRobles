@@ -20,7 +20,7 @@
         <button onclick="abrirSidebar()" class="hover:opacity-70 transition-opacity">
             <span class="material-symbols-outlined text-[#0035c5]">menu</span>
         </button>
-        <span class="font-black tracking-tighter text-xl text-[#1a1c1c]">Robles Sport</span>
+        <a href="{{ route('dashboard') }}" class="font-black tracking-tighter text-xl text-[#1a1c1c] hover:opacity-70 transition-opacity">Robles Sport</a>
     </div>
 
     <div class="relative group">
@@ -177,7 +177,6 @@
     <!-- SIDEBAR -->
     <div id="sidebar" class="fixed top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 overflow-y-auto" style="left: -300px;">
 
-        <!-- LOGO BOX -->
         <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
             <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
                 <div class="w-8 h-8 bg-[#0035c5] flex items-center justify-center shrink-0">
@@ -193,35 +192,17 @@
             </button>
         </div>
 
-        <!-- ACCIONES RAPIDAS -->
         <div class="flex-1 p-4 space-y-1">
             <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Acciones rápidas</p>
-            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()" class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">grid_view</span>Ir al inicio
-            </a>
-            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- INICIO -->
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inicio</p>
-            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
+            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">point_of_sale</span>
-                Abrir registro de ventas
-            </a>
-            <a href="{{ route('resumen') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">summarize</span>
-                Ver resumen diario
-            </a>
-            <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">bar_chart</span>
-                Ver reporte completo
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                Ir al inicio
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- VENTAS -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Ventas</p>
             <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
@@ -231,36 +212,32 @@
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- CATALOGO -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Catálogo</p>
             <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">shopping_bag</span>
+                <span class="material-symbols-outlined text-[16px]">storefront</span>
                 Ir al catálogo
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- INVENTARIO -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inventario</p>
             <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all">
-                <span class="material-symbols-outlined text-[16px]">warning</span>
-                Ver stock bajo
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">inventory_2</span>
+                Ir al inventario
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- CLIENTES -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Clientes</p>
             <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">person_add</span>
-                Nuevo cliente
+                <span class="material-symbols-outlined text-[16px]">group</span>
+                Ir a clientes
             </a>
         </div>
 
-        <!-- FOOTER USUARIO -->
         <div class="border-t border-[#c4c5da]/15 p-5">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">

@@ -25,7 +25,7 @@
         <button onclick="abrirSidebar()" class="hover:opacity-70 transition-opacity">
             <span class="material-symbols-outlined text-[#0035c5]">menu</span>
         </button>
-        <span class="font-black tracking-tighter text-xl text-[#1a1c1c]">Robles Sport</span>
+        <a href="{{ route('dashboard') }}" class="font-black tracking-tighter text-xl text-[#1a1c1c] hover:opacity-70 transition-opacity">Robles Sport</a>
     </div>
 
     <div class="relative group">
@@ -372,6 +372,14 @@ function cerrarModalStock() {
         <div class="flex-1 p-4 space-y-1">
             <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Acciones rápidas</p>
 
+            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                Ir al inicio
+            </a>
+
+            <div class="border-t border-[#c4c5da]/20 my-2"></div>
+
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Ventas</p>
             <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
@@ -384,17 +392,17 @@ function cerrarModalStock() {
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Catálogo</p>
             <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">add_box</span>
-                Nuevo producto
+                <span class="material-symbols-outlined text-[16px]">storefront</span>
+                Ir al catálogo
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inventario</p>
             <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all">
-                <span class="material-symbols-outlined text-[16px]">warning</span>
-                Ver stock bajo
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">inventory_2</span>
+                Ir al inventario
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
@@ -402,8 +410,8 @@ function cerrarModalStock() {
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Clientes</p>
             <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">person_add</span>
-                Nuevo cliente
+                <span class="material-symbols-outlined text-[16px]">group</span>
+                Ir a clientes
             </a>
         </div>
 

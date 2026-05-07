@@ -31,7 +31,7 @@
         <button onclick="abrirSidebar()" class="hover:opacity-70 transition-opacity">
             <span class="material-symbols-outlined text-[#0035c5]">menu</span>
         </button>
-        <span class="font-black tracking-tighter text-xl text-[#1a1c1c]">Robles Sport</span>
+        <a href="{{ route('dashboard') }}" class="font-black tracking-tighter text-xl text-[#1a1c1c] hover:opacity-70 transition-opacity">Robles Sport</a>
     </div>
 
     <div class="relative group">
@@ -69,6 +69,12 @@
         </div>
     </div>
 <main class="min-h-screen pb-20 md:pb-8 px-4 md:px-8 max-w-[1600px] mx-auto">
+    @if(session('success'))
+    <div class="bg-green-100 text-green-700 px-6 py-3 text-sm font-bold mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">check_circle</span>
+        {{ session('success') }}
+    </div>
+    @endif
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- LISTA DE VENTAS -->
@@ -79,13 +85,20 @@
                     <p class="text-xs uppercase tracking-[0.2em] text-[#747688] mb-1 font-semibold">Descripción general</p>
                     <h2 class="text-4xl font-extrabold tracking-tight text-[#1a1c1c]">Ventas del día</h2>
                 </div>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#747688] text-sm">search</span>
-                    <input id="buscador"
-                           class="pl-10 pr-4 py-2 bg-transparent border-b border-[#c4c5da]/40 focus:border-[#0035c5] focus:ring-0 transition-all text-sm outline-none w-full md:w-64"
-                           placeholder="Buscar por ID o nombre"
-                           type="text"
-                           oninput="filtrarVentas(this.value)"/>
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#747688] text-sm">search</span>
+                        <input id="buscador"
+                               class="pl-10 pr-4 py-2 bg-transparent border-b border-[#c4c5da]/40 focus:border-[#0035c5] focus:ring-0 transition-all text-sm outline-none w-full md:w-64"
+                               placeholder="Buscar por ID o nombre"
+                               type="text"
+                               oninput="filtrarVentas(this.value)"/>
+                    </div>
+                    <button onclick="abrirModalVenta()"
+                            class="bg-[#0035c5] text-white px-5 py-2 text-[11px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 shrink-0">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        Nueva venta
+                    </button>
                 </div>
             </div>
 
@@ -338,7 +351,6 @@ function enviarDigital() {
     <!-- SIDEBAR -->
     <div id="sidebar" class="fixed top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 overflow-y-auto" style="left: -300px;">
 
-        <!-- LOGO BOX -->
         <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
             <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
                 <div class="w-8 h-8 bg-[#0035c5] flex items-center justify-center shrink-0">
@@ -354,35 +366,17 @@ function enviarDigital() {
             </button>
         </div>
 
-        <!-- ACCIONES RAPIDAS -->
         <div class="flex-1 p-4 space-y-1">
             <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Acciones rápidas</p>
-            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()" class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">grid_view</span>Ir al inicio
-            </a>
-            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- INICIO -->
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inicio</p>
-            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
+            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">point_of_sale</span>
-                Abrir registro de ventas
-            </a>
-            <a href="{{ route('resumen') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">summarize</span>
-                Ver resumen diario
-            </a>
-            <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">bar_chart</span>
-                Ver reporte completo
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                Ir al inicio
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- VENTAS -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Ventas</p>
             <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
@@ -392,36 +386,32 @@ function enviarDigital() {
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- CATALOGO -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Catálogo</p>
             <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">shopping_bag</span>
+                <span class="material-symbols-outlined text-[16px]">storefront</span>
                 Ir al catálogo
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- INVENTARIO -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inventario</p>
             <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all">
-                <span class="material-symbols-outlined text-[16px]">warning</span>
-                Ver stock bajo
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">inventory_2</span>
+                Ir al inventario
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- CLIENTES -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Clientes</p>
             <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">person_add</span>
-                Nuevo cliente
+                <span class="material-symbols-outlined text-[16px]">group</span>
+                Ir a clientes
             </a>
         </div>
 
-        <!-- FOOTER USUARIO -->
         <div class="border-t border-[#c4c5da]/15 p-5">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">
@@ -457,5 +447,292 @@ function enviarDigital() {
     }
     </script>
 
+
+<!-- MODAL NUEVA VENTA -->
+<div id="modal-nueva-venta"
+     class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm"
+     style="display:none;"
+     onclick="if(event.target===this) cerrarModalVenta()">
+    <div class="bg-white w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between px-8 py-6 border-b border-[#c4c5da]/20">
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-[#0035c5] mb-1">Ventas</p>
+                <h2 class="text-2xl font-bold tracking-tight">Nueva venta</h2>
+            </div>
+            <button onclick="cerrarModalVenta()" class="p-2 hover:bg-[#f3f3f4] transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        {{-- aqui conectas la ruta para guardar la venta, algo como action="{{ route('ventas.store') }}" --}}
+        <form method="POST" action="{{ route('ventas.store') }}" id="form-nueva-venta" class="px-8 py-6 space-y-6">
+            @csrf
+
+            <!-- CLIENTE -->
+            <div class="flex flex-col gap-1 relative">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Cliente</label>
+                <input type="text"
+                       id="cliente-search"
+                       name="cliente_nombre"
+                       placeholder="Escribe el nombre del cliente..."
+                       autocomplete="off"
+                       oninput="buscarClienteVenta(this.value)"
+                       class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
+                <input type="hidden" name="cliente_id" id="cliente-id-hidden"/>
+                {{-- lista de sugerencias --}}
+                <div id="clientes-sugerencias"
+                     class="absolute top-full left-0 right-0 bg-white border border-[#c4c5da]/40 shadow-lg z-50 hidden max-h-48 overflow-y-auto">
+                </div>
+                {{-- datos de clientes para el autocomplete --}}
+                <div id="clientes-data" class="hidden">
+                    @foreach($clientes ?? [] as $cliente)
+                    <span data-id="{{ $cliente->id ?? $cliente['id'] }}"
+                          data-nombre="{{ $cliente->name ?? $cliente['nombre'] }}"></span>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- PRODUCTOS -->
+            <div class="flex flex-col gap-3">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Productos</label>
+
+                <!-- selector de categoria -->
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    <button type="button" onclick="filtrarCategoria('ropa', this)"
+                            class="cat-btn px-3 py-2 text-[10px] font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#0035c5] hover:text-[#0035c5] transition-all">
+                        Ropa
+                    </button>
+                    <button type="button" onclick="filtrarCategoria('calzado', this)"
+                            class="cat-btn px-3 py-2 text-[10px] font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#0035c5] hover:text-[#0035c5] transition-all">
+                        Calzado
+                    </button>
+                    <button type="button" onclick="filtrarCategoria('accesorios', this)"
+                            class="cat-btn px-3 py-2 text-[10px] font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#0035c5] hover:text-[#0035c5] transition-all">
+                        Accesorios
+                    </button>
+                </div>
+
+                <!-- lista de productos de la categoria seleccionada -->
+                <div id="lista-productos-categoria" class="hidden space-y-1 max-h-40 overflow-y-auto border border-[#c4c5da]/20 bg-[#f9f9f9]">
+                </div>
+
+                <!-- productos agregados al carrito de la venta -->
+                <div id="productos-container" class="space-y-2 mt-2"></div>
+
+                <!-- inputs hidden para enviar al backend -->
+                <div id="productos-hidden"></div>
+
+                <div class="grid grid-cols-12 gap-3 text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-0.5" id="cabecera-productos" style="display:none;">
+                    <div class="col-span-5">Producto</div>
+                    <div class="col-span-3">Cantidad</div>
+                    <div class="col-span-3">Precio</div>
+                </div>
+
+                <!-- datos de productos para el selector -->
+                <div id="productos-data" class="hidden">
+                    @foreach($productos ?? [] as $prod)
+                    <span data-id="{{ $prod['id'] ?? '' }}"
+                          data-nombre="{{ $prod['nombre'] ?? '' }}"
+                          data-precio="{{ $prod['precio'] ?? 0 }}"
+                          data-categoria="{{ $prod['categoria'] ?? '' }}"></span>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- TOTAL CALCULADO -->
+            <div class="bg-[#0035c5] px-6 py-4 flex justify-between items-center">
+                <span class="text-[10px] font-black uppercase tracking-widest text-white/70">Total calculado</span>
+                <span class="text-2xl font-black text-white" id="total-calculado">$0.00</span>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="flex gap-3 pt-2 border-t border-[#c4c5da]/20">
+                <button type="submit"
+                        class="flex-1 bg-[#0035c5] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">point_of_sale</span>
+                    REGISTRAR VENTA
+                </button>
+                <button type="button" onclick="cerrarModalVenta()"
+                        class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
+                    CANCELAR
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function abrirModalVenta() {
+    document.getElementById('modal-nueva-venta').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function cerrarModalVenta() {
+    document.getElementById('modal-nueva-venta').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('cliente-search').value = '';
+    document.getElementById('cliente-id-hidden').value = '';
+    document.getElementById('clientes-sugerencias').classList.add('hidden');
+    document.getElementById('lista-productos-categoria').classList.add('hidden');
+    document.querySelectorAll('.cat-btn').forEach(b => {
+        b.classList.remove('bg-[#1a1c1c]', 'text-white', 'border-[#1a1c1c]');
+    });
+    productosVenta = [];
+    renderizarProductosVenta();
+}
+function buscarClienteVenta(query) {
+    const sugerencias = document.getElementById('clientes-sugerencias');
+    const clientes = document.querySelectorAll('#clientes-data span');
+    const q = query.toLowerCase().trim();
+
+    if (q.length < 1) {
+        sugerencias.classList.add('hidden');
+        return;
+    }
+
+    // filtrar clientes que coincidan con lo que escribe
+    const coincidencias = Array.from(clientes).filter(c =>
+        c.dataset.nombre.toLowerCase().includes(q)
+    );
+
+    if (coincidencias.length === 0) {
+        sugerencias.innerHTML = '<div class="px-4 py-3 text-sm text-[#747688]">Sin coincidencias</div>';
+        sugerencias.classList.remove('hidden');
+        return;
+    }
+
+    sugerencias.innerHTML = coincidencias.map(c => `
+        <div class="px-4 py-3 text-sm font-bold cursor-pointer hover:bg-[#f3f3f4] transition-colors uppercase tracking-wide"
+             onclick="seleccionarCliente('${c.dataset.id}', '${c.dataset.nombre}')">
+            ${c.dataset.nombre}
+        </div>
+    `).join('');
+    sugerencias.classList.remove('hidden');
+}
+function seleccionarCliente(id, nombre) {
+    document.getElementById('cliente-search').value = nombre;
+    document.getElementById('cliente-id-hidden').value = id;
+    document.getElementById('clientes-sugerencias').classList.add('hidden');
+}
+// cerrar sugerencias al click fuera
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#cliente-search') && !e.target.closest('#clientes-sugerencias')) {
+        const s = document.getElementById('clientes-sugerencias');
+        if (s) s.classList.add('hidden');
+    }
+});
+// productos seleccionados en la venta actual
+let productosVenta = [];
+
+// filtra los productos por categoria y los muestra en la lista
+function filtrarCategoria(categoria, btn) {
+    document.querySelectorAll('.cat-btn').forEach(b => {
+        b.classList.remove('bg-[#1a1c1c]', 'text-white', 'border-[#1a1c1c]');
+    });
+    btn.classList.add('bg-[#1a1c1c]', 'text-white', 'border-[#1a1c1c]');
+
+    const productos = document.querySelectorAll('#productos-data span');
+    const lista = document.getElementById('lista-productos-categoria');
+
+    const filtrados = Array.from(productos).filter(p => p.dataset.categoria === categoria);
+
+    if (filtrados.length === 0) {
+        lista.innerHTML = '<div class="px-4 py-3 text-sm text-[#747688]">Sin productos en esta categoría</div>';
+    } else {
+        lista.innerHTML = filtrados.map(p => `
+            <div class="flex items-center justify-between px-4 py-2.5 hover:bg-white cursor-pointer transition-colors border-b border-[#c4c5da]/10"
+                 onclick="agregarProductoVenta('${p.dataset.id}', '${p.dataset.nombre}', ${p.dataset.precio})">
+                <div>
+                    <p class="text-xs font-bold uppercase">${p.dataset.nombre}</p>
+                    <p class="text-[10px] text-[#747688]">$${parseFloat(p.dataset.precio).toFixed(2)}</p>
+                </div>
+                <span class="material-symbols-outlined text-[#0035c5] text-sm">add_circle</span>
+            </div>
+        `).join('');
+    }
+    lista.classList.remove('hidden');
+}
+
+// agrega un producto a la lista de la venta
+function agregarProductoVenta(id, nombre, precio) {
+    const existe = productosVenta.find(p => p.id === id);
+    if (existe) {
+        existe.cantidad += 1;
+    } else {
+        productosVenta.push({ id, nombre, precio: parseFloat(precio), cantidad: 1 });
+    }
+    renderizarProductosVenta();
+}
+
+// renderiza los productos seleccionados
+function renderizarProductosVenta() {
+    const container = document.getElementById('productos-container');
+    const cabecera = document.getElementById('cabecera-productos');
+
+    if (productosVenta.length === 0) {
+        container.innerHTML = '';
+        cabecera.style.display = 'none';
+        actualizarHiddens();
+        calcularTotal();
+        return;
+    }
+
+    cabecera.style.display = 'grid';
+    container.innerHTML = productosVenta.map((p, i) => `
+        <div class="grid grid-cols-12 gap-3 items-center py-2 border-b border-[#c4c5da]/10">
+            <div class="col-span-5">
+                <p class="text-xs font-bold uppercase truncate">${p.nombre}</p>
+            </div>
+            <div class="col-span-3">
+                <div class="flex items-center gap-1">
+                    <button type="button" onclick="cambiarCantidadVenta(${i}, -1)"
+                            class="w-6 h-6 bg-[#f3f3f4] hover:bg-[#e8e8e8] flex items-center justify-center text-xs font-black">−</button>
+                    <span class="w-8 text-center text-sm font-black">${p.cantidad}</span>
+                    <button type="button" onclick="cambiarCantidadVenta(${i}, 1)"
+                            class="w-6 h-6 bg-[#f3f3f4] hover:bg-[#e8e8e8] flex items-center justify-center text-xs font-black">+</button>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <p class="text-xs font-black text-[#0035c5]">$${(p.precio * p.cantidad).toFixed(2)}</p>
+            </div>
+            <div class="col-span-1">
+                <button type="button" onclick="quitarProductoVenta(${i})"
+                        class="text-[#747688] hover:text-red-600 transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+    actualizarHiddens();
+    calcularTotal();
+}
+
+function cambiarCantidadVenta(index, delta) {
+    productosVenta[index].cantidad += delta;
+    if (productosVenta[index].cantidad <= 0) productosVenta.splice(index, 1);
+    renderizarProductosVenta();
+}
+
+function quitarProductoVenta(index) {
+    productosVenta.splice(index, 1);
+    renderizarProductosVenta();
+}
+
+// actualiza los inputs hidden para enviar al backend
+function actualizarHiddens() {
+    const container = document.getElementById('productos-hidden');
+    container.innerHTML = productosVenta.map(p => `
+        <input type="hidden" name="productos[]" value="${p.nombre}"/>
+        <input type="hidden" name="cantidades[]" value="${p.cantidad}"/>
+        <input type="hidden" name="precios[]" value="${p.precio}"/>
+    `).join('');
+}
+
+function calcularTotal() {
+    const total = productosVenta.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
+    document.getElementById('total-calculado').textContent = '$' + total.toFixed(2);
+}
+</script>
 </body>
 </html>

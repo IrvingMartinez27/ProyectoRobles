@@ -28,7 +28,7 @@
         <button onclick="abrirSidebar()" class="hover:opacity-70 transition-opacity">
             <span class="material-symbols-outlined text-[#0035c5]">menu</span>
         </button>
-        <span class="font-black tracking-tighter text-xl text-[#1a1c1c]">Robles Sport</span>
+        <a href="{{ route('dashboard') }}" class="font-black tracking-tighter text-xl text-[#1a1c1c] hover:opacity-70 transition-opacity">Robles Sport</a>
     </div>
     <div class="relative group">
         <button class="flex items-center gap-2 hover:opacity-80 transition-all">
@@ -107,7 +107,7 @@
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
-                            <p class="font-bold text-sm uppercase">{{ $cliente->name }}</p>
+                            <p class="font-bold text-sm uppercase">{{ $cliente['nombre'] }}</p>
                             {{-- badge de cliente frecuente si tiene mas de 5 compras --}}
                             @if($cliente['num_compras'] >= 5)
                             <span class="text-[9px] font-black px-2 py-0.5 bg-[#0035c5] text-white uppercase tracking-widest">Frecuente</span>
@@ -187,86 +187,78 @@
                         <th class="text-right px-6 py-4 text-[10px] font-black tracking-widest uppercase text-[#747688]">Acción</th>
                     </tr>
                 </thead>
- <tbody>
-@forelse($clientes ?? [] as $cliente)
-<tr class="fila-cliente border-b border-[#c4c5da]/10 transition-colors"
-    data-nombre="{{ strtolower($cliente->name) }}">
+                <tbody>
+                    @forelse($clientes ?? [] as $cliente)
+                    <tr class="fila-cliente border-b border-[#c4c5da]/10 transition-colors"
+                        data-nombre="{{ strtolower($cliente['nombre']) }}"
+                        data-email="{{ strtolower($cliente['email']) }}">
 
-    <!-- NOMBRE -->
-    <td class="px-6 py-4">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-[#0035c5]/10 flex items-center justify-center shrink-0">
-                <span class="text-[#0035c5] font-black text-xs">
-                    {{ strtoupper(substr($cliente->name, 0, 2)) }}
-                </span>
-            </div>
-            <div>
-                <p class="font-bold text-sm uppercase">{{ $cliente->name }}</p>
-            </div>
-        </div>
-    </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 bg-[#0035c5]/10 flex items-center justify-center shrink-0">
+                                    <span class="text-[#0035c5] font-black text-xs">
+                                        {{ strtoupper(substr($cliente['nombre'], 0, 1)) }}{{ strtoupper(substr(strstr($cliente['nombre'], ' '), 1, 1)) }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm uppercase">{{ $cliente['nombre'] }}</p>
+                                    @if(($cliente['num_compras'] ?? 0) >= 5)
+                                    <span class="text-[9px] font-black px-1.5 py-0.5 bg-[#0035c5] text-white uppercase tracking-widest">Frecuente</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
 
-    <!-- TELEFONO -->
-    <td class="px-6 py-4">
-        <p class="text-sm text-[#747688]">{{ $cliente->telefono }}</p>
-    </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm text-[#747688]">{{ $cliente['email'] }}</p>
+                        </td>
 
-    <!-- DIRECCION -->
-    <td class="px-6 py-4">
-        <p class="text-sm text-[#747688]">{{ $cliente->direccion }}</p>
-    </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm text-[#747688]">{{ $cliente['telefono'] ?? '—' }}</p>
+                        </td>
 
-    <!-- COMPRAS -->
-    <td class="px-6 py-4 text-center">
-        <span class="text-lg font-black">{{ $cliente->num_compras ?? 0 }}</span>
-    </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-lg font-black">{{ $cliente['num_compras'] ?? 0 }}</span>
+                        </td>
 
-    <!-- TOTAL -->
-    <td class="px-6 py-4 text-center">
-        <span class="text-sm font-black text-[#0035c5]">
-            ${{ number_format($cliente->total_gastado ?? 0, 2) }}
-        </span>
-    </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-sm font-black text-[#0035c5]">${{ number_format($cliente['total_gastado'] ?? 0, 2) }}</span>
+                        </td>
 
-    <!-- ULTIMA COMPRA -->
-    <td class="px-6 py-4">
-        <p class="text-sm text-[#747688]">
-            {{ $cliente->ultima_compra ?? '—' }}
-        </p>
-    </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm text-[#747688]">{{ $cliente['ultima_compra'] ?? '—' }}</p>
+                        </td>
 
-    <!-- ACCION -->
-    <td class="px-6 py-4 text-right">
-        <button onclick="abrirHistorial({{ json_encode($cliente) }})"
-            class="px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#1a1c1c] hover:text-white hover:border-[#1a1c1c] transition-all flex items-center gap-1 ml-auto">
-            <span class="material-symbols-outlined text-sm">history</span>
-            Historial
-        </button>
-    </td>
+                        <td class="px-6 py-4 text-right">
+                            {{-- al dar click abre el modal con el historial de compras del cliente --}}
+                            <button onclick="abrirHistorial({{ json_encode($cliente) }})"
+                                    class="px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#1a1c1c] hover:text-white hover:border-[#1a1c1c] transition-all flex items-center gap-1 ml-auto">
+                                <span class="material-symbols-outlined text-sm">history</span>
+                                Historial
+                            </button>
+                        </td>
 
-</tr>
-@empty
-
-<!-- PLACEHOLDERS -->
-@for($i = 0; $i < 5; $i++)
-<tr class="border-b border-[#c4c5da]/10">
-    <td class="px-6 py-4">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-[#f3f3f4] shrink-0"></div>
-            <div class="h-3 bg-[#f3f3f4] w-28 rounded"></div>
-        </div>
-    </td>
-    <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-36 rounded"></div></td>
-    <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-24 rounded"></div></td>
-    <td class="px-6 py-4 text-center"><div class="h-4 bg-[#f3f3f4] w-6 rounded mx-auto"></div></td>
-    <td class="px-6 py-4 text-center"><div class="h-3 bg-[#f3f3f4] w-16 rounded mx-auto"></div></td>
-    <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-20 rounded"></div></td>
-    <td class="px-6 py-4 text-right"><div class="h-8 bg-[#f3f3f4] w-20 rounded ml-auto"></div></td>
-</tr>
-@endfor
-
-@endforelse
-</tbody>
+                    </tr>
+                    @empty
+                    {{-- placeholders --}}
+                    @for($i = 0; $i < 5; $i++)
+                    <tr class="border-b border-[#c4c5da]/10">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 bg-[#f3f3f4] shrink-0"></div>
+                                <div class="h-3 bg-[#f3f3f4] w-28 rounded"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-36 rounded"></div></td>
+                        <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-24 rounded"></div></td>
+                        <td class="px-6 py-4 text-center"><div class="h-4 bg-[#f3f3f4] w-6 rounded mx-auto"></div></td>
+                        <td class="px-6 py-4 text-center"><div class="h-3 bg-[#f3f3f4] w-16 rounded mx-auto"></div></td>
+                        <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-20 rounded"></div></td>
+                        <td class="px-6 py-4 text-right"><div class="h-8 bg-[#f3f3f4] w-20 rounded ml-auto"></div></td>
+                    </tr>
+                    @endfor
+                    @endforelse
+                </tbody>
             </table>
         </div>
     </section>
@@ -287,35 +279,30 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form method="POST" action="{{ route('clientes.store') }}" class="px-8 py-6 space-y-5">
+        {{-- aqui conectas la ruta para guardar el cliente, algo como action="{{ route('clientes.store') }}" --}}
+        <form method="POST" action="#" class="px-8 py-6 space-y-5">
             @csrf
             <div class="grid grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
                     <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Nombre</label>
-                    <input type="text" name="name" value="{{ old('name') }}" placeholder="Ej. Juan"
-                           class="border {{ $errors->has('name') ? 'border-red-400' : 'border-[#c4c5da]/40' }} px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-                    @error('name')
-                        <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
-                    @enderror
+                    <input type="text" name="nombre" placeholder="Ej. Juan"
+                           class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Apellido</label>
-                    <input type="text" name="apellido" value="{{ old('apellido') }}" placeholder="Ej. Pérez"
+                    <input type="text" name="apellido" placeholder="Ej. Pérez"
                            class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
                 </div>
             </div>
             <div class="flex flex-col gap-1">
                 <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Dirección</label>
-                <input type="text" name="direccion" value="{{ old('direccion') }}" placeholder="Ej. Calle 123, Col. Centro"
+                <input type="text" name="direccion" placeholder="Ej. Calle 123, Col. Centro"
                        class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
             </div>
             <div class="flex flex-col gap-1">
                 <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Teléfono</label>
-                <input type="tel" name="telefono" value="{{ old('telefono') }}" placeholder="Ej. 55 1234 5678"
-                       class="border {{ $errors->has('telefono') ? 'border-red-400' : 'border-[#c4c5da]/40' }} px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-                @error('telefono')
-                    <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
-                @enderror
+                <input type="tel" name="telefono" placeholder="Ej. 55 1234 5678"
+                       class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
             </div>
             <div class="flex gap-3 pt-4 border-t border-[#c4c5da]/20">
                 <button type="submit"
@@ -378,7 +365,6 @@
     <!-- SIDEBAR -->
     <div id="sidebar" class="fixed top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 overflow-y-auto" style="left: -300px;">
 
-        <!-- LOGO BOX -->
         <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
             <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
                 <div class="w-8 h-8 bg-[#0035c5] flex items-center justify-center shrink-0">
@@ -394,35 +380,17 @@
             </button>
         </div>
 
-        <!-- ACCIONES RAPIDAS -->
         <div class="flex-1 p-4 space-y-1">
             <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Acciones rápidas</p>
-            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()" class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">grid_view</span>Ir al inicio
-            </a>
-            <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- INICIO -->
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inicio</p>
-            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
+            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">point_of_sale</span>
-                Abrir registro de ventas
-            </a>
-            <a href="{{ route('resumen') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">summarize</span>
-                Ver resumen diario
-            </a>
-            <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">bar_chart</span>
-                Ver reporte completo
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                Ir al inicio
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- VENTAS -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Ventas</p>
             <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
@@ -432,36 +400,32 @@
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- CATALOGO -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Catálogo</p>
             <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">shopping_bag</span>
+                <span class="material-symbols-outlined text-[16px]">storefront</span>
                 Ir al catálogo
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- INVENTARIO -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inventario</p>
             <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all">
-                <span class="material-symbols-outlined text-[16px]">warning</span>
-                Ver stock bajo
+               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
+                <span class="material-symbols-outlined text-[16px]">inventory_2</span>
+                Ir al inventario
             </a>
 
             <div class="border-t border-[#c4c5da]/20 my-2"></div>
 
-            <!-- CLIENTES -->
             <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Clientes</p>
             <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">person_add</span>
-                Nuevo cliente
+                <span class="material-symbols-outlined text-[16px]">group</span>
+                Ir a clientes
             </a>
         </div>
 
-        <!-- FOOTER USUARIO -->
         <div class="border-t border-[#c4c5da]/15 p-5">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">
@@ -537,15 +501,5 @@ function buscarCliente(query) {
     });
 }
 </script>
-
-{{-- Reabrir modal automáticamente si hay errores de validación --}}
-@if($errors->any())
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        abrirModalCliente();
-    });
-</script>
-@endif
-
 </body>
 </html>
