@@ -14,4 +14,9 @@ class client extends Model
     public function sales(){
         return $this->hasMany(sale::class);
     }
+
+     public function totalGastado()
+    {
+        return $this->sales()->sum('total');
+    }
 }

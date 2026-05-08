@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
+   
     body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1a1c1c; min-height: 100dvh; }
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     ::-webkit-scrollbar { width: 4px; }
@@ -20,6 +21,42 @@
     .venta-row { cursor: pointer; transition: all 0.2s; }
     .venta-row:hover { background-color: #f3f3f4; }
     .venta-row.selected { background-color: rgba(0,53,197,0.05); box-shadow: inset 0 0 0 1px rgba(0,53,197,0.2); }
+         @media print {
+        /* Ocultar todo */
+        nav,
+        aside ~ *,
+        #lista-ventas,
+        .breadcrumb,
+        #modal-nueva-venta,
+        #modal-sidebar,
+        #sidebar,
+        #sidebar-overlay,
+        header,
+        main > .grid > section,
+        .bottom-nav {
+            display: none !important;
+        }
+
+        /* Mostrar solo el ticket */
+        body { background: white !important; }
+        main { padding: 0 !important; }
+        main > .grid {
+            display: block !important;
+        }
+        aside {
+            display: block !important;
+            position: static !important;
+            width: 100% !important;
+            max-width: 400px !important;
+            margin: 0 auto !important;
+        }
+
+        /* Ocultar botones del ticket */
+        aside .mt-1 { display: none !important; }
+
+        /* Ocultar la perforación decorativa */
+        aside .absolute { display: none !important; }
+    }
 </style>
 </head>
 
@@ -115,7 +152,7 @@
                 @forelse($ventas ?? [] as $venta)
                 <div class="venta-row grid grid-cols-12 px-6 py-6 items-center bg-white border-b border-[#c4c5da]/10"
                      data-nombre="{{ strtolower($venta['cliente']) }}"
-                     data-id="{{ strtolower($venta['id']) }}"
+                     data-id="{{ $venta['id'] }}"
                      onclick="seleccionarVenta({{ json_encode($venta) }}, this)">
 
                     <div class="col-span-6 md:col-span-5 flex items-center gap-4">
@@ -315,8 +352,21 @@ function filtrarVentas(query) {
 
 // esto es cuando le das al boton de imprimir en la fila directamente
 function imprimirTicket(venta) {
-    seleccionarVenta(venta, document.querySelector(`[data-id="${venta.id.toString().toLowerCase()}"]`));
-    setTimeout(() => window.print(), 300);
+    // buscar la fila correcta
+    const fila = document.querySelector(`.venta-row[data-id="${venta.id}"]`);
+    
+    if (fila) {
+        seleccionarVenta(venta, fila);
+    } else {
+        // si no encuentra la fila, igual carga el ticket y luego imprime
+        ventaActual = venta;
+        document.getElementById('ticket-id').textContent = '#ID-' + venta.id;
+        document.getElementById('ticket-fecha').textContent = venta.fecha ?? '—';
+        document.getElementById('ticket-subtotal').textContent = '$' + parseFloat(venta.total).toFixed(2);
+        document.getElementById('ticket-total').textContent = '$' + parseFloat(venta.total).toFixed(2);
+    }
+
+    setTimeout(() => window.print(), 400);
 }
 
 // esto es cuando le das al boton de imprimir en el ticket del lado derecho

@@ -3,15 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
-class ticket extends Model
+class Ticket extends Model
 {
-    protected $fillable = [
-        'sale_id',
-        'folio',
-        ];
+    protected $fillable = ['sale_id', 'folio'];
 
-    public function sale(){
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($ticket) {
+            $ticket->folio = 'TKT-' . strtoupper(Str::random(8));
+        });
+    }
+
+    public function sale()
+    {
         return $this->belongsTo(sale::class);
     }
 }

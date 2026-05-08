@@ -225,7 +225,7 @@
                 </div>
 
                 <!-- formulario registro venta -->
-                <form method="POST" action="{{ route('ventas.store') }}" id="form-carrito" class="px-6 py-5 space-y-4 bg-white border-t border-[#c4c5da]/20">
+                <form method="POST" action="{{ route('catalog.store') }}" id="form-carrito" class="px-6 py-5 space-y-4 bg-white border-t border-[#c4c5da]/20">
                     @csrf
                     <input type="hidden" name="productos_carrito" id="productos-carrito-input"/>
                     <input type="hidden" name="total_carrito" id="total-carrito-input"/>

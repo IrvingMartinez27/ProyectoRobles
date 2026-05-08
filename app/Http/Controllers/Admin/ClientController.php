@@ -10,13 +10,34 @@ class ClientController extends Controller
 {
     public function index()
     {
-        $clients = Client::all();
+         $clientes = Client::withCount('sales')
+            ->withSum('sales', 'total')
+            ->get()
+            ->map(function ($cliente) {
+                return [
+                    'id'            => $cliente->id,
+                    'nombre'        => $cliente->name,
+                    'telefono'      => $cliente->telefono,
+                    'direccion'     => $cliente->direccion,
+                    'num_compras'   => $cliente->sales_count,
+                    'total_gastado' => $cliente->sales_sum_total ?? 0,
+                    'ultima_compra' => $cliente->sales()->latest()->first()?->created_at?->format('d/m/Y') ?? '—',
+                    'compras'       => $cliente->sales()->latest()->get()->map(fn($s) => [
+                        'id'           => $s->id,
+                        'fecha'        => $s->created_at->format('d/m/Y'),
+                        'total'        => $s->total,
+                        'num_productos'=> $s->details()->count() ?? 0,
+                    ])->toArray(),
+                ];
+            });
 
-        return view('clientes', [
-            'clientes' => $clients,
-            'topCompradores' => [],
-            'nuevosEsteMes' => 0
-        ]);
+        $topCompradores = collect($clientes)->sortByDesc('total_gastado')->take(5)->values();
+
+        $nuevosEsteMes = Client::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        return view('clientes', compact('clientes', 'topCompradores', 'nuevosEsteMes'));
     }
 
     public function store(Request $request)

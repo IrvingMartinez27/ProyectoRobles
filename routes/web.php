@@ -7,7 +7,11 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\VentaController;
 use App\Http\Controllers\Admin\ProductoController;
-
+use App\Http\Controllers\Admin\InventarioController;
+use App\Http\Controllers\Admin\SaleController;
+use App\Http\Controllers\Admin\CatalogController;
+use App\Http\Controllers\Admin\ReporteController;
+use App\Http\Controllers\Admin\ResumenController;
 /*
 |--------------------------------------------------------------------------
 | RUTAS PRINCIPALES
@@ -67,11 +71,7 @@ Route::post('/logout', function (Request $request) {
     return redirect('/login');
 })->name('logout');
 
-// Muestra el resumen diario de ventas con filtro por fecha
-// Acepta GET para el filtro de fecha y POST desde el boton del dashboard
-Route::match(['GET', 'POST'], '/resumen', function () {
-    return view('resumen');
-})->name('resumen');
+Route::match(['GET', 'POST'], '/resumen', [ResumenController::class, 'index'])->name('resumen');
 
 // Muestra el reporte completo de ventas con filtro por rango de fechas
 Route::get('/reporte', function () {
@@ -95,3 +95,19 @@ Route::get('/clientes', [ClientController::class, 'index'])->name('clientes');
 Route::post('/clientes', [ClientController::class, 'store'])->name('clientes.store');
 Route::put('/clientes/{client}', [ClientController::class, 'update'])->name('clientes.update');
 Route::delete('/clientes/{client}', [ClientController::class, 'destroy'])->name('clientes.destroy');
+
+
+Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario');
+Route::post('/inventario/productos', [InventarioController::class, 'store'])->name('productos.store');
+Route::put('/inventario/update', [InventarioController::class, 'update'])->name('inventario.update');
+
+
+Route::get('/sales', [SaleController::class, 'index'])->name('sales');
+Route::post('/sales', [SaleController::class, 'store'])->name('ventas.store');
+
+Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
+Route::post('/catalog', [CatalogController::class, 'store'])->name('catalog.store');
+
+Route::post('/reponer', [DashboardController::class, 'reponer'])->name('reponer');
+
+Route::get('/reporte', [ReporteController::class, 'index'])->name('reporte');

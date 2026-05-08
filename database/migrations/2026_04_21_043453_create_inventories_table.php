@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('talla');
             $table->integer('stock');
             $table->decimal('precio_decimal')->unsigned();
-            $table->timestamp('updated_at')->nullable();
+            $table->timestamps(); // ← reemplaza el timestamp manual, agrega created_at y updated_at
         });
     }
 

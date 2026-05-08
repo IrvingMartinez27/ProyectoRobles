@@ -2,25 +2,15 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Category>
- */
 class CategoryFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        // Ya no se usa — las categorías las crea el seeder directamente
         return [
-            'name' => fake()->unique()->word(),
-            'slug' => fake()->unique()->slug(),
-            'descripcion' => $this->faker->sentence
+            'name' => $this->faker->unique()->word(),
         ];
     }
 }

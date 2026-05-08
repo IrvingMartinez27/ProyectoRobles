@@ -127,11 +127,11 @@
             </button>
             <div class="bg-[#f3f3f4] px-6 py-4 text-center">
                 <p class="text-[10px] font-black uppercase tracking-widest text-[#747688] mb-1">Total productos</p>
-                <p class="text-3xl font-black text-[#1a1c1c]">{{ count($productos ?? []) }}</p>
+                <p class="text-3xl font-black text-[#1a1c1c]">{{ $productos->count() }}</p>
             </div>
             <div class="bg-red-50 px-6 py-4 text-center">
                 <p class="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">Stock bajo</p>
-                <p class="text-3xl font-black text-red-600">{{ count(array_filter($productos ?? [], fn($p) => $p['stock_total'] < 10)) }}</p>
+                <p class="text-3xl font-black text-red-600">{{ $productos->filter(fn($p) => $p['stock_total'] < 10)->count() }}</p>
             </div>
         </div>
     </section>
@@ -249,7 +249,6 @@
                     </td>
 
                     <td class="px-6 py-4 text-right">
-                        {}
                         <button onclick="abrirEditar({{ json_encode($producto) }})"
                                 class="px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#1a1c1c] hover:text-white hover:border-[#1a1c1c] transition-all flex items-center gap-1 ml-auto">
                             <span class="material-symbols-outlined text-sm">edit</span>
@@ -296,7 +295,7 @@
             </button>
         </div>
 
-        <form method="POST" action="#" id="form-editar" class="px-8 py-6 space-y-6">
+        <form method="POST" action="{{ route('inventario.update') }}" id="form-editar" class="px-8 py-6 space-y-6">
             @csrf
             @method('PUT')
             <input type="hidden" name="producto_id" id="modal-producto-id"/>

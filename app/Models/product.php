@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class product extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'slug',
@@ -14,7 +18,27 @@ class product extends Model
         'category_id',
         'estado'];
     
-    public function inventory(){
-        return $this->hasMany(inventory::class);
-    }   
+     public function inventories()
+    {
+        return $this->hasMany(Inventory::class);
+    }
+    
+    public function category()
+    {
+        return $this->belongsTo(category::class);
+    }
+
+    public function stockTotal()
+    {
+        return $this->inventories()->sum('stock');
+    }
+
+    // Genera el slug automáticamente desde el nombre
+    protected static function boot()
+    {
+         parent::boot();
+        static::creating(function ($product) {
+        $product->slug = Str::slug($product->name ?? 'producto') . '-' . uniqid();
+    });
+    }
 }
