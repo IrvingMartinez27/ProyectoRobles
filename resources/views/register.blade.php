@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Iniciar sesión — Quivex</title>
+    <title>Crear cuenta — Quivex</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -36,8 +36,8 @@
         <a href="/" class="font-black tracking-tighter text-[#1a1c1c] text-2xl transition-all duration-300 hover:text-primary">
             Qui<span class="text-[#1737c8]">vex</span>
         </a>
-        <a href="/register" class="text-[11px] font-bold uppercase tracking-widest text-secondary hover:text-primary transition-colors duration-200">
-            ¿No tienes cuenta? Regístrate →
+        <a href="/login" class="text-[11px] font-bold uppercase tracking-widest text-secondary hover:text-primary transition-colors duration-200">
+            ¿Ya tienes cuenta? Inicia sesión →
         </a>
     </header>
 
@@ -50,68 +50,45 @@
                      class="w-full h-full object-cover opacity-20 transition-all duration-500 hover:scale-105"
                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDg9QP40wMNox6ElGYVjkOfTX-5Topv2RBvTEgzWD-zPtsWSHu9g0wFjgWxITBuifpqrtE9qSoabW0qgbZTIcwiAlV4Alw18MS7ORfzb2IBsq6_LQdDdsc0SAIK2K1xLl1BbZnrMQDZVosJbTD-9cjxrqeg6t5xe2jtxHNy5FZnzY6EDXAx-wCxs2kor95F86WgFilXDGnue2aBB0F1sxi1_AeBym8oB4rfEo0V05VoEeOrPTsIHVskWdoyoj7nrk1-t94jQnoNViI"/>
             </div>
-
-            <div class="relative z-10 text-white flex flex-col gap-8 max-w-sm w-full">
-                <div>
-                    <p class="text-[11px] font-bold uppercase tracking-[0.25em] text-white/30 mb-3">Bienvenido de vuelta a</p>
-                    <div class="text-5xl font-black tracking-tight">
-                        Qui<span class="text-[#1737c8]">vex</span>
-                    </div>
-                    <p class="text-white/40 text-sm mt-3 leading-relaxed">
-                        Tu sistema de punto de venta para tiendas deportivas mexicanas.
-                    </p>
+            <div class="relative z-10 text-white flex flex-col gap-6 max-w-sm">
+                <div class="text-4xl font-black tracking-tight leading-tight">
+                    El POS más inteligente para tu <span class="text-[#1737c8]">tienda deportiva</span>
                 </div>
-
-                <div class="flex flex-col gap-0">
-                    <div class="flex items-center gap-4 py-4 border-b border-white/8">
-                        <span class="material-symbols-outlined text-[#1737c8] text-xl shrink-0">point_of_sale</span>
-                        <div>
-                            <p class="text-sm font-bold text-white">Ventas rápidas y sin complicaciones</p>
-                            <p class="text-xs text-white/40 mt-0.5">Registra cada venta en segundos desde cualquier dispositivo.</p>
-                        </div>
+                <div class="flex flex-col gap-4 mt-4">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#1737c8] text-lg">check_circle</span>
+                        <span class="text-sm text-white/70">Inventario y ventas en un solo lugar</span>
                     </div>
-                    <div class="flex items-center gap-4 py-4 border-b border-white/8">
-                        <span class="material-symbols-outlined text-[#1737c8] text-xl shrink-0">inventory_2</span>
-                        <div>
-                            <p class="text-sm font-bold text-white">Control total de tu inventario</p>
-                            <p class="text-xs text-white/40 mt-0.5">Productos, stock y alertas en un solo panel, siempre al día.</p>
-                        </div>
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#1737c8] text-lg">check_circle</span>
+                        <span class="text-sm text-white/70">Hasta 100 productos gratis</span>
                     </div>
-                    <div class="flex items-center gap-4 py-4 border-b border-white/8">
-                        <span class="material-symbols-outlined text-[#1737c8] text-xl shrink-0">group</span>
-                        <div>
-                            <p class="text-sm font-bold text-white">Gestión de clientes incluida</p>
-                            <p class="text-xs text-white/40 mt-0.5">Historial de compras y seguimiento de tus mejores compradores.</p>
-                        </div>
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#1737c8] text-lg">check_circle</span>
+                        <span class="text-sm text-white/70">Sin tarjeta de crédito</span>
                     </div>
-                    <div class="flex items-center gap-4 py-4">
-                        <span class="material-symbols-outlined text-[#1737c8] text-xl shrink-0">lock</span>
-                        <div>
-                            <p class="text-sm font-bold text-white">Seguro y siempre disponible</p>
-                            <p class="text-xs text-white/40 mt-0.5">Backups diarios, HTTPS y acceso desde cualquier lugar.</p>
-                        </div>
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#1737c8] text-lg">check_circle</span>
+                        <span class="text-sm text-white/70">Cancela cuando quieras</span>
                     </div>
                 </div>
-
-                <div class="border-t border-white/10 pt-6">
-                    <p class="text-[11px] text-white/25 uppercase tracking-[0.2em] font-bold">
-                        Hecho para el mercado mexicano · En español
-                    </p>
+                <div class="mt-6 border-t border-white/10 pt-6">
+                    <p class="text-[11px] text-white/30 uppercase tracking-widest font-bold">Plan gratuito · Sin compromisos</p>
                 </div>
             </div>
         </section>
 
         <!-- SECCIÓN DERECHA -->
         <section class="flex-1 flex flex-col justify-center items-center px-6 pt-24 pb-12 bg-white">
-            <div class="w-full max-w-md flex flex-col gap-8">
+            <div class="w-full max-w-md flex flex-col gap-7">
 
                 <!-- TÍTULO -->
                 <div class="flex flex-col gap-2">
                     <h2 class="text-3xl font-black tracking-tight text-on-surface uppercase">
-                        Iniciar sesión
+                        Crear cuenta
                     </h2>
                     <p class="text-secondary text-sm">
-                        Ingresa tus credenciales para acceder a tu panel.
+                        Empieza gratis hoy. Solo toma 30 segundos.
                     </p>
                 </div>
 
@@ -125,16 +102,41 @@
                 @endif
 
                 <!-- FORMULARIO -->
-                <form action="/login" method="POST" class="flex flex-col gap-5">
+                <form action="/register" method="POST" class="flex flex-col gap-5">
                     @csrf
+
+                    <!-- NOMBRE -->
+                    <div class="group transition-all duration-300 hover:scale-[1.02]">
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
+                            Nombre completo
+                        </label>
+                        <input name="name" value="{{ old('name') }}"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
+                                      focus:border-primary focus:ring-2 focus:ring-primary/30
+                                      outline-none transition-all duration-300 ease-in-out
+                                      hover:border-primary hover:shadow-md"
+                               type="text" placeholder="Tu nombre completo" required>
+                    </div>
+
+                    <!-- NOMBRE DE LA TIENDA -->
+                    <div class="group transition-all duration-300 hover:scale-[1.02]">
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
+                            Nombre de tu tienda
+                        </label>
+                        <input name="store_name" value="{{ old('store_name') }}"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
+                                      focus:border-primary focus:ring-2 focus:ring-primary/30
+                                      outline-none transition-all duration-300 ease-in-out
+                                      hover:border-primary hover:shadow-md"
+                               type="text" placeholder="Ej. Robles Sport" required>
+                    </div>
 
                     <!-- EMAIL -->
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
                         <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
                             Correo electrónico
                         </label>
-                        <input name="email"
-                               value="{{ old('email') }}"
+                        <input name="email" value="{{ old('email') }}"
                                class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
                                       focus:border-primary focus:ring-2 focus:ring-primary/30
                                       outline-none transition-all duration-300 ease-in-out
@@ -144,7 +146,7 @@
 
                     <!-- PASSWORD -->
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
-                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
+                        <label class="text-[10px] font-bold tracking-widests text-secondary uppercase mb-2 block">
                             Contraseña
                         </label>
                         <input name="password"
@@ -152,7 +154,20 @@
                                       focus:border-primary focus:ring-2 focus:ring-primary/30
                                       outline-none transition-all duration-300 ease-in-out
                                       hover:border-primary hover:shadow-md"
-                               type="password" placeholder="••••••••" required>
+                               type="password" placeholder="Mínimo 8 caracteres" required>
+                    </div>
+
+                    <!-- CONFIRMAR PASSWORD -->
+                    <div class="group transition-all duration-300 hover:scale-[1.02]">
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
+                            Confirmar contraseña
+                        </label>
+                        <input name="password_confirmation"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
+                                      focus:border-primary focus:ring-2 focus:ring-primary/30
+                                      outline-none transition-all duration-300 ease-in-out
+                                      hover:border-primary hover:shadow-md"
+                               type="password" placeholder="Repite tu contraseña" required>
                     </div>
 
                     <!-- BOTÓN PRINCIPAL -->
@@ -161,7 +176,7 @@
                                    hover:brightness-110 hover:shadow-lg hover:scale-[1.03]
                                    active:scale-[0.97] transition-all duration-300 ease-in-out
                                    uppercase tracking-widest text-sm mt-1">
-                        Acceder al panel
+                        Crear cuenta gratis
                     </button>
 
                 </form>
@@ -209,7 +224,7 @@
                 <div class="flex justify-center">
                     <p class="flex items-center gap-2 text-[11px] text-gray-400 tracking-wide">
                         <span class="material-symbols-outlined text-sm">lock</span>
-                        Uso exclusivo para usuarios registrados de Quivex.
+                        Tus datos están protegidos con HTTPS y nunca los compartimos.
                     </p>
                 </div>
 

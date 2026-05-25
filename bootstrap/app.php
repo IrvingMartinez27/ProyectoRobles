@@ -11,7 +11,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Registra el middleware de rol admin con un alias corto
+        $middleware->alias([
+            'solo.admin' => \App\Http\Middleware\SoloAdmin::class,
+        ]);
+
+        // Evita el 419 en desarrollo — extiende la sesión a 8 horas
+        $middleware->validateCsrfTokens(except: [
+            // Si necesitas excluir rutas del CSRF en el futuro, agrégalas aquí
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

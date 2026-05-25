@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Robles Sport - Inventario</title>
+<title>Quivex - Inventario</title>
 @vite(['resources/css/app.css'])
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -13,117 +13,52 @@
     #modal-editar { display: none; }
     #modal-editar.activo { display: flex; }
     .filtro-btn.activo { background: #1a1c1c; color: #ffffff; }
-
-    /* filas con alerta */
     .fila-poco { border-left: 3px solid #f59e0b; }
     .fila-poco td { background-color: #fffbeb; }
     .fila-agotado { border-left: 3px solid #ef4444; }
     .fila-agotado td { background-color: #fef2f2; }
     .fila-ok td { background-color: #ffffff; }
     .fila-producto:hover td { filter: brightness(0.97); }
-
-    /* tooltip */
     .tooltip-wrap { position: relative; display: inline-block; cursor: default; }
-    .tooltip-box {
-        display: none;
-        position: absolute;
-        bottom: calc(100% + 8px);
-        left: 0;
-        z-index: 99;
-        background: #1a1c1c;
-        color: #fff;
-        padding: 10px 14px;
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-        min-width: 190px;
-        border-radius: 2px;
-    }
-    .tooltip-box::after {
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 14px;
-        border: 5px solid transparent;
-        border-top-color: #1a1c1c;
-    }
+    .tooltip-box { display: none; position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 99; background: #1a1c1c; color: #fff; padding: 10px 14px; font-size: 11px; font-weight: 600; white-space: nowrap; min-width: 190px; border-radius: 2px; }
+    .tooltip-box::after { content: ''; position: absolute; top: 100%; left: 14px; border: 5px solid transparent; border-top-color: #1a1c1c; }
     .tooltip-wrap:hover .tooltip-box { display: block; }
     .tooltip-titulo { font-size: 10px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
     .tooltip-fila { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; margin-bottom: 3px; color: rgba(255,255,255,0.75); }
     .tooltip-fila span:last-child { font-weight: 700; color: #fff; }
     .tooltip-fila span.bajo { color: #fca5a5 !important; }
-    .tooltip-poco .tooltip-titulo { color: #fcd34d; }
-    .tooltip-agotado .tooltip-titulo { color: #fca5a5; }
-
-    /* dot indicador */
     .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; margin-right: 6px; }
     .dot-ok { background: #22c55e; }
     .dot-poco { background: #f59e0b; }
     .dot-agotado { background: #ef4444; }
 </style>
 </head>
-
 <body class="bg-white text-[#1a1c1c]">
 
-<!-- NAV -->
-<nav class="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4 w-full bg-white/80 backdrop-blur-xl border-b border-[#c4c5da]/20">
-    <div class="flex items-center gap-4">
-        <button onclick="abrirSidebar()" class="hover:opacity-70 transition-opacity">
-            <span class="material-symbols-outlined text-[#0035c5]">menu</span>
-        </button>
-        <a href="{{ route('dashboard') }}" class="font-black tracking-tighter text-xl text-[#1a1c1c] hover:opacity-70 transition-opacity">Robles Sport</a>
-    </div>
+@include('partials._nav')
 
-    <div class="relative group">
-        <button class="flex items-center gap-2 hover:opacity-80 transition-all">
-            <span class="material-symbols-outlined text-[#0035c5]">account_circle</span>
-        </button>
-        <div class="absolute right-0 top-full mt-2 w-48 bg-white border border-[#c4c5da]/20 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-            <div class="px-4 py-3 border-b border-[#c4c5da]/20">
-                <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Sesión activa</p>
-                <p class="text-sm font-bold text-[#1a1c1c] mt-1">{{ Auth::user()->name ?? 'Usuario' }}</p>
-            </div>
-            <div class="px-4 py-3 border-b border-[#c4c5da]/20">
-                <p class="text-[10px] text-[#747688] font-semibold">{{ Auth::user()->email ?? '' }}</p>
-            </div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-colors">
-                    <span class="material-symbols-outlined text-sm">logout</span>
-                    Cerrar sesión
-                </button>
-            </form>
-        </div>
+<div class="pt-24 px-6 max-w-7xl mx-auto">
+    <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#747688] py-3">
+        @if(Auth::user()->role === 'admin')
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-1 hover:text-[#1737c8] transition-colors">
+            <span class="material-symbols-outlined text-[14px]">grid_view</span>Inicio
+        </a>
+        <span class="material-symbols-outlined text-[14px] text-[#c4c5da]">chevron_right</span>
+        @endif
+        <span class="text-[#1a1c1c]">Inventario</span>
     </div>
-</nav>
+</div>
 
-<!-- BREADCRUMB -->
-    <div class="pt-24 px-6 max-w-7xl mx-auto">
-        <div class="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#747688] py-3">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-1 hover:text-[#0035c5] transition-colors">
-                <span class="material-symbols-outlined text-[14px]">grid_view</span>
-                Inicio
-            </a>
-            <span class="material-symbols-outlined text-[14px] text-[#c4c5da]">chevron_right</span>
-            <span class="text-[#1a1c1c]">Inventario</span>
-        </div>
-    </div>
 <main class="max-w-[1440px] mx-auto px-6 py-12 pb-24">
-
-    <!-- HEADER -->
     <section class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-            <p class="text-[#0035c5] font-bold tracking-widest text-[10px] uppercase mb-4">Gestión de stock</p>
+            <p class="text-[#1737c8] font-bold tracking-widest text-[10px] uppercase mb-4">Gestión de stock</p>
             <h1 class="text-5xl md:text-6xl font-bold tracking-tighter text-[#1a1c1c] mb-4">Inventario</h1>
-            <p class="text-[#5e5e5e] text-lg leading-relaxed max-w-xl">
-                Consulta, edita y agrega productos al inventario de Robles Sport.
-            </p>
+            <p class="text-[#5e5e5e] text-lg leading-relaxed max-w-xl">Consulta, edita y agrega productos al inventario.</p>
         </div>
         <div class="flex gap-4">
-            <button onclick="abrirModalProducto()"
-                    class="bg-[#0035c5] text-white px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-all flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">add</span>
-                NUEVO PRODUCTO
+            <button onclick="abrirModalProducto()" class="bg-[#1737c8] text-white px-6 py-3 text-sm font-semibold tracking-wide hover:opacity-90 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">add</span>NUEVO PRODUCTO
             </button>
             <div class="bg-[#f3f3f4] px-6 py-4 text-center">
                 <p class="text-[10px] font-black uppercase tracking-widest text-[#747688] mb-1">Total productos</p>
@@ -136,28 +71,19 @@
         </div>
     </section>
 
-    <!-- FILTROS + BUSCADOR -->
     <div class="flex flex-col md:flex-row gap-4 mb-8 justify-between items-start md:items-center">
         <div class="flex gap-3 overflow-x-auto pb-1">
-            <button class="filtro-btn activo px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#1a1c1c] transition-all"
-                    onclick="filtrar('todos', this)">Todos</button>
-            <button class="filtro-btn px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1a1c1c] transition-all"
-                    onclick="filtrar('ropa', this)">Ropa</button>
-            <button class="filtro-btn px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1a1c1c] transition-all"
-                    onclick="filtrar('calzado', this)">Calzado</button>
-            <button class="filtro-btn px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1a1c1c] transition-all"
-                    onclick="filtrar('accesorios', this)">Accesorios</button>
+            <button class="filtro-btn activo px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#1a1c1c] transition-all" onclick="filtrar('todos', this)">Todos</button>
+            <button class="filtro-btn px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1a1c1c] transition-all" onclick="filtrar('ropa', this)">Ropa</button>
+            <button class="filtro-btn px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1a1c1c] transition-all" onclick="filtrar('calzado', this)">Calzado</button>
+            <button class="filtro-btn px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1a1c1c] transition-all" onclick="filtrar('accesorios', this)">Accesorios</button>
         </div>
         <div class="relative">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#747688] text-sm">search</span>
-            <input type="text"
-                   placeholder="Buscar producto..."
-                   oninput="buscar(this.value)"
-                   class="pl-10 pr-4 py-2 border-b border-[#c4c5da]/40 focus:border-[#0035c5] focus:outline-none transition-colors text-sm w-64 bg-transparent"/>
+            <input type="text" placeholder="Buscar producto..." oninput="buscar(this.value)" class="pl-10 pr-4 py-2 border-b border-[#c4c5da]/40 focus:border-[#1737c8] focus:outline-none transition-colors text-sm w-64 bg-transparent"/>
         </div>
     </div>
 
-    <!-- TABLA -->
     <div class="overflow-x-auto">
         <table class="w-full text-sm" id="tabla-inventario">
             <thead>
@@ -173,36 +99,19 @@
             </thead>
             <tbody>
                 @forelse($productos ?? [] as $producto)
-
-                {{-- la fila cambia de color segun el stock --}}
-                <tr class="fila-producto border-b border-[#c4c5da]/10 transition-colors
-                    {{ $producto['stock_total'] == 0 ? 'fila-agotado' : ($producto['stock_total'] < 10 ? 'fila-poco' : 'fila-ok') }}"
-                    data-categoria="{{ $producto['categoria'] }}"
-                    data-nombre="{{ strtolower($producto['nombre']) }}">
-
+                <tr class="fila-producto border-b border-[#c4c5da]/10 transition-colors {{ $producto['stock_total'] == 0 ? 'fila-agotado' : ($producto['stock_total'] < 10 ? 'fila-poco' : 'fila-ok') }}"
+                    data-categoria="{{ $producto['categoria'] }}" data-nombre="{{ strtolower($producto['nombre']) }}">
                     <td class="px-6 py-4">
-                        {{-- dot de color + nombre con tooltip si tiene stock bajo --}}
                         <div class="flex items-center">
                             <span class="dot {{ $producto['stock_total'] == 0 ? 'dot-agotado' : ($producto['stock_total'] < 10 ? 'dot-poco' : 'dot-ok') }}"></span>
-
                             @if($producto['stock_total'] < 10)
-                            {{-- tooltip solo aparece si tiene stock bajo o agotado --}}
                             <div class="tooltip-wrap">
                                 <p class="font-bold text-sm uppercase">{{ $producto['nombre'] }}</p>
                                 <div class="tooltip-box {{ $producto['stock_total'] == 0 ? 'tooltip-agotado' : 'tooltip-poco' }}">
-                                    <div class="tooltip-titulo">
-                                        {{ $producto['stock_total'] == 0 ? '✕ Sin stock' : '⚠ Stock bajo' }}
-                                    </div>
-                                    <div class="tooltip-fila">
-                                        <span>Total piezas</span>
-                                        <span class="{{ $producto['stock_total'] == 0 ? 'bajo' : '' }}">{{ $producto['stock_total'] }}</span>
-                                    </div>
-                                    {{-- muestra cada talla con su cantidad, en rojo si es <= 2 --}}
+                                    <div class="tooltip-titulo">{{ $producto['stock_total'] == 0 ? '✕ Sin stock' : '⚠ Stock bajo' }}</div>
+                                    <div class="tooltip-fila"><span>Total piezas</span><span class="{{ $producto['stock_total'] == 0 ? 'bajo' : '' }}">{{ $producto['stock_total'] }}</span></div>
                                     @foreach($producto['tallas'] ?? [] as $talla => $cantidad)
-                                    <div class="tooltip-fila">
-                                        <span>Talla {{ $talla }}</span>
-                                        <span class="{{ $cantidad <= 2 ? 'bajo' : '' }}">{{ str_pad($cantidad, 2, '0', STR_PAD_LEFT) }} piezas</span>
-                                    </div>
+                                    <div class="tooltip-fila"><span>Talla {{ $talla }}</span><span class="{{ $cantidad <= 2 ? 'bajo' : '' }}">{{ str_pad($cantidad, 2, '0', STR_PAD_LEFT) }} piezas</span></div>
                                     @endforeach
                                 </div>
                             </div>
@@ -211,33 +120,16 @@
                             @endif
                         </div>
                     </td>
-
-                    <td class="px-6 py-4">
-                        <p class="font-mono text-[10px] text-[#747688] uppercase tracking-wider">{{ $producto['id'] }}</p>
-                    </td>
-
-                    <td class="px-6 py-4">
-                        <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#f3f3f4]">
-                            {{ ucfirst($producto['categoria']) }}
-                        </span>
-                    </td>
-
+                    <td class="px-6 py-4"><p class="font-mono text-[10px] text-[#747688] uppercase tracking-wider">{{ $producto['id'] }}</p></td>
+                    <td class="px-6 py-4"><span class="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-[#f3f3f4]">{{ ucfirst($producto['categoria']) }}</span></td>
                     <td class="px-6 py-4">
                         <div class="flex flex-wrap gap-2">
                             @foreach($producto['tallas'] ?? [] as $talla => $cantidad)
-                            <span class="bg-[#f3f3f4] px-2 py-1 text-[10px] font-bold">
-                                {{ $talla }}: <span class="{{ $cantidad <= 2 ? 'text-red-600' : 'text-[#0035c5]' }}">{{ str_pad($cantidad, 2, '0', STR_PAD_LEFT) }}</span>
-                            </span>
+                            <span class="bg-[#f3f3f4] px-2 py-1 text-[10px] font-bold">{{ $talla }}: <span class="{{ $cantidad <= 2 ? 'text-red-600' : 'text-[#1737c8]' }}">{{ str_pad($cantidad, 2, '0', STR_PAD_LEFT) }}</span></span>
                             @endforeach
                         </div>
                     </td>
-
-                    <td class="px-6 py-4 text-center">
-                        <span class="text-lg font-black {{ $producto['stock_total'] < 10 ? 'text-red-600' : 'text-[#1a1c1c]' }}">
-                            {{ $producto['stock_total'] }}
-                        </span>
-                    </td>
-
+                    <td class="px-6 py-4 text-center"><span class="text-lg font-black {{ $producto['stock_total'] < 10 ? 'text-red-600' : 'text-[#1a1c1c]' }}">{{ $producto['stock_total'] }}</span></td>
                     <td class="px-6 py-4 text-center">
                         @if($producto['stock_total'] == 0)
                             <span class="text-[9px] font-black px-2 py-1 bg-red-100 text-red-700 uppercase tracking-widest">Sin stock</span>
@@ -247,18 +139,13 @@
                             <span class="text-[9px] font-black px-2 py-1 bg-green-100 text-green-700 uppercase tracking-widest">En stock</span>
                         @endif
                     </td>
-
                     <td class="px-6 py-4 text-right">
-                        <button onclick="abrirEditar({{ json_encode($producto) }})"
-                                class="px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#1a1c1c] hover:text-white hover:border-[#1a1c1c] transition-all flex items-center gap-1 ml-auto">
-                            <span class="material-symbols-outlined text-sm">edit</span>
-                            Editar stock
+                        <button onclick="abrirEditar({{ json_encode($producto) }})" class="px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#1a1c1c] hover:text-white hover:border-[#1a1c1c] transition-all flex items-center gap-1 ml-auto">
+                            <span class="material-symbols-outlined text-sm">edit</span>Editar stock
                         </button>
                     </td>
-
                 </tr>
                 @empty
-                {{-- placeholders mientras no hay productos en la bd --}}
                 @for($i = 0; $i < 6; $i++)
                 <tr class="border-b border-[#c4c5da]/10">
                     <td class="px-6 py-4"><div class="h-3 bg-[#f3f3f4] w-32 rounded"></div></td>
@@ -274,394 +161,142 @@
             </tbody>
         </table>
     </div>
-
 </main>
 
 <!-- MODAL EDITAR STOCK -->
-{{-- este modal se abre al dar click en editar stock de cualquier producto --}}
-{{-- aqui conectas la ruta para actualizar el stock, algo como action="{{ route('inventario.update') }}" --}}
-<div id="modal-editar"
-     class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm"
-     onclick="if(event.target===this) cerrarEditar()">
-
+<div id="modal-editar" class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm" onclick="if(event.target===this) cerrarEditar()">
     <div class="bg-white w-full max-w-lg mx-4">
         <div class="flex items-center justify-between px-8 py-6 border-b border-[#c4c5da]/20">
-            <div>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-[#0035c5] mb-1">Inventario</p>
-                <h2 class="text-xl font-bold tracking-tight" id="modal-nombre">Editar stock</h2>
-            </div>
-            <button onclick="cerrarEditar()" class="p-2 hover:bg-[#f3f3f4] transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+            <div><p class="text-[10px] font-bold uppercase tracking-widest text-[#1737c8] mb-1">Inventario</p><h2 class="text-xl font-bold tracking-tight" id="modal-nombre">Editar stock</h2></div>
+            <button onclick="cerrarEditar()" class="p-2 hover:bg-[#f3f3f4] transition-colors"><span class="material-symbols-outlined">close</span></button>
         </div>
-
         <form method="POST" action="{{ route('inventario.update') }}" id="form-editar" class="px-8 py-6 space-y-6">
             @csrf
             @method('PUT')
             <input type="hidden" name="producto_id" id="modal-producto-id"/>
-
             <div>
                 <label class="text-[10px] font-black uppercase tracking-widest text-[#747688] block mb-3">Tallas y existencias</label>
                 <div id="modal-tallas" class="space-y-3"></div>
             </div>
-
             <div class="bg-[#f3f3f4] px-4 py-3 flex justify-between items-center">
                 <span class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Stock total calculado</span>
                 <span class="text-lg font-black text-[#1a1c1c]" id="modal-total">0</span>
             </div>
-
             <div class="flex gap-3 pt-2">
-                <button type="submit"
-                        class="flex-1 bg-[#0035c5] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">
-                    GUARDAR CAMBIOS
-                </button>
-                <button type="button" onclick="cerrarEditar()"
-                        class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
-                    CANCELAR
-                </button>
+                <button type="submit" class="flex-1 bg-[#1737c8] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">GUARDAR CAMBIOS</button>
+                <button type="button" onclick="cerrarEditar()" class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">CANCELAR</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- BOTTOM NAV (móvil) -->
+<!-- MODAL NUEVO PRODUCTO -->
+<div id="modal-nuevo-producto" class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm" style="display:none;" onclick="if(event.target===this) cerrarModalProducto()">
+    <div class="bg-white w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between px-8 py-6 border-b border-[#c4c5da]/20">
+            <div><p class="text-[10px] font-bold uppercase tracking-widest text-[#1737c8] mb-1">Inventario</p><h2 class="text-2xl font-bold tracking-tight">Nuevo producto</h2></div>
+            <button onclick="cerrarModalProducto()" class="p-2 hover:bg-[#f3f3f4] transition-colors"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form method="POST" action="{{ route('productos.store') }}" id="form-nuevo-producto" class="px-8 py-6 space-y-6">
+            @csrf
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Nombre del producto</label>
+                <input type="text" name="nombre" id="input-nombre-producto" placeholder="Ej. Tenis Nike Air Max" oninput="verificarDuplicado(this.value)" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                <p id="alerta-duplicado" class="text-[10px] text-yellow-600 font-black uppercase tracking-widest hidden">⚠ Este producto ya existe — se agregarán las piezas al stock actual</p>
+                <input type="hidden" name="producto_existente" id="producto-existente" value="0"/>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Precio</label>
+                    <input type="number" name="precio" placeholder="0.00" step="0.01" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Categoría</label>
+                    <select name="categoria" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]">
+                        <option value="ropa">Ropa</option><option value="calzado">Calzado</option><option value="accesorios">Accesorios</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex flex-col gap-3">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Tallas y existencias</label>
+                <p class="text-[9px] text-[#747688] font-semibold -mt-2">El estado de stock se calcula automáticamente</p>
+                <div id="tallas-container" class="space-y-2">
+                    <div class="flex gap-3 items-center talla-fila">
+                        <input type="text" name="tallas[]" placeholder="Talla (ej. S, M, 42)" class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0" class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                        <button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]"><span class="material-symbols-outlined text-sm">delete</span></button>
+                    </div>
+                </div>
+                <button type="button" onclick="agregarTalla()" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#1737c8] hover:opacity-70 transition-opacity">
+                    <span class="material-symbols-outlined text-sm">add</span>Agregar talla
+                </button>
+            </div>
+            <div class="flex gap-3 pt-4 border-t border-[#c4c5da]/20">
+                <button type="submit" class="flex-1 bg-[#1737c8] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">GUARDAR PRODUCTO</button>
+                <button type="button" onclick="cerrarModalProducto()" class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">CANCELAR</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- BOTTOM NAV móvil -->
 <nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-16 px-4 bg-white/80 backdrop-blur-xl border-t border-[#c4c5da]/20">
-    <a href="/dashboard" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">dashboard</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Inicio</span>
-    </a>
-    <a href="/sales" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">receipt_long</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Ventas</span>
-    </a>
-    <a href="/catalog" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">shopping_bag</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span>
-    </a>
-    <a href="/inventario" class="flex flex-col items-center text-[#0035c5] border-t-2 border-[#0035c5] pt-2">
-        <span class="material-symbols-outlined">inventory_2</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Stock</span>
-    </a>
-    <a href="/clientes" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2">
-        <span class="material-symbols-outlined">group</span>
-        <span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Clientes</span>
-    </a>
+    @if(Auth::user()->role === 'admin')
+    <a href="/dashboard" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Inicio</span></a>
+    @endif
+    <a href="/sales" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">receipt_long</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Ventas</span></a>
+    <a href="/catalog" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">shopping_bag</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span></a>
+    <a href="/inventario" class="flex flex-col items-center text-[#1737c8] border-t-2 border-[#1737c8] pt-2"><span class="material-symbols-outlined">inventory_2</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Stock</span></a>
 </nav>
 
 <script>
-// abre el modal de editar stock con los datos del producto clickeado
 function abrirEditar(producto) {
     document.getElementById('modal-nombre').textContent = producto.nombre;
     document.getElementById('modal-producto-id').value = producto.id;
-
     const tallasEl = document.getElementById('modal-tallas');
     tallasEl.innerHTML = '';
-
-    const tallas = producto.tallas ?? {};
-    Object.entries(tallas).forEach(([talla, cantidad]) => {
+    Object.entries(producto.tallas ?? {}).forEach(([talla, cantidad]) => {
         const fila = document.createElement('div');
         fila.className = 'flex gap-3 items-center';
-        fila.innerHTML = `
-            <div class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm font-bold bg-[#f9f9f9] text-[#747688] uppercase tracking-wider">
-                ${talla}
-            </div>
-            <input type="number"
-                   name="tallas[${talla}]"
-                   value="${cantidad}"
-                   min="0"
-                   oninput="calcularTotal()"
-                   class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9] font-bold"/>
-        `;
+        fila.innerHTML = `<div class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm font-bold bg-[#f9f9f9] text-[#747688] uppercase tracking-wider">${talla}</div><input type="number" name="tallas[${talla}]" value="${cantidad}" min="0" oninput="calcularTotal()" class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9] font-bold"/>`;
         tallasEl.appendChild(fila);
     });
-
     calcularTotal();
     document.getElementById('modal-editar').classList.add('activo');
     document.body.style.overflow = 'hidden';
 }
-
-// calcula el stock total sumando todas las cantidades
 function calcularTotal() {
     const inputs = document.querySelectorAll('#modal-tallas input[type="number"]');
-    let total = 0;
-    inputs.forEach(input => total += parseInt(input.value) || 0);
+    let total = 0; inputs.forEach(i => total += parseInt(i.value) || 0);
     document.getElementById('modal-total').textContent = total;
 }
-
-// cierra el modal
-function cerrarEditar() {
-    document.getElementById('modal-editar').classList.remove('activo');
-    document.body.style.overflow = '';
-}
-
-// filtra las filas por categoria
+function cerrarEditar() { document.getElementById('modal-editar').classList.remove('activo'); document.body.style.overflow = ''; }
 function filtrar(categoria, btn) {
-    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
-    btn.classList.add('activo');
-    document.querySelectorAll('.fila-producto').forEach(fila => {
-        fila.style.display = (categoria === 'todos' || fila.dataset.categoria === categoria) ? '' : 'none';
-    });
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo')); btn.classList.add('activo');
+    document.querySelectorAll('.fila-producto').forEach(f => { f.style.display = (categoria === 'todos' || f.dataset.categoria === categoria) ? '' : 'none'; });
 }
-
-// busca productos por nombre en tiempo real
-function buscar(query) {
-    const q = query.toLowerCase();
-    document.querySelectorAll('.fila-producto').forEach(fila => {
-        fila.style.display = fila.dataset.nombre.includes(q) ? '' : 'none';
-    });
-}
-</script>
-
-    <!-- SIDEBAR OVERLAY -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 opacity-0 invisible transition-all duration-300"
-         onclick="cerrarSidebar()"></div>
-
-    <!-- SIDEBAR -->
-    <div id="sidebar" class="fixed top-0 bottom-0 w-[280px] bg-white z-50 flex flex-col border-r border-[#c4c5da]/20 overflow-y-auto" style="left: -300px;">
-
-        <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
-            <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
-                <div class="w-8 h-8 bg-[#0035c5] flex items-center justify-center shrink-0">
-                    <span class="text-white font-black text-sm">R</span>
-                </div>
-                <div>
-                    <p class="font-black text-sm tracking-tighter text-[#1a1c1c]">Robles Sport</p>
-                    <p class="text-[9px] font-bold uppercase tracking-widest text-[#747688] mt-0.5">Panel de administración</p>
-                </div>
-            </div>
-            <button onclick="cerrarSidebar()" class="p-2 hover:bg-[#f3f3f4] transition-colors ml-3">
-                <span class="material-symbols-outlined text-[#747688] text-lg">close</span>
-            </button>
-        </div>
-
-        <div class="flex-1 p-4 space-y-1">
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Acciones rápidas</p>
-
-            <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">grid_view</span>
-                Ir al inicio
-            </a>
-
-            <div class="border-t border-[#c4c5da]/20 my-2"></div>
-
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Ventas</p>
-            <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">add_circle</span>
-                Nueva venta
-            </a>
-
-            <div class="border-t border-[#c4c5da]/20 my-2"></div>
-
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Catálogo</p>
-            <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">storefront</span>
-                Ir al catálogo
-            </a>
-
-            <div class="border-t border-[#c4c5da]/20 my-2"></div>
-
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Inventario</p>
-            <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">inventory_2</span>
-                Ir al inventario
-            </a>
-
-            <div class="border-t border-[#c4c5da]/20 my-2"></div>
-
-            <p class="text-[9px] font-black uppercase tracking-widest text-[#0035c5] px-2 pt-2 pb-1">Clientes</p>
-            <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#0035c5] transition-all">
-                <span class="material-symbols-outlined text-[16px]">group</span>
-                Ir a clientes
-            </a>
-        </div>
-
-        <div class="border-t border-[#c4c5da]/15 p-5">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-9 h-9 bg-[#0035c5] rounded-full flex items-center justify-center shrink-0">
-                    <span class="text-white font-black text-xs">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
-                </div>
-                <div>
-                    <p class="text-sm font-bold text-[#1a1c1c]">{{ Auth::user()->name ?? 'Usuario' }}</p>
-                    <p class="text-[10px] text-[#747688]">{{ Auth::user()->email ?? '' }}</p>
-                </div>
-            </div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 transition-colors">
-                    <span class="material-symbols-outlined text-sm">logout</span>
-                    Cerrar sesión
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-    function abrirSidebar() {
-        document.getElementById('sidebar').style.left = '0';
-        document.getElementById('sidebar-overlay').classList.remove('opacity-0', 'invisible');
-        document.getElementById('sidebar-overlay').classList.add('opacity-100', 'visible');
-        document.body.style.overflow = 'hidden';
-    }
-    function cerrarSidebar() {
-        document.getElementById('sidebar').style.left = '-300px';
-        document.getElementById('sidebar-overlay').classList.add('opacity-0', 'invisible');
-        document.getElementById('sidebar-overlay').classList.remove('opacity-100', 'visible');
-        document.body.style.overflow = '';
-    }
-    </script>
-
-
-<!-- MODAL NUEVO PRODUCTO -->
-<div id="modal-nuevo-producto"
-     class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm"
-     style="display:none;"
-     onclick="if(event.target===this) cerrarModalProducto()">
-    <div class="bg-white w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-
-        <div class="flex items-center justify-between px-8 py-6 border-b border-[#c4c5da]/20">
-            <div>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-[#0035c5] mb-1">Inventario</p>
-                <h2 class="text-2xl font-bold tracking-tight">Nuevo producto</h2>
-            </div>
-            <button onclick="cerrarModalProducto()" class="p-2 hover:bg-[#f3f3f4] transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-
-        {{-- aqui conectas la ruta para guardar el producto, algo como action="{{ route('productos.store') }}" --}}
-        <form method="POST" action="{{ route('productos.store') }}" id="form-nuevo-producto" class="px-8 py-6 space-y-6">
-            @csrf
-
-            <div class="flex flex-col gap-1">
-                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Nombre del producto</label>
-                <input type="text" name="nombre" id="input-nombre-producto"
-                       placeholder="Ej. Tenis Nike Air Max"
-                       oninput="verificarDuplicado(this.value)"
-                       class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-                <p id="alerta-duplicado" class="text-[10px] text-yellow-600 font-black uppercase tracking-widest hidden">
-                    ⚠ Este producto ya existe — se agregarán las piezas al stock actual
-                </p>
-                <input type="hidden" name="producto_existente" id="producto-existente" value="0"/>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Precio</label>
-                    <input type="number" name="precio" placeholder="0.00" step="0.01"
-                           class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Categoría</label>
-                    <select name="categoria"
-                            class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]">
-                        <option value="ropa">Ropa</option>
-                        <option value="calzado">Calzado</option>
-                        <option value="accesorios">Accesorios</option>
-                    </select>
-                </div>
-            </div>
-
-
-
-            <div class="flex flex-col gap-3">
-                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Tallas y existencias</label>
-                <p class="text-[9px] text-[#747688] font-semibold -mt-2">El estado de stock se calcula automáticamente según las piezas totales</p>
-                <div id="tallas-container" class="space-y-2">
-                    <div class="flex gap-3 items-center talla-fila">
-                        <input type="text" name="tallas[]" placeholder="Talla (ej. S, M, 42)"
-                               class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-                        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0"
-                               class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-                        <button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]">
-                            <span class="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                    </div>
-                </div>
-                <button type="button" onclick="agregarTalla()"
-                        class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#0035c5] hover:opacity-70 transition-opacity">
-                    <span class="material-symbols-outlined text-sm">add</span>
-                    Agregar talla
-                </button>
-            </div>
-
-
-
-            <div class="flex gap-3 pt-4 border-t border-[#c4c5da]/20">
-                <button type="submit" id="btn-guardar-producto"
-                        class="flex-1 bg-[#0035c5] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">
-                    GUARDAR PRODUCTO
-                </button>
-                <button type="button" onclick="cerrarModalProducto()"
-                        class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
-                    CANCELAR
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-function abrirModalProducto() {
-    document.getElementById('modal-nuevo-producto').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-function cerrarModalProducto() {
-    document.getElementById('modal-nuevo-producto').style.display = 'none';
-    document.body.style.overflow = '';
-    document.getElementById('form-nuevo-producto').reset();
-    document.getElementById('alerta-duplicado').classList.add('hidden');
-    document.getElementById('btn-guardar-producto').disabled = false;
-    document.getElementById('btn-guardar-producto').classList.remove('opacity-50', 'cursor-not-allowed');
-}
-
-// verifica si ya existe un producto con ese nombre
-// si existe avisa que se sumaran las piezas, no bloquea
+function buscar(query) { const q = query.toLowerCase(); document.querySelectorAll('.fila-producto').forEach(f => { f.style.display = f.dataset.nombre.includes(q) ? '' : 'none'; }); }
+function abrirModalProducto() { document.getElementById('modal-nuevo-producto').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+function cerrarModalProducto() { document.getElementById('modal-nuevo-producto').style.display = 'none'; document.body.style.overflow = ''; document.getElementById('form-nuevo-producto').reset(); document.getElementById('alerta-duplicado').classList.add('hidden'); }
 function verificarDuplicado(nombre) {
     const productos = document.querySelectorAll('.fila-producto');
     const alerta = document.getElementById('alerta-duplicado');
-    const existenteInput = document.getElementById('producto-existente');
     const q = nombre.toLowerCase().trim();
-
-    const existe = Array.from(productos).some(fila =>
-        fila.dataset.nombre && fila.dataset.nombre.toLowerCase() === q
-    );
-
-    if (existe && q.length > 0) {
-        alerta.classList.remove('hidden');
-        existenteInput.value = '1';
-    } else {
-        alerta.classList.add('hidden');
-        existenteInput.value = '0';
-    }
+    const existe = Array.from(productos).some(f => f.dataset.nombre && f.dataset.nombre.toLowerCase() === q);
+    existe && q.length > 0 ? alerta.classList.remove('hidden') : alerta.classList.add('hidden');
+    document.getElementById('producto-existente').value = existe && q.length > 0 ? '1' : '0';
 }
-
 function agregarTalla() {
     const container = document.getElementById('tallas-container');
     const fila = document.createElement('div');
     fila.className = 'flex gap-3 items-center talla-fila';
-    fila.innerHTML = `
-        <input type="text" name="tallas[]" placeholder="Talla (ej. S, M, 42)"
-               class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0"
-               class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#0035c5] bg-[#f9f9f9]"/>
-        <button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]">
-            <span class="material-symbols-outlined text-sm">delete</span>
-        </button>
-    `;
+    fila.innerHTML = `<input type="text" name="tallas[]" placeholder="Talla" class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/><input type="number" name="cantidades[]" placeholder="Cantidad" min="0" class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/><button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]"><span class="material-symbols-outlined text-sm">delete</span></button>`;
     container.appendChild(fila);
 }
-
-function eliminarTalla(btn) {
-    const fila = btn.closest('.talla-fila');
-    if (document.querySelectorAll('.talla-fila').length > 1) fila.remove();
-}
-
+function eliminarTalla(btn) { const fila = btn.closest('.talla-fila'); if (document.querySelectorAll('.talla-fila').length > 1) fila.remove(); }
 </script>
+
+@include('partials._sidebar')
 
 </body>
 </html>

@@ -12,102 +12,194 @@ use App\Http\Controllers\Admin\SaleController;
 use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\ResumenController;
+
 /*
 |--------------------------------------------------------------------------
-| RUTAS PRINCIPALES
+| RUTAS PÚBLICAS
 |--------------------------------------------------------------------------
 */
 
-// Redirige la raiz del sitio al login
 Route::get('/', function () {
-    return redirect('/login');
+    return view('welcome');
 });
 
-// Muestra el dashboard con los datos de ventas, top productos y stock bajo
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// ── REGISTRO ──────────────────────────────────────────────────────────────
 
-// Muestra la vista de ventas del dia con la lista de clientes y el ticket
-Route::get('/sales', [VentaController::class, 'index'])->name('sales');
+Route::get('/register', function () {
+    return view('register');
+})->name('register')->middleware('guest');
 
-// Registra una nueva venta, si el cliente no existe lo crea automaticamente
-Route::post('/ventas', [VentaController::class, 'store'])->name('ventas.store');
-Route::put('/ventas/{id}', [VentaController::class, 'update'])->name('ventas.update');
-Route::delete('/ventas/{id}', [VentaController::class, 'destroy'])->name('ventas.destroy');
-
-// Muestra el catalogo de productos con carrito de ventas
-// Pasa los clientes para el autocomplete del carrito
-Route::get('/catalog', function () {
-    return view('catalog', [
-        'clientes'  => \App\Models\Client::all(),
-        'productos' => []
+Route::post('/register', function (Request $request) {
+    $request->validate([
+        'name'       => 'required|string|max:255',
+        'store_name' => 'required|string|max:255',
+        'email'      => 'required|email|unique:users,email',
+        'password'   => 'required|min:8|confirmed',
+    ], [
+        'name.required'       => 'El nombre es obligatorio.',
+        'store_name.required' => 'El nombre de tu tienda es obligatorio.',
+        'email.required'      => 'El correo electrónico es obligatorio.',
+        'email.email'         => 'Ingresa un correo electrónico válido.',
+        'email.unique'        => 'Este correo ya está registrado.',
+        'password.required'   => 'La contraseña es obligatoria.',
+        'password.min'        => 'La contraseña debe tener al menos 8 caracteres.',
+        'password.confirmed'  => 'Las contraseñas no coinciden.',
     ]);
-})->name('catalog');
 
-// Muestra el formulario de login
+    $user = \App\Models\User::create([
+        'name'       => $request->name,
+        'store_name' => $request->store_name,
+        'email'      => $request->email,
+        'password'   => bcrypt($request->password),
+        'estado'     => true,
+        'role'       => 'admin',
+    ]);
+
+    Auth::login($user);
+    $request->session()->regenerate();
+
+    return redirect('/dashboard');
+})->name('register.post')->middleware('guest');
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────
+
 Route::get('/login', function () {
     return view('login');
-})->name('login');
+})->name('login')->middleware('guest');
 
-// Procesa el formulario de login, verifica las credenciales
-// Si son correctas manda al dashboard, si no regresa con error
 Route::post('/login', function (Request $request) {
-    $credentials = $request->only('email', 'password');
+    $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required',
+    ], [
+        'email.required'    => 'El correo electrónico es obligatorio.',
+        'email.email'       => 'Ingresa un correo electrónico válido.',
+        'password.required' => 'La contraseña es obligatoria.',
+    ]);
 
-    if (Auth::attempt($credentials)) {
+    if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
         $request->session()->regenerate();
-        return redirect('/dashboard');
+        if (Auth::user()->role === 'admin') {
+            return redirect()->intended('/dashboard');
+        }
+        return redirect()->intended('/sales');
     }
 
     return back()->withErrors([
-        'email' => 'Credenciales incorrectas',
-    ]);
+        'email' => 'El correo o la contraseña son incorrectos.',
+    ])->onlyInput('email');
 })->name('login.post');
 
-// Cierra la sesion del usuario, limpia los datos y redirige al login
-Route::post('/logout', function (Request $request) {
+// ── LOGOUT — GET para evitar 419 ──────────────────────────────────────────
+
+Route::get('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
-    return redirect('/login');
+    return redirect('/');
 })->name('logout');
 
-Route::match(['GET', 'POST'], '/resumen', [ResumenController::class, 'index'])->name('resumen');
+/*
+|--------------------------------------------------------------------------
+| RUTAS PROTEGIDAS — Todos los usuarios autenticados (admin y vendedor)
+|--------------------------------------------------------------------------
+*/
 
-// Muestra el reporte completo de ventas con filtro por rango de fechas
-Route::get('/reporte', function () {
-    return view('reporte');
-})->name('reporte');
+Route::middleware(['auth'])->group(function () {
 
-// Procesa la accion de reponer stock de un producto desde el dashboard
-Route::post('/reponer', function (Request $request) {
-    return back();
-})->name('reponer');
+    // Ventas
+    Route::get('/sales', [SaleController::class, 'index'])->name('sales');
+    Route::post('/sales', [SaleController::class, 'store'])->name('ventas.store');
+    Route::put('/ventas/{id}', [VentaController::class, 'update'])->name('ventas.update');
+    Route::delete('/ventas/{id}', [VentaController::class, 'destroy'])->name('ventas.destroy');
 
-// Rutas de productos — CRUD completo en Admin
-Route::get('/inventario', [ProductoController::class, 'index'])->name('inventario');
-Route::post('/productos', [ProductoController::class, 'store'])->name('productos.store');
-Route::get('/productos/{id}', [ProductoController::class, 'show'])->name('productos.show');
-Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
-Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
+    // Catálogo
+    Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
+    Route::post('/catalog', [CatalogController::class, 'store'])->name('catalog.store');
 
-// Rutas de clientes — Irving maneja la logica en ClientController
-Route::get('/clientes', [ClientController::class, 'index'])->name('clientes');
-Route::post('/clientes', [ClientController::class, 'store'])->name('clientes.store');
-Route::put('/clientes/{client}', [ClientController::class, 'update'])->name('clientes.update');
-Route::delete('/clientes/{client}', [ClientController::class, 'destroy'])->name('clientes.destroy');
+    // Inventario
+    Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario');
+    Route::post('/inventario/productos', [InventarioController::class, 'store'])->name('productos.store');
+    Route::put('/inventario/update', [InventarioController::class, 'update'])->name('inventario.update');
 
+    // Redirección inteligente por rol
+    Route::get('/inicio', function () {
+        return Auth::user()->role === 'admin'
+            ? redirect('/dashboard')
+            : redirect('/sales');
+    })->name('inicio');
 
-Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario');
-Route::post('/inventario/productos', [InventarioController::class, 'store'])->name('productos.store');
-Route::put('/inventario/update', [InventarioController::class, 'update'])->name('inventario.update');
+});
 
+/*
+|--------------------------------------------------------------------------
+| RUTAS PROTEGIDAS — Solo ADMIN
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/sales', [SaleController::class, 'index'])->name('sales');
-Route::post('/sales', [SaleController::class, 'store'])->name('ventas.store');
+Route::middleware(['auth', 'solo.admin'])->group(function () {
 
-Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
-Route::post('/catalog', [CatalogController::class, 'store'])->name('catalog.store');
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::post('/reponer', [DashboardController::class, 'reponer'])->name('reponer');
+    // Productos
+    Route::get('/productos/{id}', [ProductoController::class, 'show'])->name('productos.show');
+    Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
+    Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
 
-Route::get('/reporte', [ReporteController::class, 'index'])->name('reporte');
+    // Clientes
+    Route::get('/clientes', [ClientController::class, 'index'])->name('clientes');
+    Route::post('/clientes', [ClientController::class, 'store'])->name('clientes.store');
+    Route::put('/clientes/{client}', [ClientController::class, 'update'])->name('clientes.update');
+    Route::delete('/clientes/{client}', [ClientController::class, 'destroy'])->name('clientes.destroy');
+
+    // Reportes
+    Route::get('/reporte', [ReporteController::class, 'index'])->name('reporte');
+    Route::match(['GET', 'POST'], '/resumen', [ResumenController::class, 'index'])->name('resumen');
+
+    // Reponer stock
+    Route::post('/reponer', [DashboardController::class, 'reponer'])->name('reponer');
+
+    // Gestión de usuarios
+    Route::get('/usuarios', function () {
+        $usuarios = \App\Models\User::where('id', '!=', Auth::id())->get();
+        return view('usuarios', compact('usuarios'));
+    })->name('usuarios');
+
+    Route::post('/usuarios', function (Request $request) {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:8',
+            'role'     => 'required|in:admin,vendedor',
+        ], [
+            'name.required'     => 'El nombre es obligatorio.',
+            'email.required'    => 'El correo es obligatorio.',
+            'email.unique'      => 'Este correo ya está registrado.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min'      => 'La contraseña debe tener al menos 8 caracteres.',
+            'role.required'     => 'El rol es obligatorio.',
+        ]);
+
+        \App\Models\User::create([
+            'name'       => $request->name,
+            'store_name' => Auth::user()->store_name,
+            'email'      => $request->email,
+            'password'   => bcrypt($request->password),
+            'estado'     => true,
+            'role'       => $request->role,
+        ]);
+
+        return back()->with('success', 'Usuario creado correctamente.');
+    })->name('usuarios.store');
+
+    Route::delete('/usuarios/{id}', function ($id) {
+        $usuario = \App\Models\User::findOrFail($id);
+        if ($usuario->id === Auth::id()) {
+            return back()->with('error', 'No puedes eliminarte a ti mismo.');
+        }
+        $usuario->delete();
+        return back()->with('success', 'Usuario eliminado.');
+    })->name('usuarios.destroy');
+
+});
