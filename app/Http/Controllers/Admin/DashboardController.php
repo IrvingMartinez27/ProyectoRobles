@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\product;
 use App\Models\sale;
 use App\Models\detail_sale;
+use App\Models\inventory;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -25,7 +26,6 @@ class DashboardController extends Controller
         // ── DATOS REALES PARA LA GRÁFICA ──────────────────────────
 
         if ($periodo === 'semana') {
-            // Últimos 7 días
             $labels = [];
             $valores = [];
             for ($i = 6; $i >= 0; $i--) {
@@ -35,7 +35,6 @@ class DashboardController extends Controller
             }
 
         } elseif ($periodo === 'mes') {
-            // Últimos 30 días agrupados por semana
             $labels = [];
             $valores = [];
             for ($i = 3; $i >= 0; $i--) {
@@ -81,30 +80,34 @@ class DashboardController extends Controller
                 'imagen'     => null,
             ]);
 
-        // ── LOW STOCK ──────────────────────────────────────────────
-        $lowStock = product::where('estado', true)
-            ->with('inventories')
+        // ── LOW STOCK POR TALLAS ───────────────────────────────────
+        // Trae cada talla con stock bajo (menos de 5 piezas por talla)
+        $lowStock = inventory::with('product')
+            ->where('stock', '<', 5)
+            ->where('stock', '>=', 0)
+            ->whereHas('product', fn($q) => $q->where('estado', true))
+            ->orderBy('stock')
             ->get()
-            ->map(fn($producto) => [
-                'id'     => $producto->id,
-                'nombre' => $producto->name,
-                'stock'  => $producto->inventories->sum('stock'),
-                'imagen' => null,
+            ->map(fn($inv) => [
+                'id'      => $inv->product->id ?? null,
+                'nombre'  => $inv->product->name ?? '—',
+                'talla'   => $inv->talla,
+                'stock'   => $inv->stock,
+                'imagen'  => null,
             ])
-            ->filter(fn($p) => $p['stock'] < 10)
-            ->sortBy('stock')
+            ->filter(fn($p) => $p['id'] !== null)
             ->values();
 
         return view('dashboard', [
-            'labels'        => $labels,
-            'valores'       => $valores,
-            'periodo'       => $periodo,
-            'ventasHoy'     => $ventasHoy,
-            'numVentasHoy'  => $numVentasHoy,
-            'ticketPromedio'=> $ticketPromedio,
-            'topProductos'  => $topProductos,
-            'lowStock'      => $lowStock,
-            'plan'          => $plan,
+            'labels'         => $labels,
+            'valores'        => $valores,
+            'periodo'        => $periodo,
+            'ventasHoy'      => $ventasHoy,
+            'numVentasHoy'   => $numVentasHoy,
+            'ticketPromedio' => $ticketPromedio,
+            'topProductos'   => $topProductos,
+            'lowStock'       => $lowStock,
+            'plan'           => $plan,
         ]);
     }
 

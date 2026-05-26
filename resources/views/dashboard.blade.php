@@ -89,14 +89,13 @@
 
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
 
-        {{-- GRÁFICA MODERNA --}}
+        {{-- GRÁFICA --}}
         <section class="md:col-span-8 bg-white border border-[#c4c5da]/20 p-8 relative">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h2 class="text-xl font-bold tracking-tight">Analítica de ventas</h2>
                     <p class="text-xs text-[#747688] font-semibold uppercase tracking-widest mt-1">Ventas netas en tiempo real</p>
                 </div>
-                {{-- SELECTOR PERÍODO --}}
                 <div class="flex bg-[#f3f3f4] p-1 gap-1">
                     <a href="{{ route('dashboard', ['periodo' => 'dia']) }}">
                         <button class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all {{ $periodo === 'dia' ? 'bg-[#1a1c1c] text-white' : 'text-[#747688] hover:text-[#1a1c1c]' }}">Día</button>
@@ -118,8 +117,6 @@
                     @endif
                 </div>
             </div>
-
-            {{-- CHART.JS --}}
             <div class="relative h-[280px]">
                 <canvas id="ventasChart"></canvas>
             </div>
@@ -171,12 +168,12 @@
             </a>
         </section>
 
-        {{-- RESTOCK --}}
+        {{-- RESTOCK POR TALLAS --}}
         <section class="md:col-span-12">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-xl font-bold tracking-tight">Restock requerido</h2>
-                    <p class="text-xs text-[#747688] font-semibold uppercase tracking-widest mt-1">Productos por debajo del mínimo</p>
+                    <p class="text-xs text-[#747688] font-semibold uppercase tracking-widest mt-1">Tallas por debajo del mínimo</p>
                 </div>
                 <button onclick="abrirModalStock()" class="px-4 py-2 text-[10px] font-black uppercase tracking-widest border border-[#c4c5da]/30 hover:bg-[#1a1c1c] hover:text-white transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">inventory_2</span>Ver todo
@@ -188,12 +185,13 @@
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="font-bold text-sm uppercase leading-tight">{{ $item['nombre'] }}</p>
-                            <p class="text-[10px] text-[#747688] mt-1 uppercase tracking-wider">#{{ $item['id'] }}</p>
+                            <p class="text-[10px] text-[#1737c8] font-black mt-0.5 uppercase tracking-wider">Talla: {{ $item['talla'] ?? '—' }}</p>
+                            <p class="text-[10px] text-[#747688] mt-0.5 uppercase tracking-wider">#{{ $item['id'] }}</p>
                         </div>
                         <span class="bg-red-100 text-red-700 px-2 py-1 text-[10px] font-black tracking-widest uppercase shrink-0">{{ $item['stock'] }} pcs</span>
                     </div>
                     <div class="w-full bg-[#f3f3f4] h-1.5">
-                        <div class="h-full bg-red-400" style="width: {{ min(($item['stock'] / 10) * 100, 100) }}%"></div>
+                        <div class="h-full bg-red-400" style="width: {{ min(($item['stock'] / 5) * 100, 100) }}%"></div>
                     </div>
                     <form method="POST" action="{{ route('reponer') }}">
                         @csrf
@@ -205,7 +203,7 @@
                 <div class="bg-white border border-[#c4c5da]/20 px-8 py-10 text-center w-full">
                     <span class="material-symbols-outlined text-3xl text-green-400 block mb-2">check_circle</span>
                     <p class="text-sm font-bold text-[#1a1c1c]">Todo el stock está bien</p>
-                    <p class="text-xs text-[#747688] mt-1">Ningún producto está por debajo del mínimo</p>
+                    <p class="text-xs text-[#747688] mt-1">Ninguna talla está por debajo del mínimo</p>
                 </div>
                 @endforelse
             </div>
@@ -239,14 +237,27 @@
         </div>
         <div class="overflow-y-auto flex-1">
             <div class="grid grid-cols-12 px-8 py-3 text-[10px] font-black uppercase tracking-widest text-[#747688] bg-[#f3f3f4] border-b border-[#c4c5da]/20">
-                <div class="col-span-5">Producto</div><div class="col-span-3 text-center">Piezas</div><div class="col-span-4 text-right">Acción</div>
+                <div class="col-span-5">Producto</div>
+                <div class="col-span-2 text-center">Talla</div>
+                <div class="col-span-2 text-center">Piezas</div>
+                <div class="col-span-3 text-right">Acción</div>
             </div>
             @forelse($lowStock as $item)
             <div class="grid grid-cols-12 px-8 py-4 items-center border-b border-[#c4c5da]/10 hover:bg-[#f9f9f9]">
-                <div class="col-span-5"><h3 class="font-bold text-sm uppercase">{{ $item['nombre'] }}</h3><p class="text-[10px] text-[#747688]">#{{ $item['id'] }}</p></div>
-                <div class="col-span-3 text-center"><span class="bg-red-100 text-red-700 px-2 py-1 text-[10px] font-black uppercase">{{ $item['stock'] }} piezas</span></div>
-                <div class="col-span-4 flex justify-end">
-                    <form method="POST" action="{{ route('reponer') }}">@csrf<input type="hidden" name="producto" value="{{ $item['id'] }}">
+                <div class="col-span-5">
+                    <h3 class="font-bold text-sm uppercase">{{ $item['nombre'] }}</h3>
+                    <p class="text-[10px] text-[#747688]">#{{ $item['id'] }}</p>
+                </div>
+                <div class="col-span-2 text-center">
+                    <span class="text-[10px] font-black text-[#1737c8] uppercase">{{ $item['talla'] ?? '—' }}</span>
+                </div>
+                <div class="col-span-2 text-center">
+                    <span class="bg-red-100 text-red-700 px-2 py-1 text-[10px] font-black uppercase">{{ $item['stock'] }} pcs</span>
+                </div>
+                <div class="col-span-3 flex justify-end">
+                    <form method="POST" action="{{ route('reponer') }}">
+                        @csrf
+                        <input type="hidden" name="producto" value="{{ $item['id'] }}">
                         <button class="px-4 py-2 bg-[#1737c8] text-white text-[10px] font-black uppercase hover:opacity-90">REPONER</button>
                     </form>
                 </div>
@@ -293,18 +304,16 @@
 <nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-16 px-4 bg-white/80 backdrop-blur-xl border-t border-[#c4c5da]/20">
     <a href="/dashboard" class="flex flex-col items-center text-[#1737c8] border-t-2 border-[#1737c8] pt-2"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Inicio</span></a>
     <a href="/sales" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">receipt_long</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Ventas</span></a>
-    <a href="/catalog" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">shopping_bag</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span></a>
+    <a href="/catalog" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">shopping_bag</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span></div></a>
     <a href="/inventario" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">inventory_2</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Stock</span></a>
     <a href="/clientes" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">group</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Clientes</span></a>
 </nav>
 
 <script>
-// ── CHART.JS ──────────────────────────────────────────────────
 const labels  = @json($labels);
 const valores = @json($valores);
 
 const ctx = document.getElementById('ventasChart').getContext('2d');
-
 const gradient = ctx.createLinearGradient(0, 0, 0, 280);
 gradient.addColorStop(0, 'rgba(23, 55, 200, 0.15)');
 gradient.addColorStop(1, 'rgba(23, 55, 200, 0)');
@@ -363,7 +372,6 @@ new Chart(ctx, {
     }
 });
 
-// ── MODALES ───────────────────────────────────────────────────
 function abrirModalStock() { document.getElementById('modal-stock').classList.add('activo'); document.body.style.overflow = 'hidden'; }
 function cerrarModalStock() { document.getElementById('modal-stock').classList.remove('activo'); document.body.style.overflow = ''; }
 

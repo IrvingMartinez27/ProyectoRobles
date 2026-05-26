@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class InventarioController extends Controller
 {
     // Límite de productos para el plan gratis
-    const LIMITE_PLAN_GRATIS = 100;
+    const LIMITE_PLAN_GRATIS = 20;
 
     public function index()
     {

@@ -332,10 +332,16 @@
                     <button type="button" onclick="filtrarCategoria('calzado', this)" class="cat-btn py-2.5 text-[10px] font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1737c8] hover:text-[#1737c8] transition-all">Calzado</button>
                     <button type="button" onclick="filtrarCategoria('accesorios', this)" class="cat-btn py-2.5 text-[10px] font-black uppercase tracking-widest border border-[#c4c5da]/40 hover:border-[#1737c8] hover:text-[#1737c8] transition-all">Accesorios</button>
                 </div>
-                <div id="lista-productos-categoria" class="hidden space-y-0 max-h-44 overflow-y-auto border border-[#c4c5da]/20 bg-[#f9f9f9] rounded-sm"></div>
+                <div id="lista-productos-categoria" class="hidden space-y-0 max-h-52 overflow-y-auto border border-[#c4c5da]/20 bg-[#f9f9f9] rounded-sm"></div>
                 <div id="productos-data" class="hidden">
                     @foreach($productos ?? [] as $prod)
-                    <span data-id="{{ $prod['id'] ?? '' }}" data-nombre="{{ $prod['nombre'] ?? '' }}" data-precio="{{ $prod['precio'] ?? 0 }}" data-categoria="{{ $prod['categoria'] ?? '' }}"></span>
+                    <span
+                        data-id="{{ $prod['id'] ?? '' }}"
+                        data-nombre="{{ $prod['nombre'] ?? '' }}"
+                        data-precio="{{ $prod['precio'] ?? 0 }}"
+                        data-categoria="{{ $prod['categoria'] ?? '' }}"
+                        data-tallas="{{ json_encode($prod['tallas'] ?? []) }}">
+                    </span>
                     @endforeach
                 </div>
             </div>
@@ -390,8 +396,7 @@ function actualizarTicketDesktop(venta) {
     document.getElementById('ticket-fecha').textContent = venta.fecha ?? '—';
     document.getElementById('ticket-subtotal').textContent = '$' + parseFloat(venta.total).toFixed(2);
     document.getElementById('ticket-total').textContent = '$' + parseFloat(venta.total).toFixed(2);
-    const el = document.getElementById('ticket-productos');
-    el.innerHTML = renderProductos(venta);
+    document.getElementById('ticket-productos').innerHTML = renderProductos(venta);
 }
 
 // ── TICKET MODAL MÓVIL ────────────────────────────────────────
@@ -509,7 +514,7 @@ document.addEventListener('click', e => {
         document.getElementById('clientes-sugerencias')?.classList.add('hidden');
 });
 
-// ── PRODUCTOS ─────────────────────────────────────────────────
+// ── PRODUCTOS CON TALLAS ──────────────────────────────────────
 let productosVenta = [];
 
 function filtrarCategoria(categoria, btn) {
@@ -518,15 +523,45 @@ function filtrarCategoria(categoria, btn) {
     const productos = document.querySelectorAll('#productos-data span');
     const lista = document.getElementById('lista-productos-categoria');
     const filtrados = Array.from(productos).filter(p => p.dataset.categoria === categoria);
-    lista.innerHTML = filtrados.length === 0
-        ? '<div class="px-4 py-3 text-sm text-[#747688]">Sin productos en esta categoría</div>'
-        : filtrados.map(p => `<div class="flex items-center justify-between px-4 py-3 hover:bg-white cursor-pointer border-b border-[#c4c5da]/10 transition-colors" onclick="agregarProductoVenta('${p.dataset.id}','${p.dataset.nombre}',${p.dataset.precio})"><div><p class="text-xs font-bold uppercase">${p.dataset.nombre}</p><p class="text-[10px] text-[#747688]">$${parseFloat(p.dataset.precio).toFixed(2)}</p></div><span class="material-symbols-outlined text-[#1737c8] text-lg">add_circle</span></div>`).join('');
+
+    if (filtrados.length === 0) {
+        lista.innerHTML = '<div class="px-4 py-3 text-sm text-[#747688]">Sin productos en esta categoría</div>';
+    } else {
+        lista.innerHTML = filtrados.map(p => {
+            const tallas = JSON.parse(p.dataset.tallas || '[]');
+            const tallasHtml = tallas.length > 0
+                ? tallas.map(t =>
+                    `<button type="button"
+                        onclick="agregarProductoVenta('${p.dataset.id}','${p.dataset.nombre}',${p.dataset.precio},'${t.talla}')"
+                        class="px-2 py-1 text-[9px] font-black border border-[#c4c5da]/40 hover:border-[#1737c8] hover:text-[#1737c8] hover:bg-white transition-all uppercase">
+                        ${t.talla} <span class="text-[#747688]">(${t.stock})</span>
+                    </button>`
+                ).join('')
+                : '<span class="text-[10px] text-red-500 font-bold">Sin stock disponible</span>';
+
+            return `<div class="px-4 py-3 border-b border-[#c4c5da]/10">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <p class="text-xs font-bold uppercase">${p.dataset.nombre}</p>
+                        <p class="text-[10px] text-[#747688]">$${parseFloat(p.dataset.precio).toFixed(2)}</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-1.5">${tallasHtml}</div>
+            </div>`;
+        }).join('');
+    }
     lista.classList.remove('hidden');
 }
 
-function agregarProductoVenta(id, nombre, precio) {
-    const existe = productosVenta.find(p => p.id === id);
-    if (existe) { existe.cantidad += 1; } else { productosVenta.push({ id, nombre, precio: parseFloat(precio), cantidad: 1 }); }
+function agregarProductoVenta(id, nombre, precio, talla = null) {
+    // Clave única por producto + talla
+    const key = id + '_' + (talla ?? 'sin_talla');
+    const existe = productosVenta.find(p => p.key === key);
+    if (existe) {
+        existe.cantidad += 1;
+    } else {
+        productosVenta.push({ key, id, nombre, precio: parseFloat(precio), cantidad: 1, talla });
+    }
     renderizarProductosVenta();
 }
 
@@ -536,27 +571,42 @@ function renderizarProductosVenta() {
     container.innerHTML = `<div class="border border-[#c4c5da]/20 divide-y divide-[#c4c5da]/10">` +
         productosVenta.map((p, i) => `
         <div class="flex items-center gap-3 px-3 py-2.5">
-            <div class="flex-1 min-w-0"><p class="text-xs font-bold uppercase truncate">${p.nombre}</p></div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold uppercase truncate">${p.nombre}</p>
+                ${p.talla ? `<p class="text-[10px] text-[#1737c8] font-bold">Talla: ${p.talla}</p>` : ''}
+            </div>
             <div class="flex items-center gap-1 shrink-0">
                 <button type="button" onclick="cambiarCantidadVenta(${i},-1)" class="w-7 h-7 bg-[#f3f3f4] flex items-center justify-center text-sm font-black">−</button>
                 <span class="w-8 text-center text-sm font-black">${p.cantidad}</span>
                 <button type="button" onclick="cambiarCantidadVenta(${i},1)" class="w-7 h-7 bg-[#f3f3f4] flex items-center justify-center text-sm font-black">+</button>
             </div>
             <p class="text-xs font-black text-[#1737c8] w-16 text-right shrink-0">$${(p.precio*p.cantidad).toFixed(2)}</p>
-            <button type="button" onclick="quitarProductoVenta(${i})" class="text-[#c4c5da] hover:text-red-500 transition-colors shrink-0"><span class="material-symbols-outlined text-sm">close</span></button>
+            <button type="button" onclick="quitarProductoVenta(${i})" class="text-[#c4c5da] hover:text-red-500 transition-colors shrink-0">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
         </div>`).join('') + `</div>`;
-    actualizarHiddens(); calcularTotal();
+    actualizarHiddens();
+    calcularTotal();
 }
 
-function cambiarCantidadVenta(i, d) { productosVenta[i].cantidad += d; if (productosVenta[i].cantidad <= 0) productosVenta.splice(i,1); renderizarProductosVenta(); }
-function quitarProductoVenta(i) { productosVenta.splice(i,1); renderizarProductosVenta(); }
+function cambiarCantidadVenta(i, d) {
+    productosVenta[i].cantidad += d;
+    if (productosVenta[i].cantidad <= 0) productosVenta.splice(i, 1);
+    renderizarProductosVenta();
+}
+function quitarProductoVenta(i) { productosVenta.splice(i, 1); renderizarProductosVenta(); }
+
 function actualizarHiddens() {
     document.getElementById('productos-hidden').innerHTML = productosVenta.map(p =>
-        `<input type="hidden" name="productos[]" value="${p.nombre}"/><input type="hidden" name="cantidades[]" value="${p.cantidad}"/><input type="hidden" name="precios[]" value="${p.precio}"/>`
+        `<input type="hidden" name="productos[]" value="${p.id}"/>
+         <input type="hidden" name="cantidades[]" value="${p.cantidad}"/>
+         <input type="hidden" name="precios[]" value="${p.precio}"/>
+         <input type="hidden" name="tallas[]" value="${p.talla ?? ''}"/>`
     ).join('');
 }
+
 function calcularTotal() {
-    document.getElementById('total-calculado').textContent = '$' + productosVenta.reduce((s,p) => s+p.precio*p.cantidad, 0).toFixed(2);
+    document.getElementById('total-calculado').textContent = '$' + productosVenta.reduce((s, p) => s + p.precio * p.cantidad, 0).toFixed(2);
 }
 </script>
 

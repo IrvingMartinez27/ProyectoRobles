@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Model;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class inventory extends Model
@@ -15,12 +13,23 @@ class inventory extends Model
         'product_id',
         'talla',
         'stock',
-        'precio_decimal'];
+        'precio_decimal',
+    ];
 
-    public function products(){
+    // Relación principal — usada en el dashboard y controllers
+    public function product()
+    {
         return $this->belongsTo(product::class);
     }
-    public function details(){
+
+    // Alias para compatibilidad con código existente
+    public function products()
+    {
+        return $this->belongsTo(product::class);
+    }
+
+    public function details()
+    {
         return $this->hasMany(detail_sale::class);
     }
 }
