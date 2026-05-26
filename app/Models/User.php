@@ -9,7 +9,6 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     protected $fillable = [
@@ -19,6 +18,7 @@ class User extends Authenticatable
         'password',
         'estado',
         'role',
+        'plan',
     ];
 
     public function sales()
@@ -44,8 +44,6 @@ class User extends Authenticatable
         ];
     }
 
-    // ── Helpers de rol ──────────────────────────────────────────────────
-
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -54,5 +52,20 @@ class User extends Authenticatable
     public function isVendedor(): bool
     {
         return $this->role === 'vendedor';
+    }
+
+    public function esPlanGratis(): bool
+    {
+        return ($this->plan ?? 'gratis') === 'gratis';
+    }
+
+    public function esPlanPro(): bool
+    {
+        return $this->plan === 'pro';
+    }
+
+    public function esPlanBusiness(): bool
+    {
+        return $this->plan === 'business';
     }
 }

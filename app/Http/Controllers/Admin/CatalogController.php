@@ -17,20 +17,17 @@ class CatalogController extends Controller
 {
     public function index()
     {
-        // Productos activos con categoría e inventario
         $productos = product::where('estado', true)
             ->with(['category', 'inventories'])
             ->get()
             ->map(function ($producto) {
-
                 $tallas      = $producto->inventories->pluck('stock', 'talla')->toArray();
                 $stock_total = array_sum($tallas);
 
-                // Estado de stock para el badge
                 $stock = match(true) {
-                    $stock_total === 0  => 'agotado',
-                    $stock_total < 10   => 'poco',
-                    default             => 'disponible',
+                    $stock_total === 0 => 'agotado',
+                    $stock_total < 10  => 'poco',
+                    default            => 'disponible',
                 };
 
                 return [
@@ -38,13 +35,12 @@ class CatalogController extends Controller
                     'nombre'    => $producto->name,
                     'categoria' => strtolower($producto->category->name ?? 'sin categoría'),
                     'precio'    => $producto->precio,
-                    'imagen'    => null, // cuando agregues imágenes conéctalo aquí
+                    'imagen'    => null,
                     'tallas'    => $tallas,
                     'stock'     => $stock,
                 ];
             });
 
-        // Clientes para el autocomplete del carrito
         $clientes = client::orderBy('name')->get();
 
         return view('catalog', compact('productos', 'clientes'));
@@ -52,7 +48,6 @@ class CatalogController extends Controller
 
     public function store(Request $request)
     {
-        // El carrito llega como JSON desde el input hidden
         $request->validate([
             'cliente_nombre'    => 'required|string',
             'productos_carrito' => 'required|string',
@@ -76,16 +71,17 @@ class CatalogController extends Controller
                 if ($clienteExistente) {
                     $clienteId = $clienteExistente->id;
                 } else {
+                    // Teléfono null para evitar conflicto de índice único
                     $nuevoCliente = client::create([
                         'name'      => $request->cliente_nombre,
-                        'telefono'  => '0000000000',
-                        'direccion' => 'Sin dirección',
+                        'telefono'  => null,
+                        'direccion' => null,
                     ]);
                     $clienteId = $nuevoCliente->id;
                 }
             }
 
-            // Buscar caja abierta
+            // Buscar o crear caja abierta
             $caja = box::where('estado', true)->latest()->first();
 
             if (!$caja) {
@@ -108,7 +104,7 @@ class CatalogController extends Controller
                 'metodo_pago' => 'efectivo',
             ]);
 
-            // Crear el detalle por cada producto del carrito
+            // Detalle por cada producto
             foreach ($productosCarrito as $item) {
                 $productoModel = product::find($item['id']);
 
@@ -123,7 +119,7 @@ class CatalogController extends Controller
                 }
             }
 
-            // Generar ticket
+            // Ticket
             ticket::create(['sale_id' => $venta->id]);
         });
 

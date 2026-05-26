@@ -5,38 +5,42 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReporteController extends Controller
 {
     public function index(Request $request)
     {
-        $query = sale::with(['client', 'details'])
-            ->latest();
+        $plan = Auth::user()->plan ?? 'gratis';
 
-        // Filtro por rango de fechas
-        if ($request->filled('desde')) {
-            $query->whereDate('created_at', '>=', $request->desde);
+        $query = sale::with(['client', 'details'])->latest();
+
+        // Plan gratis: solo ve las ventas de hoy, sin filtros por fecha
+        if ($plan === 'gratis') {
+            $query->whereDate('created_at', now()->toDateString());
+        } else {
+            // Plan Pro/Business: filtros avanzados por rango de fechas
+            if ($request->filled('desde')) {
+                $query->whereDate('created_at', '>=', $request->desde);
+            }
+            if ($request->filled('hasta')) {
+                $query->whereDate('created_at', '<=', $request->hasta);
+            }
         }
 
-        if ($request->filled('hasta')) {
-            $query->whereDate('created_at', '<=', $request->hasta);
-        }
-
-        // Total del período (antes de paginar)
-        $totalPeriodo  = number_format($query->sum('total'), 2);
+        $totalPeriodo   = number_format($query->sum('total'), 2);
         $totalRegistros = $query->count();
 
-        // Paginar ventas
         $ventas = $query->paginate(15)->through(fn($venta) => [
-            'id'             => $venta->id,
-            'cliente'        => $venta->client->name ?? 'Sin cliente',
-            'email'          => '',
-            'num_productos'  => $venta->details->sum('cantidad'),
-            'fecha'          => $venta->created_at->format('d/m/Y H:i'),
-            'estado'         => 'completada',
-            'total'          => number_format($venta->total, 2),
+            'id'            => $venta->id,
+            'cliente'       => $venta->client->name ?? 'Sin cliente',
+            'email'         => '',
+            'num_productos' => $venta->details->sum('cantidad'),
+            'fecha'         => $venta->created_at->format('d/m/Y H:i'),
+            'estado'        => 'completada',
+            'total'         => number_format($venta->total, 2),
         ]);
 
-        return view('reporte', compact('ventas', 'totalPeriodo', 'totalRegistros'));
+        return view('reporte', compact('ventas', 'totalPeriodo', 'totalRegistros', 'plan'));
     }
 }

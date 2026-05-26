@@ -7,16 +7,18 @@
 
     {{-- CABECERA --}}
     <div class="flex items-center justify-between p-5 border-b border-[#c4c5da]/15">
-        <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1">
+        <div class="bg-[#f3f3f4] border border-[#c4c5da]/30 px-4 py-3 flex items-center gap-3 flex-1 min-w-0">
             <div class="w-8 h-8 bg-[#1737c8] flex items-center justify-center shrink-0">
                 <span class="text-white font-black text-sm">Q</span>
             </div>
-            <div>
+            <div class="min-w-0">
                 <p class="font-black text-sm tracking-tighter text-[#1a1c1c]">Quivex</p>
-                <p class="text-[9px] font-bold uppercase tracking-widest text-[#747688] mt-0.5">{{ Auth::user()->store_name ?? 'Mi tienda' }}</p>
+                <p class="text-[9px] font-bold uppercase tracking-widest text-[#747688] mt-0.5 truncate">
+                    {{ Str::limit(Auth::user()->store_name ?? 'Mi tienda', 22) }}
+                </p>
             </div>
         </div>
-        <button onclick="cerrarSidebar()" class="p-2 hover:bg-[#f3f3f4] transition-colors ml-3">
+        <button onclick="cerrarSidebar()" class="p-2 hover:bg-[#f3f3f4] transition-colors ml-3 shrink-0">
             <span class="material-symbols-outlined text-[#747688] text-lg">close</span>
         </button>
     </div>
@@ -24,80 +26,115 @@
     {{-- NAVEGACIÓN --}}
     <div class="flex-1 p-4 space-y-1">
 
-        {{-- VISIBLE PARA TODOS --}}
         <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Navegación</p>
 
         <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
            class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
-            <span class="material-symbols-outlined text-[16px]">add_circle</span>
-            Nueva venta
+            <span class="material-symbols-outlined text-[16px]">add_circle</span>Nueva venta
         </a>
 
         <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
            class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
-            <span class="material-symbols-outlined text-[16px]">storefront</span>
-            Catálogo
+            <span class="material-symbols-outlined text-[16px]">storefront</span>Catálogo
         </a>
 
         <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
            class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
-            <span class="material-symbols-outlined text-[16px]">inventory_2</span>
-            Inventario
+            <span class="material-symbols-outlined text-[16px]">inventory_2</span>Inventario
         </a>
 
-        {{-- SOLO ADMIN --}}
         @if(Auth::user()->role === 'admin')
-
         <div class="border-t border-[#c4c5da]/20 my-2"></div>
         <p class="text-[9px] font-black uppercase tracking-widest text-[#1737c8] px-2 pt-2 pb-1">Administración</p>
 
         <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()"
            class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
-            <span class="material-symbols-outlined text-[16px]">grid_view</span>
-            Dashboard
+            <span class="material-symbols-outlined text-[16px]">grid_view</span>Dashboard
         </a>
 
         <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
            class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
-            <span class="material-symbols-outlined text-[16px]">group</span>
-            Clientes
+            <span class="material-symbols-outlined text-[16px]">group</span>Clientes
         </a>
 
         <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
            class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
-            <span class="material-symbols-outlined text-[16px]">bar_chart</span>
-            Reportes
+            <span class="material-symbols-outlined text-[16px]">bar_chart</span>Reportes
         </a>
 
         <a href="{{ route('usuarios') }}" onclick="cerrarSidebar()"
            class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
-            <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
-            Usuarios
+            <span class="material-symbols-outlined text-[16px]">manage_accounts</span>Usuarios
         </a>
-
         @endif
 
     </div>
 
-    {{-- PIE — usuario + logout --}}
-    <div class="border-t border-[#c4c5da]/15 p-5">
-        <div class="flex items-center gap-3 mb-4">
+    {{-- PIE --}}
+    <div class="border-t border-[#c4c5da]/15 p-4">
+        <div class="flex items-center gap-3 mb-3">
             <div class="w-9 h-9 bg-[#1737c8] rounded-full flex items-center justify-center shrink-0">
                 <span class="text-white font-black text-xs">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}</span>
             </div>
-            <div>
-                <p class="text-sm font-bold text-[#1a1c1c]">{{ Auth::user()->name ?? 'Usuario' }}</p>
-                <p class="text-[10px] text-[#747688]">{{ Auth::user()->email ?? '' }}</p>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold text-[#1a1c1c] truncate">
+                    {{ Str::of(Auth::user()->name ?? 'Usuario')->explode(' ')->first() }}
+                    {{ optional(Str::of(Auth::user()->name ?? '')->explode(' '))->get(1, '') }}
+                </p>
+                <p class="text-[10px] text-[#747688] truncate">
+                    {{ Auth::user()->role === 'admin' ? 'Administrador' : 'Vendedor' }}
+                    @if(isset(Auth::user()->plan))
+                    · <span class="{{ Auth::user()->plan === 'gratis' ? 'text-[#747688]' : 'text-[#1737c8]' }} font-bold uppercase">{{ Auth::user()->plan }}</span>
+                    @endif
+                </p>
             </div>
         </div>
         <a href="{{ route('logout') }}"
-           class="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 transition-colors">
-            <span class="material-symbols-outlined text-sm">logout</span>
-            Cerrar sesión
+           class="w-full flex items-center gap-2 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 transition-colors">
+            <span class="material-symbols-outlined text-sm">logout</span>Cerrar sesión
         </a>
     </div>
 
 </div>
+
+{{-- BOTTOM NAV MÓVIL --}}
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-16 px-2 bg-white/90 backdrop-blur-xl border-t border-[#c4c5da]/20">
+    @if(Auth::user()->role === 'admin')
+    <a href="{{ route('dashboard') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('dashboard') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">grid_view</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Inicio</span>
+    </a>
+    <a href="{{ route('sales') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('sales') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Ventas</span>
+    </a>
+    <a href="{{ route('catalog') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('catalog') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">storefront</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Catálogo</span>
+    </a>
+    <a href="{{ route('inventario') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('inventario') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Stock</span>
+    </a>
+    <a href="{{ route('clientes') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('clientes') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">group</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Clientes</span>
+    </a>
+    @else
+    <a href="{{ route('sales') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('sales') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Ventas</span>
+    </a>
+    <a href="{{ route('catalog') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('catalog') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">storefront</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Catálogo</span>
+    </a>
+    <a href="{{ route('inventario') }}" class="flex flex-col items-center pt-2 min-w-0 flex-1 {{ request()->routeIs('inventario') ? 'text-[#1737c8] border-t-2 border-[#1737c8]' : 'text-[#1a1c1c]/40' }}">
+        <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+        <span class="text-[9px] uppercase tracking-widest font-bold mt-0.5">Stock</span>
+    </a>
+    @endif
+</nav>
 
 <script>
 function abrirSidebar() {

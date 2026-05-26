@@ -4,10 +4,8 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Crear cuenta — Quivex</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
         tailwind.config = {
@@ -24,14 +22,11 @@
             }
         }
     </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; min-height: 100vh; }
-    </style>
+    <style>body { font-family: 'Inter', sans-serif; min-height: 100vh; }</style>
 </head>
 
 <body class="bg-white text-on-surface antialiased selection:bg-primary selection:text-white">
 
-    <!-- HEADER -->
     <header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl flex justify-between items-center px-8 h-16 border-b border-gray-100">
         <a href="/" class="font-black tracking-tighter text-[#1a1c1c] text-2xl transition-all duration-300 hover:text-primary">
             Qui<span class="text-[#1737c8]">vex</span>
@@ -43,7 +38,7 @@
 
     <main class="flex flex-col md:flex-row min-h-screen">
 
-        <!-- SECCIÓN IZQUIERDA -->
+        <!-- IZQUIERDA -->
         <section class="hidden md:flex md:w-1/2 bg-[#1a1c1c] items-center justify-center p-12 overflow-hidden relative">
             <div class="absolute inset-0 z-0">
                 <img alt="Fondo deportivo"
@@ -78,125 +73,71 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DERECHA -->
+        <!-- DERECHA -->
         <section class="flex-1 flex flex-col justify-center items-center px-6 pt-24 pb-12 bg-white">
             <div class="w-full max-w-md flex flex-col gap-7">
 
-                <!-- TÍTULO -->
                 <div class="flex flex-col gap-2">
-                    <h2 class="text-3xl font-black tracking-tight text-on-surface uppercase">
-                        Crear cuenta
-                    </h2>
-                    <p class="text-secondary text-sm">
-                        Empieza gratis hoy. Solo toma 30 segundos.
-                    </p>
+                    <h2 class="text-3xl font-black tracking-tight text-on-surface uppercase">Crear cuenta</h2>
+                    <p class="text-secondary text-sm">Empieza gratis hoy. Solo toma 30 segundos.</p>
                 </div>
 
-                <!-- ERRORES -->
                 @if ($errors->any())
-                    <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                        @foreach ($errors->all() as $error)
-                            <p class="text-sm text-red-600 font-medium">{{ $error }}</p>
-                        @endforeach
-                    </div>
+                <div class="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                    @foreach ($errors->all() as $error)
+                    <p class="text-sm text-red-600 font-medium">{{ $error }}</p>
+                    @endforeach
+                </div>
                 @endif
 
-                <!-- FORMULARIO -->
                 <form action="/register" method="POST" class="flex flex-col gap-5">
                     @csrf
-
-                    <!-- NOMBRE -->
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
-                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
-                            Nombre completo
-                        </label>
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Nombre completo</label>
                         <input name="name" value="{{ old('name') }}"
-                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
-                                      focus:border-primary focus:ring-2 focus:ring-primary/30
-                                      outline-none transition-all duration-300 ease-in-out
-                                      hover:border-primary hover:shadow-md"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
                                type="text" placeholder="Tu nombre completo" required>
                     </div>
-
-                    <!-- NOMBRE DE LA TIENDA -->
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
-                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
-                            Nombre de tu tienda
-                        </label>
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Nombre de tu tienda</label>
                         <input name="store_name" value="{{ old('store_name') }}"
-                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
-                                      focus:border-primary focus:ring-2 focus:ring-primary/30
-                                      outline-none transition-all duration-300 ease-in-out
-                                      hover:border-primary hover:shadow-md"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
                                type="text" placeholder="Ej. Robles Sport" required>
                     </div>
-
-                    <!-- EMAIL -->
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
-                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
-                            Correo electrónico
-                        </label>
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Correo electrónico</label>
                         <input name="email" value="{{ old('email') }}"
-                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
-                                      focus:border-primary focus:ring-2 focus:ring-primary/30
-                                      outline-none transition-all duration-300 ease-in-out
-                                      hover:border-primary hover:shadow-md"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
                                type="email" placeholder="tu@correo.com" required>
                     </div>
-
-                    <!-- PASSWORD -->
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
-                        <label class="text-[10px] font-bold tracking-widests text-secondary uppercase mb-2 block">
-                            Contraseña
-                        </label>
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Contraseña</label>
                         <input name="password"
-                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
-                                      focus:border-primary focus:ring-2 focus:ring-primary/30
-                                      outline-none transition-all duration-300 ease-in-out
-                                      hover:border-primary hover:shadow-md"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
                                type="password" placeholder="Mínimo 8 caracteres" required>
                     </div>
-
-                    <!-- CONFIRMAR PASSWORD -->
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
-                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">
-                            Confirmar contraseña
-                        </label>
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Confirmar contraseña</label>
                         <input name="password_confirmation"
-                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3
-                                      focus:border-primary focus:ring-2 focus:ring-primary/30
-                                      outline-none transition-all duration-300 ease-in-out
-                                      hover:border-primary hover:shadow-md"
+                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
                                type="password" placeholder="Repite tu contraseña" required>
                     </div>
-
-                    <!-- BOTÓN PRINCIPAL -->
                     <button type="submit"
-                            class="w-full bg-primary text-white font-bold py-4 rounded-xl
-                                   hover:brightness-110 hover:shadow-lg hover:scale-[1.03]
-                                   active:scale-[0.97] transition-all duration-300 ease-in-out
-                                   uppercase tracking-widest text-sm mt-1">
+                            class="w-full bg-primary text-white font-bold py-4 rounded-xl hover:brightness-110 hover:shadow-lg hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 uppercase tracking-widest text-sm mt-1">
                         Crear cuenta gratis
                     </button>
-
                 </form>
 
-                <!-- DIVISOR -->
                 <div class="flex items-center gap-4">
                     <div class="flex-1 h-px bg-gray-200"></div>
                     <span class="text-[11px] font-bold uppercase tracking-widest text-gray-400">o continúa con</span>
                     <div class="flex-1 h-px bg-gray-200"></div>
                 </div>
 
-                <!-- BOTONES SOCIALES -->
                 <div class="flex gap-3">
-
-                    <!-- Google -->
-                    <a href="/auth/google"
-                       class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200
-                              rounded-xl font-semibold text-sm text-[#1a1c1c] bg-white
-                              hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm
-                              transition-all duration-200 ease-in-out">
+                    {{-- Google — conectado --}}
+                    <a href="{{ route('google.redirect') }}"
+                       class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-sm text-[#1a1c1c] bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
                         <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.332 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/>
                             <path d="M6.306 14.691l6.571 4.819C14.655 15.108 19.001 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/>
@@ -206,21 +147,16 @@
                         Google
                     </a>
 
-                    <!-- Apple -->
-                    <a href="/auth/apple"
-                       class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200
-                              rounded-xl font-semibold text-sm text-[#1a1c1c] bg-white
-                              hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm
-                              transition-all duration-200 ease-in-out">
+                    {{-- Apple — próximamente --}}
+                    <button disabled
+                       class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-sm text-gray-300 bg-white cursor-not-allowed">
                         <svg width="18" height="18" viewBox="0 0 814 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.8-154.9-112.3C142.1 683.3 100.1 588.4 100.1 498c0-154.3 100.7-235.6 199.8-235.6 51.8 0 95.1 34.4 128.2 34.4 31.6 0 81.1-36.5 140.9-36.5 22.6 0 108.1 2 166.1 81.4zm-56.9-194.5c27.4-32.9 47.3-78.7 47.3-124.6 0-6.4-.6-12.8-1.9-18.9-44.9 1.9-98.4 30.2-130.3 67.7-24.8 27.4-48.5 73.3-48.5 119.8 0 7 1.3 13.9 1.9 16.2 2.6.6 6.4 1.3 10.2 1.3 40.3 0 90.4-26.8 121.3-61.5z" fill="#1a1c1c"/>
+                            <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.8-154.9-112.3C142.1 683.3 100.1 588.4 100.1 498c0-154.3 100.7-235.6 199.8-235.6 51.8 0 95.1 34.4 128.2 34.4 31.6 0 81.1-36.5 140.9-36.5 22.6 0 108.1 2 166.1 81.4zm-56.9-194.5c27.4-32.9 47.3-78.7 47.3-124.6 0-6.4-.6-12.8-1.9-18.9-44.9 1.9-98.4 30.2-130.3 67.7-24.8 27.4-48.5 73.3-48.5 119.8 0 7 1.3 13.9 1.9 16.2 2.6.6 6.4 1.3 10.2 1.3 40.3 0 90.4-26.8 121.3-61.5z" fill="#d1d5db"/>
                         </svg>
                         Apple
-                    </a>
-
+                    </button>
                 </div>
 
-                <!-- FOOTER -->
                 <div class="flex justify-center">
                     <p class="flex items-center gap-2 text-[11px] text-gray-400 tracking-wide">
                         <span class="material-symbols-outlined text-sm">lock</span>

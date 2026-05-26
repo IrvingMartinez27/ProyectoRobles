@@ -13,21 +13,11 @@ use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\ResumenController;
 
-/*
-|--------------------------------------------------------------------------
-| RUTAS PÚBLICAS
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', function () { return view('welcome'); });
 
 // ── REGISTRO ──────────────────────────────────────────────────────────────
 
-Route::get('/register', function () {
-    return view('register');
-})->name('register')->middleware('guest');
+Route::get('/register', function () { return view('register'); })->name('register')->middleware('guest');
 
 Route::post('/register', function (Request $request) {
     $request->validate([
@@ -53,19 +43,17 @@ Route::post('/register', function (Request $request) {
         'password'   => bcrypt($request->password),
         'estado'     => true,
         'role'       => 'admin',
+        'plan'       => 'gratis',
     ]);
 
     Auth::login($user);
     $request->session()->regenerate();
-
     return redirect('/dashboard');
 })->name('register.post')->middleware('guest');
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────
 
-Route::get('/login', function () {
-    return view('login');
-})->name('login')->middleware('guest');
+Route::get('/login', function () { return view('login'); })->name('login')->middleware('guest');
 
 Route::post('/login', function (Request $request) {
     $request->validate([
@@ -79,18 +67,20 @@ Route::post('/login', function (Request $request) {
 
     if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
         $request->session()->regenerate();
-        if (Auth::user()->role === 'admin') {
-            return redirect()->intended('/dashboard');
-        }
-        return redirect()->intended('/sales');
+        return Auth::user()->role === 'admin'
+            ? redirect()->intended('/dashboard')
+            : redirect()->intended('/sales');
     }
 
-    return back()->withErrors([
-        'email' => 'El correo o la contraseña son incorrectos.',
-    ])->onlyInput('email');
+    return back()->withErrors(['email' => 'El correo o la contraseña son incorrectos.'])->onlyInput('email');
 })->name('login.post');
 
-// ── LOGOUT — GET para evitar 419 ──────────────────────────────────────────
+// Google OAuth
+Route::get('/auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'callback'])->name('google.callback');
+
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────
 
 Route::get('/logout', function (Request $request) {
     Auth::logout();
@@ -101,32 +91,26 @@ Route::get('/logout', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
-| RUTAS PROTEGIDAS — Todos los usuarios autenticados (admin y vendedor)
+| RUTAS PROTEGIDAS — Todos los usuarios (admin y vendedor)
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth'])->group(function () {
 
-    // Ventas
     Route::get('/sales', [SaleController::class, 'index'])->name('sales');
     Route::post('/sales', [SaleController::class, 'store'])->name('ventas.store');
     Route::put('/ventas/{id}', [VentaController::class, 'update'])->name('ventas.update');
     Route::delete('/ventas/{id}', [VentaController::class, 'destroy'])->name('ventas.destroy');
 
-    // Catálogo
     Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog');
     Route::post('/catalog', [CatalogController::class, 'store'])->name('catalog.store');
 
-    // Inventario
     Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario');
     Route::post('/inventario/productos', [InventarioController::class, 'store'])->name('productos.store');
     Route::put('/inventario/update', [InventarioController::class, 'update'])->name('inventario.update');
 
-    // Redirección inteligente por rol
     Route::get('/inicio', function () {
-        return Auth::user()->role === 'admin'
-            ? redirect('/dashboard')
-            : redirect('/sales');
+        return Auth::user()->role === 'admin' ? redirect('/dashboard') : redirect('/sales');
     })->name('inicio');
 
 });
@@ -139,34 +123,38 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'solo.admin'])->group(function () {
 
-    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Productos
     Route::get('/productos/{id}', [ProductoController::class, 'show'])->name('productos.show');
     Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
     Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
 
-    // Clientes
     Route::get('/clientes', [ClientController::class, 'index'])->name('clientes');
     Route::post('/clientes', [ClientController::class, 'store'])->name('clientes.store');
     Route::put('/clientes/{client}', [ClientController::class, 'update'])->name('clientes.update');
     Route::delete('/clientes/{client}', [ClientController::class, 'destroy'])->name('clientes.destroy');
 
-    // Reportes
     Route::get('/reporte', [ReporteController::class, 'index'])->name('reporte');
     Route::match(['GET', 'POST'], '/resumen', [ResumenController::class, 'index'])->name('resumen');
-
-    // Reponer stock
     Route::post('/reponer', [DashboardController::class, 'reponer'])->name('reponer');
 
-    // Gestión de usuarios
+    // ── USUARIOS con restricción plan gratis ──────────────────────
     Route::get('/usuarios', function () {
         $usuarios = \App\Models\User::where('id', '!=', Auth::id())->get();
-        return view('usuarios', compact('usuarios'));
+        $plan     = Auth::user()->plan ?? 'gratis';
+        return view('usuarios', compact('usuarios', 'plan'));
     })->name('usuarios');
 
     Route::post('/usuarios', function (Request $request) {
+        $plan          = Auth::user()->plan ?? 'gratis';
+        $totalUsuarios = \App\Models\User::where('id', '!=', Auth::id())->count();
+
+        if ($plan === 'gratis' && $totalUsuarios >= 1) {
+            return back()
+                ->with('limite_usuarios', true)
+                ->with('error', 'El plan Gratis solo permite 1 usuario. Actualiza a Pro para agregar vendedores ilimitados.');
+        }
+
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
@@ -188,6 +176,7 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
             'password'   => bcrypt($request->password),
             'estado'     => true,
             'role'       => $request->role,
+            'plan'       => 'gratis',
         ]);
 
         return back()->with('success', 'Usuario creado correctamente.');

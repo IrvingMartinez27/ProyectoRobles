@@ -7,18 +7,19 @@ use App\Models\product;
 use App\Models\inventory;
 use App\Models\category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class InventarioController extends Controller
 {
+    // Límite de productos para el plan gratis
+    const LIMITE_PLAN_GRATIS = 100;
+
     public function index()
     {
-        // Traemos todos los productos activos con su categoría e inventarios
         $productos = product::where('estado', true)
             ->with(['category', 'inventories'])
             ->get()
             ->map(function ($producto) {
-
-                // Construimos el array de tallas => cantidad
                 $tallas = $producto->inventories
                     ->pluck('stock', 'talla')
                     ->toArray();
@@ -33,17 +34,32 @@ class InventarioController extends Controller
                 ];
             });
 
-        return view('inventario', compact('productos'));
+        // Pasamos el conteo y el límite a la vista
+        $totalProductos   = $productos->count();
+        $limiteAlcanzado  = $totalProductos >= self::LIMITE_PLAN_GRATIS;
+        $plan             = Auth::user()->plan ?? 'gratis';
+
+        return view('inventario', compact('productos', 'totalProductos', 'limiteAlcanzado', 'plan'));
     }
 
     public function store(Request $request)
     {
+        // Verificar límite del plan gratis
+        $plan           = Auth::user()->plan ?? 'gratis';
+        $totalProductos = product::where('estado', true)->count();
+
+        if ($plan === 'gratis' && $totalProductos >= self::LIMITE_PLAN_GRATIS) {
+            return redirect()->route('inventario')
+                ->with('limite_alcanzado', true)
+                ->with('error', 'Alcanzaste el límite de ' . self::LIMITE_PLAN_GRATIS . ' productos del plan Gratis. Actualiza a Pro para productos ilimitados.');
+        }
+
         $request->validate([
-            'nombre'      => 'required|string',
-            'precio'      => 'required|numeric|min:0',
-            'categoria'   => 'required|string',
-            'tallas'      => 'required|array|min:1',
-            'cantidades'  => 'required|array|min:1',
+            'nombre'     => 'required|string',
+            'precio'     => 'required|numeric|min:0',
+            'categoria'  => 'required|string',
+            'tallas'     => 'required|array|min:1',
+            'cantidades' => 'required|array|min:1',
         ]);
 
         // Buscar o crear la categoría
@@ -75,10 +91,8 @@ class InventarioController extends Controller
                 ->first();
 
             if ($inventario) {
-                // Si ya existe esa talla, sumamos las piezas
                 $inventario->increment('stock', (int) $cantidad);
             } else {
-                // Si no existe, la creamos
                 inventory::create([
                     'product_id'     => $producto->id,
                     'talla'          => $talla,
@@ -88,7 +102,7 @@ class InventarioController extends Controller
             }
         }
 
-        return redirect()->route('inventario');
+        return redirect()->route('inventario')->with('success', 'Producto guardado correctamente.');
     }
 
     public function update(Request $request)
@@ -98,13 +112,12 @@ class InventarioController extends Controller
             'tallas'      => 'required|array',
         ]);
 
-        // Actualizamos el stock de cada talla
         foreach ($request->tallas as $talla => $cantidad) {
-            Inventory::where('product_id', $request->producto_id)
+            inventory::where('product_id', $request->producto_id)
                 ->where('talla', $talla)
                 ->update(['stock' => (int) $cantidad]);
         }
 
-        return redirect()->route('inventario');
+        return redirect()->route('inventario')->with('success', 'Stock actualizado correctamente.');
     }
 }

@@ -6,27 +6,31 @@ use App\Http\Controllers\Controller;
 use App\Models\sale;
 use App\Models\detail_sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ResumenController extends Controller
 {
     public function index(Request $request)
     {
-        // Fecha seleccionada, por defecto hoy
-        $fecha = $request->get('fecha', now()->toDateString());
+        $plan = Auth::user()->plan ?? 'gratis';
 
-        // Ventas del día seleccionado
+        // Plan gratis: siempre muestra hoy, no puede cambiar la fecha
+        if ($plan === 'gratis') {
+            $fecha = now()->toDateString();
+        } else {
+            $fecha = $request->get('fecha', now()->toDateString());
+        }
+
         $ventasDelDia = sale::with(['details.product'])
             ->whereDate('created_at', $fecha)
             ->get();
 
-        // Métricas
-        $totalDia      = number_format($ventasDelDia->sum('total'), 2);
-        $numVentas     = $ventasDelDia->count();
+        $totalDia       = number_format($ventasDelDia->sum('total'), 2);
+        $numVentas      = $ventasDelDia->count();
         $ticketPromedio = $numVentas > 0
             ? number_format($ventasDelDia->sum('total') / $numVentas, 2)
             : '0.00';
 
-        // Productos vendidos en el día agrupados
         $productosDelDia = detail_sale::with('product')
             ->whereHas('sale', fn($q) => $q->whereDate('created_at', $fecha))
             ->get()
@@ -46,7 +50,9 @@ class ResumenController extends Controller
             'totalDia',
             'numVentas',
             'ticketPromedio',
-            'productosDelDia'
+            'productosDelDia',
+            'plan',
+            'fecha'
         ));
     }
 }
