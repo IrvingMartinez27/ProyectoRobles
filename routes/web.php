@@ -34,10 +34,9 @@ Route::post('/register', function (Request $request) {
         'password.confirmed' => 'Las contraseñas no coinciden.',
     ]);
 
-    // Crear el usuario en la BD central (sin tienda aún)
     $user = \App\Models\User::create([
         'name'       => $request->name,
-        'store_name' => $request->name, // temporal hasta que complete el setup
+        'store_name' => $request->name,
         'email'      => $request->email,
         'password'   => bcrypt($request->password),
         'estado'     => true,
@@ -47,12 +46,10 @@ Route::post('/register', function (Request $request) {
 
     Auth::login($user);
     $request->session()->regenerate();
-
-    // Redirige al setup para que ponga el nombre de su tienda
     return redirect('/setup');
 })->name('register.post')->middleware('guest');
 
-// ── SETUP — Nombre de tienda ──────────────────────────────────────────────
+// ── SETUP — Nombre de tienda y zona horaria ───────────────────────────────
 
 Route::get('/setup', function () {
     if (Auth::user()->tenant_id) {
@@ -64,8 +61,10 @@ Route::get('/setup', function () {
 Route::post('/setup', function (Request $request) {
     $request->validate([
         'store_name' => 'required|string|max:255',
+        'timezone'   => 'required|string',
     ], [
         'store_name.required' => 'El nombre de tu tienda es obligatorio.',
+        'timezone.required'   => 'La zona horaria es obligatoria.',
     ]);
 
     // Crear el tenant — genera su BD automáticamente con todas las tablas
@@ -73,6 +72,7 @@ Route::post('/setup', function (Request $request) {
         'id'         => \Illuminate\Support\Str::uuid(),
         'store_name' => $request->store_name,
         'plan'       => 'gratis',
+        'timezone'   => $request->timezone ?? 'America/Mexico_City',
     ]);
 
     // Vincular tenant al usuario y actualizar nombre de tienda
@@ -101,7 +101,6 @@ Route::post('/login', function (Request $request) {
     if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
         $request->session()->regenerate();
 
-        // Si no ha completado el setup, mandarlo ahí
         if (!Auth::user()->tenant_id) {
             return redirect('/setup');
         }
@@ -231,7 +230,6 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
         if ($usuario->id === Auth::id()) {
             return back()->with('error', 'No puedes eliminarte a ti mismo.');
         }
-        // Verificar que el usuario pertenece al mismo tenant
         if ($usuario->tenant_id !== Auth::user()->tenant_id) {
             return back()->with('error', 'No tienes permiso para eliminar este usuario.');
         }

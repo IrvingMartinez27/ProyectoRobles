@@ -17,6 +17,11 @@ class InicializarTenant
             $tenant = Tenant::find($usuario->tenant_id);
             if ($tenant) {
                 tenancy()->initialize($tenant);
+
+                // Aplicar la zona horaria del tenant a toda la aplicación
+                $timezone = $tenant->timezone ?? 'America/Mexico_City';
+                config(['app.timezone' => $timezone]);
+                date_default_timezone_set($timezone);
             }
         }
 

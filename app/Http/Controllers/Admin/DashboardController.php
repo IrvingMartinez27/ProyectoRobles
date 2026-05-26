@@ -26,39 +26,54 @@ class DashboardController extends Controller
         // ── DATOS REALES PARA LA GRÁFICA ──────────────────────────
 
         if ($periodo === 'semana') {
-            $labels = [];
+            $labels  = [];
             $valores = [];
             for ($i = 6; $i >= 0; $i--) {
-                $fecha = Carbon::now()->subDays($i);
+                $fecha     = Carbon::now()->subDays($i);
                 $labels[]  = $fecha->locale('es')->isoFormat('ddd D');
                 $valores[] = sale::whereDate('created_at', $fecha->toDateString())->sum('total') ?? 0;
             }
 
         } elseif ($periodo === 'mes') {
-            $labels = [];
+            $labels  = [];
             $valores = [];
             for ($i = 3; $i >= 0; $i--) {
-                $inicio = Carbon::now()->subWeeks($i + 1)->startOfWeek();
-                $fin    = Carbon::now()->subWeeks($i)->endOfWeek();
+                $inicio    = Carbon::now()->subWeeks($i + 1)->startOfWeek();
+                $fin       = Carbon::now()->subWeeks($i)->endOfWeek();
                 $labels[]  = 'Sem ' . $inicio->format('d/M');
                 $valores[] = sale::whereBetween('created_at', [$inicio, $fin])->sum('total') ?? 0;
             }
 
         } else {
-            // Hoy por hora (6am a 10pm)
-            $labels  = [];
-            $valores = [];
-            $horas   = [6, 8, 10, 12, 14, 16, 18, 20, 22];
-            foreach ($horas as $hora) {
-                $labels[]  = $hora . ':00';
-                $valores[] = sale::whereDate('created_at', today())
-                    ->whereTime('created_at', '>=', $hora . ':00:00')
-                    ->whereTime('created_at', '<', ($hora + 2) . ':00:00')
-                    ->sum('total') ?? 0;
+            // ── GRÁFICA DEL DÍA CON HORAS REALES ──────────────────
+            // Trae todas las ventas de hoy agrupadas por hora real
+            $ventasPorHora = sale::whereDate('created_at', today())
+                ->selectRaw('HOUR(created_at) as hora, SUM(total) as total')
+                ->groupBy('hora')
+                ->orderBy('hora')
+                ->get()
+                ->keyBy('hora');
+
+            if ($ventasPorHora->isEmpty()) {
+                // Sin ventas — mostrar horas vacías del día laboral
+                $labels  = ['8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
+                $valores = [0, 0, 0, 0, 0, 0, 0];
+            } else {
+                // Mostrar desde la primera hasta la última hora con ventas
+                $horaMin = $ventasPorHora->keys()->min();
+                $horaMax = $ventasPorHora->keys()->max();
+
+                $labels  = [];
+                $valores = [];
+
+                for ($h = $horaMin; $h <= $horaMax; $h++) {
+                    $labels[]  = str_pad($h, 2, '0', STR_PAD_LEFT) . ':00';
+                    $valores[] = $ventasPorHora->has($h) ? (float) $ventasPorHora[$h]->total : 0;
+                }
             }
         }
 
-        // KPIs del día
+        // ── KPIs DEL DÍA ──────────────────────────────────────────
         $ventasHoy      = sale::whereDate('created_at', today())->sum('total') ?? 0;
         $numVentasHoy   = sale::whereDate('created_at', today())->count();
         $ticketPromedio = $numVentasHoy > 0 ? round($ventasHoy / $numVentasHoy, 2) : 0;
@@ -81,7 +96,6 @@ class DashboardController extends Controller
             ]);
 
         // ── LOW STOCK POR TALLAS ───────────────────────────────────
-        // Trae cada talla con stock bajo (menos de 5 piezas por talla)
         $lowStock = inventory::with('product')
             ->where('stock', '<', 5)
             ->where('stock', '>=', 0)
@@ -89,11 +103,11 @@ class DashboardController extends Controller
             ->orderBy('stock')
             ->get()
             ->map(fn($inv) => [
-                'id'      => $inv->product->id ?? null,
-                'nombre'  => $inv->product->name ?? '—',
-                'talla'   => $inv->talla,
-                'stock'   => $inv->stock,
-                'imagen'  => null,
+                'id'     => $inv->product->id ?? null,
+                'nombre' => $inv->product->name ?? '—',
+                'talla'  => $inv->talla,
+                'stock'  => $inv->stock,
+                'imagen' => null,
             ])
             ->filter(fn($p) => $p['id'] !== null)
             ->values();

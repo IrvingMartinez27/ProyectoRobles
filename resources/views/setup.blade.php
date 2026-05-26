@@ -43,7 +43,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-black tracking-tight uppercase">¡Bienvenido, {{ Auth::user()->name }}!</h1>
-                <p class="text-secondary text-sm mt-1">Una última cosa — ¿cómo se llama tu tienda?</p>
+                <p class="text-secondary text-sm mt-1">Solo dos cosas rápidas para configurar tu tienda.</p>
             </div>
         </div>
 
@@ -59,12 +59,28 @@
         {{-- Formulario --}}
         <form action="/setup" method="POST" class="flex flex-col gap-5">
             @csrf
+
+            {{-- Nombre de tienda --}}
             <div>
                 <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Nombre de tu tienda</label>
                 <input name="store_name" value="{{ old('store_name') }}" autofocus
                        class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary text-lg font-semibold"
                        type="text" placeholder="Ej. Robles Sport, IrvingSport..." required>
                 <p class="text-[11px] text-gray-400 mt-2">Este nombre aparecerá en tu panel y en tu catálogo público.</p>
+            </div>
+
+            {{-- Zona horaria --}}
+            <div>
+                <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Zona horaria</label>
+                <select name="timezone" required
+                        class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary text-sm font-semibold">
+                    <option value="America/Mexico_City"  {{ old('timezone', 'America/Mexico_City') === 'America/Mexico_City'  ? 'selected' : '' }}>Centro — CDMX, Guadalajara, Monterrey</option>
+                    <option value="America/Cancun"       {{ old('timezone') === 'America/Cancun'       ? 'selected' : '' }}>Sureste — Cancún, Mérida, Chetumal</option>
+                    <option value="America/Chihuahua"    {{ old('timezone') === 'America/Chihuahua'    ? 'selected' : '' }}>Noroeste — Chihuahua, Sinaloa, Sonora (verano)</option>
+                    <option value="America/Hermosillo"   {{ old('timezone') === 'America/Hermosillo'   ? 'selected' : '' }}>Sonora — Hermosillo (sin horario de verano)</option>
+                    <option value="America/Tijuana"      {{ old('timezone') === 'America/Tijuana'      ? 'selected' : '' }}>Noroeste — Tijuana, Mexicali, Baja California</option>
+                </select>
+                <p class="text-[11px] text-gray-400 mt-2">Para que las horas de tus ventas se muestren correctamente.</p>
             </div>
 
             <button type="submit"
@@ -75,7 +91,7 @@
 
         {{-- Pie --}}
         <p class="text-center text-[11px] text-gray-400">
-            Puedes cambiar el nombre de tu tienda después desde configuración.
+            Puedes cambiar estos datos después desde la configuración de tu tienda.
         </p>
 
     </div>
