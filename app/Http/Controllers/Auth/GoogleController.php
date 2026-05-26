@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleController extends Controller
 {
-    // Redirige a Google
+    // Redirige a Google para autenticación
     public function redirect()
     {
         return Socialite::driver('google')->redirect();
@@ -28,26 +29,35 @@ class GoogleController extends Controller
         $user = User::where('email', $googleUser->getEmail())->first();
 
         if ($user) {
-            // Ya existe — iniciar sesión
+            // Ya existe — iniciar sesión directo
             Auth::login($user);
-        } else {
-            // No existe — crear cuenta nueva con plan gratis
-            $user = User::create([
-                'name'       => $googleUser->getName(),
-                'store_name' => $googleUser->getName() . ' — Tienda',
-                'email'      => $googleUser->getEmail(),
-                'password'   => bcrypt(\Illuminate\Support\Str::random(24)),
-                'estado'     => true,
-                'role'       => 'admin',
-                'plan'       => 'gratis',
-            ]);
-            Auth::login($user);
+            request()->session()->regenerate();
+
+            // Si nunca completó el setup, mandarlo ahí
+            if (!$user->tenant_id) {
+                return redirect('/setup');
+            }
+
+            return $user->role === 'admin'
+                ? redirect('/dashboard')
+                : redirect('/sales');
         }
 
+        // No existe — crear cuenta nueva con plan gratis
+        $user = User::create([
+            'name'       => $googleUser->getName(),
+            'store_name' => $googleUser->getName(),
+            'email'      => $googleUser->getEmail(),
+            'password'   => bcrypt(Str::random(24)),
+            'estado'     => true,
+            'role'       => 'admin',
+            'plan'       => 'gratis',
+        ]);
+
+        Auth::login($user);
         request()->session()->regenerate();
 
-        return $user->role === 'admin'
-            ? redirect('/dashboard')
-            : redirect('/sales');
+        // Redirige al setup para que ponga el nombre de su tienda
+        return redirect('/setup');
     }
 }

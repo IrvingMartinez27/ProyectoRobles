@@ -21,24 +21,23 @@ Route::get('/register', function () { return view('register'); })->name('registe
 
 Route::post('/register', function (Request $request) {
     $request->validate([
-        'name'       => 'required|string|max:255',
-        'store_name' => 'required|string|max:255',
-        'email'      => 'required|email|unique:users,email',
-        'password'   => 'required|min:8|confirmed',
+        'name'     => 'required|string|max:255',
+        'email'    => 'required|email|unique:central.users,email',
+        'password' => 'required|min:8|confirmed',
     ], [
-        'name.required'       => 'El nombre es obligatorio.',
-        'store_name.required' => 'El nombre de tu tienda es obligatorio.',
-        'email.required'      => 'El correo electrónico es obligatorio.',
-        'email.email'         => 'Ingresa un correo electrónico válido.',
-        'email.unique'        => 'Este correo ya está registrado.',
-        'password.required'   => 'La contraseña es obligatoria.',
-        'password.min'        => 'La contraseña debe tener al menos 8 caracteres.',
-        'password.confirmed'  => 'Las contraseñas no coinciden.',
+        'name.required'      => 'El nombre es obligatorio.',
+        'email.required'     => 'El correo electrónico es obligatorio.',
+        'email.email'        => 'Ingresa un correo electrónico válido.',
+        'email.unique'       => 'Este correo ya está registrado.',
+        'password.required'  => 'La contraseña es obligatoria.',
+        'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
+        'password.confirmed' => 'Las contraseñas no coinciden.',
     ]);
 
+    // Crear el usuario en la BD central (sin tienda aún)
     $user = \App\Models\User::create([
         'name'       => $request->name,
-        'store_name' => $request->store_name,
+        'store_name' => $request->name, // temporal hasta que complete el setup
         'email'      => $request->email,
         'password'   => bcrypt($request->password),
         'estado'     => true,
@@ -48,8 +47,42 @@ Route::post('/register', function (Request $request) {
 
     Auth::login($user);
     $request->session()->regenerate();
-    return redirect('/dashboard');
+
+    // Redirige al setup para que ponga el nombre de su tienda
+    return redirect('/setup');
 })->name('register.post')->middleware('guest');
+
+// ── SETUP — Nombre de tienda ──────────────────────────────────────────────
+
+Route::get('/setup', function () {
+    if (Auth::user()->tenant_id) {
+        return redirect('/dashboard');
+    }
+    return view('setup');
+})->name('setup')->middleware('auth');
+
+Route::post('/setup', function (Request $request) {
+    $request->validate([
+        'store_name' => 'required|string|max:255',
+    ], [
+        'store_name.required' => 'El nombre de tu tienda es obligatorio.',
+    ]);
+
+    // Crear el tenant — genera su BD automáticamente con todas las tablas
+    $tenant = \App\Models\Tenant::create([
+        'id'         => \Illuminate\Support\Str::uuid(),
+        'store_name' => $request->store_name,
+        'plan'       => 'gratis',
+    ]);
+
+    // Vincular tenant al usuario y actualizar nombre de tienda
+    Auth::user()->update([
+        'store_name' => $request->store_name,
+        'tenant_id'  => $tenant->id,
+    ]);
+
+    return redirect('/dashboard');
+})->name('setup.post')->middleware('auth');
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────
 
@@ -67,6 +100,12 @@ Route::post('/login', function (Request $request) {
 
     if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
         $request->session()->regenerate();
+
+        // Si no ha completado el setup, mandarlo ahí
+        if (!Auth::user()->tenant_id) {
+            return redirect('/setup');
+        }
+
         return Auth::user()->role === 'admin'
             ? redirect()->intended('/dashboard')
             : redirect()->intended('/sales');
@@ -75,10 +114,10 @@ Route::post('/login', function (Request $request) {
     return back()->withErrors(['email' => 'El correo o la contraseña son incorrectos.'])->onlyInput('email');
 })->name('login.post');
 
-// Google OAuth
+// ── GOOGLE OAUTH ──────────────────────────────────────────────────────────
+
 Route::get('/auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'callback'])->name('google.callback');
-
 
 // ── LOGOUT ────────────────────────────────────────────────────────────────
 
@@ -140,14 +179,18 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
 
     // ── USUARIOS con restricción plan gratis ──────────────────────
     Route::get('/usuarios', function () {
-        $usuarios = \App\Models\User::where('id', '!=', Auth::id())->get();
-        $plan     = Auth::user()->plan ?? 'gratis';
+        $usuarios = \App\Models\User::where('id', '!=', Auth::id())
+                        ->where('tenant_id', Auth::user()->tenant_id)
+                        ->get();
+        $plan = Auth::user()->plan ?? 'gratis';
         return view('usuarios', compact('usuarios', 'plan'));
     })->name('usuarios');
 
     Route::post('/usuarios', function (Request $request) {
         $plan          = Auth::user()->plan ?? 'gratis';
-        $totalUsuarios = \App\Models\User::where('id', '!=', Auth::id())->count();
+        $totalUsuarios = \App\Models\User::where('id', '!=', Auth::id())
+                            ->where('tenant_id', Auth::user()->tenant_id)
+                            ->count();
 
         if ($plan === 'gratis' && $totalUsuarios >= 1) {
             return back()
@@ -157,7 +200,7 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
 
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
+            'email'    => 'required|email|unique:central.users,email',
             'password' => 'required|min:8',
             'role'     => 'required|in:admin,vendedor',
         ], [
@@ -177,6 +220,7 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
             'estado'     => true,
             'role'       => $request->role,
             'plan'       => 'gratis',
+            'tenant_id'  => Auth::user()->tenant_id,
         ]);
 
         return back()->with('success', 'Usuario creado correctamente.');
@@ -186,6 +230,10 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
         $usuario = \App\Models\User::findOrFail($id);
         if ($usuario->id === Auth::id()) {
             return back()->with('error', 'No puedes eliminarte a ti mismo.');
+        }
+        // Verificar que el usuario pertenece al mismo tenant
+        if ($usuario->tenant_id !== Auth::user()->tenant_id) {
+            return back()->with('error', 'No tienes permiso para eliminar este usuario.');
         }
         $usuario->delete();
         return back()->with('success', 'Usuario eliminado.');

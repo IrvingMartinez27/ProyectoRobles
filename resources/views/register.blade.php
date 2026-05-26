@@ -99,12 +99,6 @@
                                type="text" placeholder="Tu nombre completo" required>
                     </div>
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
-                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Nombre de tu tienda</label>
-                        <input name="store_name" value="{{ old('store_name') }}"
-                               class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
-                               type="text" placeholder="Ej. Robles Sport" required>
-                    </div>
-                    <div class="group transition-all duration-300 hover:scale-[1.02]">
                         <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Correo electrónico</label>
                         <input name="email" value="{{ old('email') }}"
                                class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
@@ -135,7 +129,6 @@
                 </div>
 
                 <div class="flex gap-3">
-                    {{-- Google — conectado --}}
                     <a href="{{ route('google.redirect') }}"
                        class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-sm text-[#1a1c1c] bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-200">
                         <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -146,8 +139,6 @@
                         </svg>
                         Google
                     </a>
-
-                    {{-- Apple — próximamente --}}
                     <button disabled
                        class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-sm text-gray-300 bg-white cursor-not-allowed">
                         <svg width="18" height="18" viewBox="0 0 814 1000" fill="none" xmlns="http://www.w3.org/2000/svg">

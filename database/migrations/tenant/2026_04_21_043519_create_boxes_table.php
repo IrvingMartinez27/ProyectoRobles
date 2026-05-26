@@ -6,16 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('boxes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                    ->constrained()
-                    ->onDelete('cascade');
+            $table->unsignedBigInteger('user_id'); // Sin foreign key — users está en BD central
             $table->date('fecha_apertura');
             $table->date('fecha_cierre');
             $table->decimal('monto_apertura');
@@ -25,9 +20,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('boxes');

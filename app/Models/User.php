@@ -11,6 +11,9 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    // Siempre usa la BD central — users nunca va en la BD del tenant
+    protected $connection = 'central';
+
     protected $fillable = [
         'name',
         'store_name',
@@ -19,6 +22,7 @@ class User extends Authenticatable
         'estado',
         'role',
         'plan',
+        'tenant_id',
     ];
 
     public function sales()
@@ -29,6 +33,12 @@ class User extends Authenticatable
     public function boxes()
     {
         return $this->hasMany(Box::class);
+    }
+
+    // Relación con el tenant de esta cuenta
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     protected $hidden = [
