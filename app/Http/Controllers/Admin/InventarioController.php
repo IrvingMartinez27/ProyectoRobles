@@ -30,7 +30,7 @@ class InventarioController extends Controller
                     'nombre'      => $producto->name,
                     'categoria'   => strtolower($producto->category->name ?? 'sin categoría'),
                     'precio'      => $producto->precio,
-                    'imagen'      => $producto->imagen ?? null,
+                    'imagen'      => $producto->imagen ? asset('storage/' . $producto->imagen) : null,
                     'tallas'      => $tallas,
                     'stock_total' => array_sum($tallas),
                 ];
@@ -88,15 +88,12 @@ class InventarioController extends Controller
 
         // Guardar imagen si se subió
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
-        if ($producto->imagen) {
-            Storage::disk('public')->delete($producto->imagen);
+            if ($producto->imagen) {
+                Storage::disk('public')->delete($producto->imagen);
+            }
+            $path = $request->file('imagen')->store('productos', 'public');
+            product::where('id', $producto->id)->update(['imagen' => $path]);
         }
-
-        $path = $request->file('imagen')->store('productos', 'public');
-        
-
-        product::where('id', $producto->id)->update(['imagen' => $path]);
-}
 
         // Guardar o sumar cada talla
         foreach ($request->tallas as $index => $talla) {

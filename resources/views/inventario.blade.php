@@ -112,8 +112,7 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             @if(!empty($producto['imagen']))
-                                <img src="{{ global_asset('storage/' . auth()->user()->tenant_id . '/' . $producto['imagen']) }}"
-                                     alt="{{ $producto['nombre'] }}"
+                                <img src="{{ $producto['imagen'] }}"                                     alt="{{ $producto['nombre'] }}"
                                      class="w-10 h-10 object-cover rounded flex-shrink-0 border border-[#c4c5da]/20"/>
                             @else
                                 <div class="w-10 h-10 bg-[#f3f3f4] flex items-center justify-center flex-shrink-0 rounded">

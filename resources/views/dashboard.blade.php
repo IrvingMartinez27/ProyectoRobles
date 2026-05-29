@@ -285,8 +285,14 @@ async function cargarIA() {
                 @forelse($topProductos as $i => $producto)
                 <div class="flex items-center gap-3">
                     <span class="text-2xl font-black text-[#c4c5da] w-6 shrink-0">{{ $i + 1 }}</span>
-                    <div class="w-10 h-10 bg-[#f3f3f4] shrink-0 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-[#c4c5da] text-lg">image</span>
+                    <div class="w-10 h-10 bg-[#f3f3f4] shrink-0 overflow-hidden">
+                    @if(!empty($producto['imagen']))
+                    <img src="{{ $producto['imagen'] }}" alt="{{ $producto['nombre'] }}" class="w-full h-full object-cover"/>
+                    @else
+                    <div class="w-full h-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[#c4c5da] text-lg">image</span>
+                    </div>
+                    @endif
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold uppercase truncate">{{ $producto['nombre'] }}</p>

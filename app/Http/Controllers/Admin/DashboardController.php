@@ -42,25 +42,18 @@ class DashboardController extends Controller
                 $valores[] = sale::whereBetween('created_at', [$inicio, $fin])->sum('total') ?? 0;
             }
         } else {
-            $ventasPorHora = sale::whereDate('created_at', today())
-                ->selectRaw('HOUR(created_at) as hora, SUM(total) as total')
-                ->groupBy('hora')
-                ->orderBy('hora')
-                ->get()
-                ->keyBy('hora');
+            // ── GRÁFICA DEL DÍA — cada venta en su hora:minuto exacto ──
+            $ventas = sale::whereDate('created_at', today())
+                ->selectRaw('DATE_FORMAT(created_at, "%H:%i") as momento, total')
+                ->orderBy('created_at')
+                ->get();
 
-            if ($ventasPorHora->isEmpty()) {
+            if ($ventas->isEmpty()) {
                 $labels  = ['8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
                 $valores = [0, 0, 0, 0, 0, 0, 0];
             } else {
-                $horaMin = $ventasPorHora->keys()->min();
-                $horaMax = $ventasPorHora->keys()->max();
-                $labels  = [];
-                $valores = [];
-                for ($h = $horaMin; $h <= $horaMax; $h++) {
-                    $labels[]  = str_pad($h, 2, '0', STR_PAD_LEFT) . ':00';
-                    $valores[] = $ventasPorHora->has($h) ? (float) $ventasPorHora[$h]->total : 0;
-                }
+                $labels  = $ventas->pluck('momento')->toArray();
+                $valores = $ventas->pluck('total')->map(fn($v) => (float) $v)->toArray();
             }
         }
 
@@ -82,7 +75,7 @@ class DashboardController extends Controller
                 'nombre'     => $d->product->name ?? '—',
                 'ventas'     => $d->total_vendido,
                 'porcentaje' => round(($d->total_vendido / $totalVendido) * 100),
-                'imagen'     => null,
+                'imagen' => $d->product->imagen ? asset('storage/' . $d->product->imagen) : null,
             ]);
 
         // ── LOW STOCK ─────────────────────────────────────────────
@@ -125,7 +118,6 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Plan Pro requerido'], 403);
         }
 
-        // Recopilar datos del negocio
         $ventasUltimos7 = [];
         for ($i = 6; $i >= 0; $i--) {
             $fecha = Carbon::now()->subDays($i);
@@ -146,6 +138,7 @@ class DashboardController extends Controller
                 'nombre'   => $d->product->name ?? '—',
                 'cantidad' => $d->total_vendido,
                 'monto'    => $d->total_monto,
+                'imagen' => $d->product->imagen ? asset('storage/' . $d->product->imagen) : null,
             ]);
 
         $stockBajo = inventory::with('product')
@@ -179,7 +172,6 @@ DATOS:
 - Productos con stock bajo (menos de 5 piezas): " . json_encode($stockBajo) . "
 
 Responde SOLO con el JSON, sin texto adicional, sin backticks.";
-        
 
         try {
             $response = Http::withHeaders([
@@ -205,7 +197,6 @@ Responde SOLO con el JSON, sin texto adicional, sin backticks.";
             return response()->json($data);
 
         } catch (\Exception $e) {
-            
             return response()->json([
                 'alertas'       => $stockBajo->take(3)->map(fn($s) => "Stock bajo: {$s['producto']} talla {$s['talla']} ({$s['stock']} pzs)")->values()->toArray(),
                 'tendencias'    => $topProductos->take(2)->map(fn($p) => "{$p['nombre']} es tu producto más vendido")->values()->toArray(),

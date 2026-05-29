@@ -32,10 +32,10 @@ class CatalogController extends Controller
                     $stock_total < 10  => 'poco',
                     default            => 'disponible',
                 };
-                $imagenUrl = null;
-                if ($producto->imagen) {
-                    $imagenUrl = asset('storage/' . $tenantId . '/' . $producto->imagen);
-                }
+
+                // URL de imagen corregida — usa el symlink estándar de storage
+                $imagenUrl = $producto->imagen ? asset('storage/' . $producto->imagen) : null;
+
                 return [
                     'id'        => $producto->id,
                     'nombre'    => $producto->name,
