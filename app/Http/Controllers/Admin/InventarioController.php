@@ -8,6 +8,7 @@ use App\Models\inventory;
 use App\Models\category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class InventarioController extends Controller
 {
@@ -29,15 +30,15 @@ class InventarioController extends Controller
                     'nombre'      => $producto->name,
                     'categoria'   => strtolower($producto->category->name ?? 'sin categoría'),
                     'precio'      => $producto->precio,
+                    'imagen'      => $producto->imagen ?? null,
                     'tallas'      => $tallas,
                     'stock_total' => array_sum($tallas),
                 ];
             });
 
-        // Pasamos el conteo y el límite a la vista
-        $totalProductos   = $productos->count();
-        $limiteAlcanzado  = $totalProductos >= self::LIMITE_PLAN_GRATIS;
-        $plan             = Auth::user()->plan ?? 'gratis';
+        $totalProductos  = $productos->count();
+        $limiteAlcanzado = $totalProductos >= self::LIMITE_PLAN_GRATIS;
+        $plan            = Auth::user()->plan ?? 'gratis';
 
         return view('inventario', compact('productos', 'totalProductos', 'limiteAlcanzado', 'plan'));
     }
@@ -60,6 +61,11 @@ class InventarioController extends Controller
             'categoria'  => 'required|string',
             'tallas'     => 'required|array|min:1',
             'cantidades' => 'required|array|min:1',
+            'imagen'     => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+        ], [
+            'imagen.image' => 'El archivo debe ser una imagen.',
+            'imagen.mimes' => 'Solo se permiten imágenes JPG, PNG o WEBP.',
+            'imagen.max'   => 'La imagen no puede pesar más de 2MB.',
         ]);
 
         // Buscar o crear la categoría
@@ -79,6 +85,18 @@ class InventarioController extends Controller
                 'estado'      => true,
             ]);
         }
+
+        // Guardar imagen si se subió
+        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+        if ($producto->imagen) {
+            Storage::disk('public')->delete($producto->imagen);
+        }
+
+        $path = $request->file('imagen')->store('productos', 'public');
+        
+
+        product::where('id', $producto->id)->update(['imagen' => $path]);
+}
 
         // Guardar o sumar cada talla
         foreach ($request->tallas as $index => $talla) {

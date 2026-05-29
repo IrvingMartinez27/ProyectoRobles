@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'solo.admin'         => \App\Http\Middleware\SoloAdmin::class,
             'inicializar.tenant' => \App\Http\Middleware\InicializarTenant::class,
+            'verificar.plan'     => \App\Http\Middleware\VerificarPlan::class,
         ]);
 
         // Agrega el middleware de tenant a todas las rutas web autenticadas
@@ -28,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Evita el 419 en desarrollo — extiende la sesión a 8 horas
         $middleware->validateCsrfTokens(except: [
-            // Si necesitas excluir rutas del CSRF en el futuro, agrégalas aquí
+            'pago/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -115,7 +115,7 @@ return [
 
         // Por defecto, asset() también es multi-tenant.
         // Usa global_asset() para assets globales no relacionados al tenant.
-        'asset_helper_tenancy' => true,
+        'asset_helper_tenancy' => false,
     ],
 
     /*

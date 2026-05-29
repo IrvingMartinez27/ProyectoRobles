@@ -9,13 +9,16 @@ class client extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','telefono','direccion'];
-    
-    public function sales(){
+    protected $connection = 'tenant';
+
+    protected $fillable = ['name', 'telefono', 'direccion', 'puntos'];
+
+    public function sales()
+    {
         return $this->hasMany(sale::class);
     }
 
-     public function totalGastado()
+    public function totalGastado()
     {
         return $this->sales()->sum('total');
     }

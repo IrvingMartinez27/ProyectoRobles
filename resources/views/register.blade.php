@@ -22,7 +22,13 @@
             }
         }
     </script>
-    <style>body { font-family: 'Inter', sans-serif; min-height: 100vh; }</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100vh; }
+        .plan-card { transition: all 0.2s; cursor: pointer; }
+        .plan-card.selected { border-color: #1737c8; box-shadow: 0 0 0 2px #1737c8; }
+        .plan-card.selected .plan-check { opacity: 1; }
+        .plan-check { opacity: 0; transition: opacity 0.2s; }
+    </style>
 </head>
 
 <body class="bg-white text-on-surface antialiased selection:bg-primary selection:text-white">
@@ -56,11 +62,11 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-[#1737c8] text-lg">check_circle</span>
-                        <span class="text-sm text-white/70">Hasta 100 productos gratis</span>
+                        <span class="text-sm text-white/70">Plan gratis disponible</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-[#1737c8] text-lg">check_circle</span>
-                        <span class="text-sm text-white/70">Sin tarjeta de crédito</span>
+                        <span class="text-sm text-white/70">Sin tarjeta de crédito para empezar</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-[#1737c8] text-lg">check_circle</span>
@@ -68,18 +74,18 @@
                     </div>
                 </div>
                 <div class="mt-6 border-t border-white/10 pt-6">
-                    <p class="text-[11px] text-white/30 uppercase tracking-widest font-bold">Plan gratuito · Sin compromisos</p>
+                    <p class="text-[11px] text-white/30 uppercase tracking-widest font-bold">Plan gratuito disponible · Sin compromisos</p>
                 </div>
             </div>
         </section>
 
         <!-- DERECHA -->
-        <section class="flex-1 flex flex-col justify-center items-center px-6 pt-24 pb-12 bg-white">
+        <section class="flex-1 flex flex-col justify-center items-center px-6 pt-24 pb-12 bg-white overflow-y-auto">
             <div class="w-full max-w-md flex flex-col gap-7">
 
                 <div class="flex flex-col gap-2">
                     <h2 class="text-3xl font-black tracking-tight text-on-surface uppercase">Crear cuenta</h2>
-                    <p class="text-secondary text-sm">Empieza gratis hoy. Solo toma 30 segundos.</p>
+                    <p class="text-secondary text-sm">Elige tu plan y empieza hoy.</p>
                 </div>
 
                 @if ($errors->any())
@@ -92,6 +98,61 @@
 
                 <form action="/register" method="POST" class="flex flex-col gap-5">
                     @csrf
+
+                    {{-- SELECTOR DE PLAN --}}
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[10px] font-bold tracking-widest text-secondary uppercase">Elige tu plan</label>
+                        <input type="hidden" name="plan" id="plan-seleccionado" value="gratis"/>
+                        <div class="grid grid-cols-2 gap-3">
+
+                            {{-- PLAN GRATIS --}}
+                            <div class="plan-card selected border-2 border-[#1737c8] rounded-xl p-4 relative"
+                                 onclick="seleccionarPlan('gratis', this)">
+                                <div class="plan-check absolute top-3 right-3 w-5 h-5 bg-[#1737c8] rounded-full flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white text-[12px]">check</span>
+                                </div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-[#747688] mb-1">Gratis</p>
+                                <p class="text-2xl font-black text-[#1a1c1c]">$0 <span class="text-sm font-normal text-[#747688]">/mes</span></p>
+                                <ul class="mt-3 space-y-1.5">
+                                    <li class="text-[11px] text-[#5e5e5e] flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[#1737c8] text-[13px]">check</span>100 productos
+                                    </li>
+                                    <li class="text-[11px] text-[#5e5e5e] flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[#1737c8] text-[13px]">check</span>1 usuario
+                                    </li>
+                                    <li class="text-[11px] text-[#5e5e5e] flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[#1737c8] text-[13px]">check</span>Ventas básicas
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {{-- PLAN PRO --}}
+                            <div class="plan-card border-2 border-gray-200 rounded-xl p-4 relative bg-[#1737c8]"
+                                 onclick="seleccionarPlan('pro', this)">
+                                <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-yellow-400 text-[#1a1c1c] text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
+                                    Más popular
+                                </div>
+                                <div class="plan-check absolute top-3 right-3 w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-[#1737c8] text-[12px]">check</span>
+                                </div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-white/70 mb-1">Pro</p>
+                                <p class="text-2xl font-black text-white">$499 <span class="text-sm font-normal text-white/60">/mes</span></p>
+                                <ul class="mt-3 space-y-1.5">
+                                    <li class="text-[11px] text-white/80 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-white text-[13px]">check</span>Ilimitado
+                                    </li>
+                                    <li class="text-[11px] text-white/80 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-white text-[13px]">check</span>Usuarios ilimitados
+                                    </li>
+                                    <li class="text-[11px] text-white/80 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-white text-[13px]">check</span>IA + Reportes
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- CAMPOS --}}
                     <div class="group transition-all duration-300 hover:scale-[1.02]">
                         <label class="text-[10px] font-bold tracking-widest text-secondary uppercase mb-2 block">Nombre completo</label>
                         <input name="name" value="{{ old('name') }}"
@@ -116,10 +177,18 @@
                                class="w-full bg-transparent border border-gray-300 rounded-xl px-4 py-3 focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all duration-300 hover:border-primary hover:shadow-md"
                                type="password" placeholder="Repite tu contraseña" required>
                     </div>
-                    <button type="submit"
+
+                    {{-- BOTÓN DINÁMICO --}}
+                    <button type="submit" id="btn-registro"
                             class="w-full bg-primary text-white font-bold py-4 rounded-xl hover:brightness-110 hover:shadow-lg hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 uppercase tracking-widest text-sm mt-1">
                         Crear cuenta gratis
                     </button>
+
+                    {{-- AVISO PRO --}}
+                    <div id="aviso-pro" class="hidden bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700">
+                        <p class="font-bold mb-1">🔒 Plan Pro — $499/mes</p>
+                        <p class="text-xs">Al crear tu cuenta serás redirigido a Mercado Pago para completar el pago de forma segura. Tu cuenta se activará automáticamente al confirmar.</p>
+                    </div>
                 </form>
 
                 <div class="flex items-center gap-4">
@@ -158,6 +227,30 @@
             </div>
         </section>
     </main>
+
+<script>
+function seleccionarPlan(plan, card) {
+    // Quitar selección de todas las cards
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    document.getElementById('plan-seleccionado').value = plan;
+
+    const btn   = document.getElementById('btn-registro');
+    const aviso = document.getElementById('aviso-pro');
+
+    if (plan === 'pro') {
+        btn.textContent = 'Crear cuenta y pagar $499';
+        btn.classList.remove('bg-primary');
+        btn.classList.add('bg-[#1a1c1c]');
+        aviso.classList.remove('hidden');
+    } else {
+        btn.textContent = 'Crear cuenta gratis';
+        btn.classList.add('bg-primary');
+        btn.classList.remove('bg-[#1a1c1c]');
+        aviso.classList.add('hidden');
+    }
+}
+</script>
 
 </body>
 </html>

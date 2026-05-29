@@ -10,19 +10,23 @@ class product extends Model
 {
     use HasFactory;
 
+    protected $connection = 'tenant';
+
     protected $fillable = [
         'name',
         'slug',
         'descripcion',
         'precio',
         'category_id',
-        'estado'];
-    
-     public function inventories()
+        'estado',
+        'imagen',
+    ];
+
+    public function inventories()
     {
         return $this->hasMany(Inventory::class);
     }
-    
+
     public function category()
     {
         return $this->belongsTo(category::class);
@@ -33,12 +37,11 @@ class product extends Model
         return $this->inventories()->sum('stock');
     }
 
-    // Genera el slug automáticamente desde el nombre
     protected static function boot()
     {
-         parent::boot();
+        parent::boot();
         static::creating(function ($product) {
-        $product->slug = Str::slug($product->name ?? 'producto') . '-' . uniqid();
-    });
+            $product->slug = Str::slug($product->name ?? 'producto') . '-' . uniqid();
+        });
     }
 }

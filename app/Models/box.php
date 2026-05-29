@@ -6,27 +6,34 @@ use Illuminate\Database\Eloquent\Model;
 
 class box extends Model
 {
+    protected $connection = 'tenant';
+
     protected $fillable = [
         'user_id',
         'fecha_apertura',
         'fecha_cierre',
         'monto_apertura',
         'monto_final',
-        'estado'];
-    
-    public function user(){
-            return $this->belongsTo(User::class);
+        'estado',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
-    public function sale(){
+    public function sale()
+    {
         return $this->hasMany(sale::class);
     }
 
-    public function venta(){
+    public function venta()
+    {
         return $this->hasMany(sale::class);
     }
 
-    public function movenment_box(){
+    public function movenment_box()
+    {
         return $this->hasMany(movement_box::class);
     }
 }

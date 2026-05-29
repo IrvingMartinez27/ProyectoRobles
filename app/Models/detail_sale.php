@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class detail_sale extends Model
 {
-    public $timestamps = false; 
+    public $timestamps = false;
+
+    protected $connection = 'tenant';
 
     protected $fillable = [
         'sale_id',
@@ -14,6 +16,7 @@ class detail_sale extends Model
         'cantidad',
         'precio_unitario',
         'subtotal',
+        'talla',
     ];
 
     public function product()

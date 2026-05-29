@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 class Ticket extends Model
 {
+    protected $connection = 'tenant';
+
     protected $fillable = ['sale_id', 'folio'];
 
     protected static function boot()

@@ -21,6 +21,7 @@ return new class extends Migration
                     ->constrained()
                     ->onDelete('cascade');
             $table->boolean('estado')->default(true);
+            $table->string('imagen')->nullable();
             $table->timestamps();
         });
     }

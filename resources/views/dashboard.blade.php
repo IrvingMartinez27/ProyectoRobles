@@ -87,6 +87,162 @@
         </div>
     </div>
 
+    @if(in_array($plan ?? 'gratis', ['pro', 'business']))
+<section id="ia-section" class="mb-8">
+    <div class="bg-white border border-[#c4c5da]/20 overflow-hidden">
+ 
+        {{-- Header --}}
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[#c4c5da]/10 bg-[#f9f9f9]">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-[#1737c8] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-sm">auto_awesome</span>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Asistente IA</p>
+                    <p class="text-sm font-bold text-[#1a1c1c]">Análisis inteligente de tu negocio</p>
+                </div>
+            </div>
+            <button onclick="cargarIA()" id="btn-ia-refresh"
+                    class="flex items-center gap-2 px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
+                <span class="material-symbols-outlined text-sm">refresh</span>Actualizar
+            </button>
+        </div>
+ 
+        {{-- Contenido IA --}}
+        <div id="ia-contenido" class="p-6">
+ 
+            {{-- Estado inicial --}}
+            <div id="ia-inicial" class="text-center py-8">
+                <span class="material-symbols-outlined text-4xl text-[#c4c5da] block mb-3">auto_awesome</span>
+                <p class="text-sm text-[#747688] mb-4">Obtén análisis inteligente de tus ventas e inventario</p>
+                <button onclick="cargarIA()"
+                        class="bg-[#1737c8] text-white px-6 py-3 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 mx-auto">
+                    <span class="material-symbols-outlined text-sm">auto_awesome</span>Analizar ahora
+                </button>
+            </div>
+ 
+            {{-- Loading --}}
+            <div id="ia-loading" class="hidden text-center py-8">
+                <div class="inline-flex items-center gap-3 text-[#747688]">
+                    <svg class="animate-spin w-5 h-5 text-[#1737c8]" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span class="text-sm font-bold">Analizando tu negocio...</span>
+                </div>
+            </div>
+ 
+            {{-- Resultados --}}
+            <div id="ia-resultados" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+ 
+                {{-- Alertas --}}
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-red-500 text-sm">warning</span>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Alertas</p>
+                    </div>
+                    <div id="ia-alertas" class="space-y-2"></div>
+                </div>
+ 
+                {{-- Tendencias --}}
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-green-500 text-sm">trending_up</span>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Tendencias</p>
+                    </div>
+                    <div id="ia-tendencias" class="space-y-2"></div>
+                </div>
+ 
+                {{-- Predicción --}}
+                <div class="md:col-span-2 bg-[#1737c8]/5 border border-[#1737c8]/20 px-5 py-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-[#1737c8] text-sm">insights</span>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-[#1737c8]">Predicción</p>
+                    </div>
+                    <p id="ia-prediccion" class="text-sm text-[#1a1c1c] font-medium"></p>
+                </div>
+ 
+                {{-- Recomendación --}}
+                <div class="md:col-span-2 bg-green-50 border border-green-200 px-5 py-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="material-symbols-outlined text-green-600 text-sm">lightbulb</span>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-green-700">Recomendación</p>
+                    </div>
+                    <p id="ia-recomendacion" class="text-sm text-green-800 font-medium"></p>
+                </div>
+ 
+            </div>
+ 
+            {{-- Error --}}
+            <div id="ia-error" class="hidden text-center py-6">
+                <span class="material-symbols-outlined text-amber-500 text-3xl block mb-2">error_outline</span>
+                <p class="text-sm text-[#747688]" id="ia-error-msg">No se pudo cargar el análisis</p>
+            </div>
+ 
+        </div>
+    </div>
+</section>
+ 
+<script>
+async function cargarIA() {
+    document.getElementById('ia-inicial').classList.add('hidden');
+    document.getElementById('ia-resultados').classList.add('hidden');
+    document.getElementById('ia-error').classList.add('hidden');
+    document.getElementById('ia-loading').classList.remove('hidden');
+ 
+    const btn = document.getElementById('btn-ia-refresh');
+    btn.disabled = true;
+ 
+    try {
+        const response = await fetch('{{ route("dashboard.ia") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            },
+        });
+ 
+        const data = await response.json();
+ 
+        if (data.error) throw new Error(data.error);
+ 
+        // Alertas
+        const alertasEl = document.getElementById('ia-alertas');
+        alertasEl.innerHTML = (data.alertas ?? []).length > 0
+            ? data.alertas.map(a => `
+                <div class="flex items-start gap-2 bg-red-50 border border-red-100 px-3 py-2">
+                    <span class="material-symbols-outlined text-red-400 text-sm mt-0.5 shrink-0">circle</span>
+                    <p class="text-xs text-red-700 font-medium">${a}</p>
+                </div>`).join('')
+            : '<p class="text-xs text-[#747688]">Sin alertas por ahora ✓</p>';
+ 
+        // Tendencias
+        const tendenciasEl = document.getElementById('ia-tendencias');
+        tendenciasEl.innerHTML = (data.tendencias ?? []).length > 0
+            ? data.tendencias.map(t => `
+                <div class="flex items-start gap-2 bg-green-50 border border-green-100 px-3 py-2">
+                    <span class="material-symbols-outlined text-green-500 text-sm mt-0.5 shrink-0">arrow_upward</span>
+                    <p class="text-xs text-green-700 font-medium">${t}</p>
+                </div>`).join('')
+            : '<p class="text-xs text-[#747688]">Sin tendencias detectadas</p>';
+ 
+        document.getElementById('ia-prediccion').textContent    = data.prediccion ?? '—';
+        document.getElementById('ia-recomendacion').textContent = data.recomendacion ?? '—';
+ 
+        document.getElementById('ia-loading').classList.add('hidden');
+        document.getElementById('ia-resultados').classList.remove('hidden');
+ 
+    } catch (e) {
+        document.getElementById('ia-loading').classList.add('hidden');
+        document.getElementById('ia-error-msg').textContent = e.message || 'Error al cargar el análisis';
+        document.getElementById('ia-error').classList.remove('hidden');
+    }
+ 
+    btn.disabled = false;
+}
+</script>
+@endif
+
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
 
         {{-- GRÁFICA --}}

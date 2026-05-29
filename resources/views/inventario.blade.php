@@ -31,6 +31,8 @@
     .dot-ok { background: #22c55e; }
     .dot-poco { background: #f59e0b; }
     .dot-agotado { background: #ef4444; }
+    #zona-imagen { min-height: 120px; }
+    #zona-imagen.con-imagen { min-height: 180px; }
 </style>
 </head>
 <body class="bg-white text-[#1a1c1c]">
@@ -71,6 +73,12 @@
         </div>
     </section>
 
+    @if(session('success'))
+    <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-6 py-3 text-sm font-bold flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">check_circle</span>{{ session('success') }}
+    </div>
+    @endif
+
     <div class="flex flex-col md:flex-row gap-4 mb-8 justify-between items-start md:items-center">
         <div class="flex gap-3 overflow-x-auto pb-1">
             <button class="filtro-btn activo px-5 py-2 text-xs font-black uppercase tracking-widest border border-[#1a1c1c] transition-all" onclick="filtrar('todos', this)">Todos</button>
@@ -102,22 +110,33 @@
                 <tr class="fila-producto border-b border-[#c4c5da]/10 transition-colors {{ $producto['stock_total'] == 0 ? 'fila-agotado' : ($producto['stock_total'] < 10 ? 'fila-poco' : 'fila-ok') }}"
                     data-categoria="{{ $producto['categoria'] }}" data-nombre="{{ strtolower($producto['nombre']) }}">
                     <td class="px-6 py-4">
-                        <div class="flex items-center">
-                            <span class="dot {{ $producto['stock_total'] == 0 ? 'dot-agotado' : ($producto['stock_total'] < 10 ? 'dot-poco' : 'dot-ok') }}"></span>
-                            @if($producto['stock_total'] < 10)
-                            <div class="tooltip-wrap">
-                                <p class="font-bold text-sm uppercase">{{ $producto['nombre'] }}</p>
-                                <div class="tooltip-box {{ $producto['stock_total'] == 0 ? 'tooltip-agotado' : 'tooltip-poco' }}">
-                                    <div class="tooltip-titulo">{{ $producto['stock_total'] == 0 ? '✕ Sin stock' : '⚠ Stock bajo' }}</div>
-                                    <div class="tooltip-fila"><span>Total piezas</span><span class="{{ $producto['stock_total'] == 0 ? 'bajo' : '' }}">{{ $producto['stock_total'] }}</span></div>
-                                    @foreach($producto['tallas'] ?? [] as $talla => $cantidad)
-                                    <div class="tooltip-fila"><span>Talla {{ $talla }}</span><span class="{{ $cantidad <= 2 ? 'bajo' : '' }}">{{ str_pad($cantidad, 2, '0', STR_PAD_LEFT) }} piezas</span></div>
-                                    @endforeach
-                                </div>
-                            </div>
+                        <div class="flex items-center gap-3">
+                            @if(!empty($producto['imagen']))
+                                <img src="{{ global_asset('storage/' . auth()->user()->tenant_id . '/' . $producto['imagen']) }}"
+                                     alt="{{ $producto['nombre'] }}"
+                                     class="w-10 h-10 object-cover rounded flex-shrink-0 border border-[#c4c5da]/20"/>
                             @else
-                            <p class="font-bold text-sm uppercase">{{ $producto['nombre'] }}</p>
+                                <div class="w-10 h-10 bg-[#f3f3f4] flex items-center justify-center flex-shrink-0 rounded">
+                                    <span class="material-symbols-outlined text-[#c4c5da] text-sm">image</span>
+                                </div>
                             @endif
+                            <div class="flex items-center">
+                                <span class="dot {{ $producto['stock_total'] == 0 ? 'dot-agotado' : ($producto['stock_total'] < 10 ? 'dot-poco' : 'dot-ok') }}"></span>
+                                @if($producto['stock_total'] < 10)
+                                <div class="tooltip-wrap">
+                                    <p class="font-bold text-sm uppercase">{{ $producto['nombre'] }}</p>
+                                    <div class="tooltip-box {{ $producto['stock_total'] == 0 ? 'tooltip-agotado' : 'tooltip-poco' }}">
+                                        <div class="tooltip-titulo">{{ $producto['stock_total'] == 0 ? '✕ Sin stock' : '⚠ Stock bajo' }}</div>
+                                        <div class="tooltip-fila"><span>Total piezas</span><span class="{{ $producto['stock_total'] == 0 ? 'bajo' : '' }}">{{ $producto['stock_total'] }}</span></div>
+                                        @foreach($producto['tallas'] ?? [] as $talla => $cantidad)
+                                        <div class="tooltip-fila"><span>Talla {{ $talla }}</span><span class="{{ $cantidad <= 2 ? 'bajo' : '' }}">{{ str_pad($cantidad, 2, '0', STR_PAD_LEFT) }} piezas</span></div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @else
+                                <p class="font-bold text-sm uppercase">{{ $producto['nombre'] }}</p>
+                                @endif
+                            </div>
                         </div>
                     </td>
                     <td class="px-6 py-4"><p class="font-mono text-[10px] text-[#747688] uppercase tracking-wider">{{ $producto['id'] }}</p></td>
@@ -186,6 +205,11 @@
                 <button type="submit" class="flex-1 bg-[#1737c8] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">GUARDAR CAMBIOS</button>
                 <button type="button" onclick="cerrarEditar()" class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">CANCELAR</button>
             </div>
+            <div class="pt-2">
+                <button type="button" onclick="abrirConfirmarEliminar()" class="w-full border border-red-200 text-red-500 py-3 text-xs font-black uppercase tracking-widest hover:bg-red-50 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-sm">delete</span>Eliminar producto
+                </button>
+            </div>
         </form>
     </div>
 </div>
@@ -197,45 +221,112 @@
             <div><p class="text-[10px] font-bold uppercase tracking-widest text-[#1737c8] mb-1">Inventario</p><h2 class="text-2xl font-bold tracking-tight">Nuevo producto</h2></div>
             <button onclick="cerrarModalProducto()" class="p-2 hover:bg-[#f3f3f4] transition-colors"><span class="material-symbols-outlined">close</span></button>
         </div>
-        <form method="POST" action="{{ route('productos.store') }}" id="form-nuevo-producto" class="px-8 py-6 space-y-6">
+        <form method="POST" action="{{ route('productos.store') }}" id="form-nuevo-producto" class="px-8 py-6 space-y-6" enctype="multipart/form-data">
             @csrf
+
+            {{-- IMAGEN --}}
+            <div class="flex flex-col gap-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">
+                    Imagen del producto <span class="normal-case font-normal text-[#c4c5da]">(opcional)</span>
+                </label>
+                <div id="zona-imagen"
+                     onclick="document.getElementById('input-imagen').click()"
+                     class="border-2 border-dashed border-[#c4c5da]/40 hover:border-[#1737c8] transition-colors cursor-pointer flex flex-col items-center justify-center py-8 gap-2 relative bg-[#f9f9f9] overflow-hidden">
+                    <img id="preview-imagen" src="" alt="Preview" class="hidden absolute inset-0 w-full h-full object-cover"/>
+                    <div id="zona-placeholder" class="flex flex-col items-center gap-2 pointer-events-none">
+                        <span class="material-symbols-outlined text-3xl text-[#c4c5da]">add_photo_alternate</span>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Haz clic para subir imagen</p>
+                        <p class="text-[9px] text-[#c4c5da]">JPG, PNG o WEBP · Máx. 2MB</p>
+                    </div>
+                    <input type="file" id="input-imagen" name="imagen" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="previsualizarImagen(this)"/>
+                </div>
+                <button type="button" id="btn-quitar-imagen" onclick="quitarImagen()" class="hidden text-[9px] font-black uppercase tracking-widest text-red-500 hover:opacity-70 transition-opacity text-left">
+                    ✕ Quitar imagen
+                </button>
+            </div>
+
+            {{-- NOMBRE --}}
             <div class="flex flex-col gap-1">
                 <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Nombre del producto</label>
-                <input type="text" name="nombre" id="input-nombre-producto" placeholder="Ej. Tenis Nike Air Max" oninput="verificarDuplicado(this.value)" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
-                <p id="alerta-duplicado" class="text-[10px] text-yellow-600 font-black uppercase tracking-widest hidden">⚠ Este producto ya existe — se agregarán las piezas al stock actual</p>
+                <input type="text" name="nombre" id="input-nombre-producto" placeholder="Ej. Tenis Nike Air Max"
+                       oninput="verificarDuplicado(this.value)"
+                       class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                <p id="alerta-duplicado" class="text-[10px] text-yellow-600 font-black uppercase tracking-widest hidden">
+                    ⚠ Este producto ya existe — se agregarán las piezas al stock actual
+                </p>
                 <input type="hidden" name="producto_existente" id="producto-existente" value="0"/>
             </div>
+
+            {{-- PRECIO Y CATEGORÍA --}}
             <div class="grid grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
                     <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Precio</label>
-                    <input type="number" name="precio" placeholder="0.00" step="0.01" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                    <input type="number" name="precio" placeholder="0.00" step="0.01"
+                           class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Categoría</label>
                     <select name="categoria" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]">
-                        <option value="ropa">Ropa</option><option value="calzado">Calzado</option><option value="accesorios">Accesorios</option>
+                        <option value="ropa">Ropa</option>
+                        <option value="calzado">Calzado</option>
+                        <option value="accesorios">Accesorios</option>
                     </select>
                 </div>
             </div>
+
+            {{-- TALLAS --}}
             <div class="flex flex-col gap-3">
                 <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Tallas y existencias</label>
                 <p class="text-[9px] text-[#747688] font-semibold -mt-2">El estado de stock se calcula automáticamente</p>
                 <div id="tallas-container" class="space-y-2">
                     <div class="flex gap-3 items-center talla-fila">
-                        <input type="text" name="tallas[]" placeholder="Talla (ej. S, M, 42)" class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
-                        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0" class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
-                        <button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]"><span class="material-symbols-outlined text-sm">delete</span></button>
+                        <input type="text" name="tallas[]" placeholder="Talla (ej. S, M, 42)"
+                               class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0"
+                               class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+                        <button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
                     </div>
                 </div>
                 <button type="button" onclick="agregarTalla()" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#1737c8] hover:opacity-70 transition-opacity">
                     <span class="material-symbols-outlined text-sm">add</span>Agregar talla
                 </button>
             </div>
+
+            {{-- BOTONES --}}
             <div class="flex gap-3 pt-4 border-t border-[#c4c5da]/20">
                 <button type="submit" class="flex-1 bg-[#1737c8] text-white py-4 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all">GUARDAR PRODUCTO</button>
                 <button type="button" onclick="cerrarModalProducto()" class="flex-1 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">CANCELAR</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMAR ELIMINAR -->
+<div id="modal-confirmar-eliminar" class="fixed inset-0 z-[60] items-center justify-center bg-black/50 backdrop-blur-sm" style="display:none;">
+    <div class="bg-white w-full max-w-sm mx-4">
+        <div class="px-8 py-6 border-b border-[#c4c5da]/20">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-red-500 mb-1">Confirmar acción</p>
+            <h2 class="text-xl font-bold tracking-tight">¿Eliminar producto?</h2>
+        </div>
+        <div class="px-8 py-6">
+            <p class="text-sm text-[#5e5e5e] mb-1">Vas a eliminar:</p>
+            <p class="font-black text-lg uppercase tracking-tight mb-4" id="confirmar-nombre-producto">—</p>
+            <p class="text-xs text-[#747688]">Esta acción no se puede deshacer. Se eliminará el producto y todo su inventario.</p>
+        </div>
+        <div class="flex gap-3 px-8 pb-6">
+            <form id="form-eliminar-producto" method="POST" class="flex-1">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="w-full py-3 bg-red-600 text-white text-xs font-black uppercase tracking-widest hover:bg-red-700 transition-all">
+                    SÍ, ELIMINAR
+                </button>
+            </form>
+            <button type="button" onclick="cerrarConfirmarEliminar()" class="flex-1 border border-[#c4c5da]/40 py-3 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
+                CANCELAR
+            </button>
+        </div>
     </div>
 </div>
 
@@ -250,6 +341,7 @@
 </nav>
 
 <script>
+// ── EDITAR STOCK ──────────────────────────────────────────────────────────
 function abrirEditar(producto) {
     document.getElementById('modal-nombre').textContent = producto.nombre;
     document.getElementById('modal-producto-id').value = producto.id;
@@ -258,26 +350,72 @@ function abrirEditar(producto) {
     Object.entries(producto.tallas ?? {}).forEach(([talla, cantidad]) => {
         const fila = document.createElement('div');
         fila.className = 'flex gap-3 items-center';
-        fila.innerHTML = `<div class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm font-bold bg-[#f9f9f9] text-[#747688] uppercase tracking-wider">${talla}</div><input type="number" name="tallas[${talla}]" value="${cantidad}" min="0" oninput="calcularTotal()" class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9] font-bold"/>`;
+        fila.innerHTML = `
+            <div class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm font-bold bg-[#f9f9f9] text-[#747688] uppercase tracking-wider">${talla}</div>
+            <input type="number" name="tallas[${talla}]" value="${cantidad}" min="0" oninput="calcularTotal()"
+                   class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9] font-bold"/>`;
         tallasEl.appendChild(fila);
     });
     calcularTotal();
     document.getElementById('modal-editar').classList.add('activo');
     document.body.style.overflow = 'hidden';
 }
+
 function calcularTotal() {
     const inputs = document.querySelectorAll('#modal-tallas input[type="number"]');
-    let total = 0; inputs.forEach(i => total += parseInt(i.value) || 0);
+    let total = 0;
+    inputs.forEach(i => total += parseInt(i.value) || 0);
     document.getElementById('modal-total').textContent = total;
 }
-function cerrarEditar() { document.getElementById('modal-editar').classList.remove('activo'); document.body.style.overflow = ''; }
-function filtrar(categoria, btn) {
-    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo')); btn.classList.add('activo');
-    document.querySelectorAll('.fila-producto').forEach(f => { f.style.display = (categoria === 'todos' || f.dataset.categoria === categoria) ? '' : 'none'; });
+
+function cerrarEditar() {
+    document.getElementById('modal-editar').classList.remove('activo');
+    document.body.style.overflow = '';
 }
-function buscar(query) { const q = query.toLowerCase(); document.querySelectorAll('.fila-producto').forEach(f => { f.style.display = f.dataset.nombre.includes(q) ? '' : 'none'; }); }
-function abrirModalProducto() { document.getElementById('modal-nuevo-producto').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-function cerrarModalProducto() { document.getElementById('modal-nuevo-producto').style.display = 'none'; document.body.style.overflow = ''; document.getElementById('form-nuevo-producto').reset(); document.getElementById('alerta-duplicado').classList.add('hidden'); }
+
+// ── ELIMINAR PRODUCTO ─────────────────────────────────────────────────────
+function abrirConfirmarEliminar() {
+    const id     = document.getElementById('modal-producto-id').value;
+    const nombre = document.getElementById('modal-nombre').textContent;
+    document.getElementById('confirmar-nombre-producto').textContent = nombre;
+    document.getElementById('form-eliminar-producto').action = '/productos/' + id;
+    document.getElementById('modal-confirmar-eliminar').style.display = 'flex';
+}
+
+function cerrarConfirmarEliminar() {
+    document.getElementById('modal-confirmar-eliminar').style.display = 'none';
+}
+
+// ── FILTROS Y BÚSQUEDA ────────────────────────────────────────────────────
+function filtrar(categoria, btn) {
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    document.querySelectorAll('.fila-producto').forEach(f => {
+        f.style.display = (categoria === 'todos' || f.dataset.categoria === categoria) ? '' : 'none';
+    });
+}
+
+function buscar(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.fila-producto').forEach(f => {
+        f.style.display = f.dataset.nombre.includes(q) ? '' : 'none';
+    });
+}
+
+// ── MODAL NUEVO PRODUCTO ──────────────────────────────────────────────────
+function abrirModalProducto() {
+    document.getElementById('modal-nuevo-producto').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalProducto() {
+    document.getElementById('modal-nuevo-producto').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('form-nuevo-producto').reset();
+    document.getElementById('alerta-duplicado').classList.add('hidden');
+    quitarImagen();
+}
+
 function verificarDuplicado(nombre) {
     const productos = document.querySelectorAll('.fila-producto');
     const alerta = document.getElementById('alerta-duplicado');
@@ -286,14 +424,68 @@ function verificarDuplicado(nombre) {
     existe && q.length > 0 ? alerta.classList.remove('hidden') : alerta.classList.add('hidden');
     document.getElementById('producto-existente').value = existe && q.length > 0 ? '1' : '0';
 }
+
 function agregarTalla() {
     const container = document.getElementById('tallas-container');
     const fila = document.createElement('div');
     fila.className = 'flex gap-3 items-center talla-fila';
-    fila.innerHTML = `<input type="text" name="tallas[]" placeholder="Talla" class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/><input type="number" name="cantidades[]" placeholder="Cantidad" min="0" class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/><button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]"><span class="material-symbols-outlined text-sm">delete</span></button>`;
+    fila.innerHTML = `
+        <input type="text" name="tallas[]" placeholder="Talla"
+               class="flex-1 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+        <input type="number" name="cantidades[]" placeholder="Cantidad" min="0"
+               class="w-28 border border-[#c4c5da]/40 px-3 py-2 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+        <button type="button" onclick="eliminarTalla(this)" class="p-2 hover:bg-[#f3f3f4] text-[#747688]">
+            <span class="material-symbols-outlined text-sm">delete</span>
+        </button>`;
     container.appendChild(fila);
 }
-function eliminarTalla(btn) { const fila = btn.closest('.talla-fila'); if (document.querySelectorAll('.talla-fila').length > 1) fila.remove(); }
+
+function eliminarTalla(btn) {
+    const fila = btn.closest('.talla-fila');
+    if (document.querySelectorAll('.talla-fila').length > 1) fila.remove();
+}
+
+// ── IMAGEN ────────────────────────────────────────────────────────────────
+function previsualizarImagen(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen no puede pesar más de 2MB.');
+        input.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        const preview     = document.getElementById('preview-imagen');
+        const placeholder = document.getElementById('zona-placeholder');
+        const btnQuitar   = document.getElementById('btn-quitar-imagen');
+        const zona        = document.getElementById('zona-imagen');
+
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        btnQuitar.classList.remove('hidden');
+        zona.classList.add('con-imagen');
+    };
+    reader.readAsDataURL(file);
+}
+
+function quitarImagen() {
+    const input       = document.getElementById('input-imagen');
+    const preview     = document.getElementById('preview-imagen');
+    const placeholder = document.getElementById('zona-placeholder');
+    const btnQuitar   = document.getElementById('btn-quitar-imagen');
+    const zona        = document.getElementById('zona-imagen');
+
+    input.value = '';
+    preview.src = '';
+    preview.classList.add('hidden');
+    placeholder.classList.remove('hidden');
+    btnQuitar.classList.add('hidden');
+    zona.classList.remove('con-imagen');
+}
 </script>
 
 @include('partials._sidebar')

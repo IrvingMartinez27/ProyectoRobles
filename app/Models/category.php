@@ -10,7 +10,9 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'descripcion']; // ← agregar descripcion
+    protected $connection = 'tenant';
+
+    protected $fillable = ['name', 'slug', 'descripcion'];
 
     protected static function boot()
     {

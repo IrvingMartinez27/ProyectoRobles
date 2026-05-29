@@ -33,7 +33,9 @@ Route::post('/register', function (Request $request) {
         'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
         'password.confirmed' => 'Las contraseñas no coinciden.',
     ]);
-
+ 
+    $planElegido = $request->input('plan', 'gratis');
+ 
     $user = \App\Models\User::create([
         'name'       => $request->name,
         'store_name' => $request->name,
@@ -41,49 +43,33 @@ Route::post('/register', function (Request $request) {
         'password'   => bcrypt($request->password),
         'estado'     => true,
         'role'       => 'admin',
-        'plan'       => 'gratis',
+        'plan'       => 'gratis', // Siempre inicia gratis hasta confirmar pago
     ]);
-
+ 
     Auth::login($user);
     $request->session()->regenerate();
+ 
+    // Si eligió Pro → redirigir a setup primero, luego al pago
+    if ($planElegido === 'pro') {
+        $request->session()->put('pendiente_plan_pro', true);
+    }
+ 
     return redirect('/setup');
 })->name('register.post')->middleware('guest');
 
-// ── SETUP — Nombre de tienda y zona horaria ───────────────────────────────
+// ── PAGO MERCADO PAGO ─────────────────────────────────────────────────────
 
-Route::get('/setup', function () {
-    if (Auth::user()->tenant_id) {
-        return redirect('/dashboard');
-    }
-    return view('setup');
-})->name('setup')->middleware('auth');
+Route::get('/pago/planes', [App\Http\Controllers\PagoController::class, 'planes'])->name('planes');
 
-Route::post('/setup', function (Request $request) {
-    $request->validate([
-        'store_name' => 'required|string|max:255',
-        'timezone'   => 'required|string',
-    ], [
-        'store_name.required' => 'El nombre de tu tienda es obligatorio.',
-        'timezone.required'   => 'La zona horaria es obligatoria.',
-    ]);
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pago/crear-preferencia', [App\Http\Controllers\PagoController::class, 'crearPreferencia'])->name('pago.crear');
+    Route::get('/pago/exito',    [App\Http\Controllers\PagoController::class, 'exito'])->name('pago.exito');
+    Route::get('/pago/fallo',    [App\Http\Controllers\PagoController::class, 'fallo'])->name('pago.fallo');
+    Route::get('/pago/pendiente',[App\Http\Controllers\PagoController::class, 'pendiente'])->name('pago.pendiente');
+});
 
-    // Crear el tenant — genera su BD automáticamente con todas las tablas
-    $tenant = \App\Models\Tenant::create([
-        'id'         => \Illuminate\Support\Str::uuid(),
-        'store_name' => $request->store_name,
-        'plan'       => 'gratis',
-        'timezone'   => $request->timezone ?? 'America/Mexico_City',
-    ]);
-
-    // Vincular tenant al usuario y actualizar nombre de tienda
-    Auth::user()->update([
-        'store_name' => $request->store_name,
-        'tenant_id'  => $tenant->id,
-    ]);
-
-    return redirect('/dashboard');
-})->name('setup.post')->middleware('auth');
-
+// Webhook sin auth — Mercado Pago lo llama directamente
+Route::post('/pago/webhook', [App\Http\Controllers\PagoController::class, 'webhook'])->name('pago.webhook');
 // ── LOGIN ─────────────────────────────────────────────────────────────────
 
 Route::get('/login', function () { return view('login'); })->name('login')->middleware('guest');
@@ -159,9 +145,38 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
+Route::get('/dashboard', function() {
+    if (session('pendiente_plan_pro')) {
+        return redirect('/pago/crear-preferencia');
+    }
+    return app(DashboardController::class)->index();
+    })->middleware(['auth', 'solo.admin'])->name('dashboard');
+
+    
 Route::middleware(['auth', 'solo.admin'])->group(function () {
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/ia', [App\Http\Controllers\Admin\DashboardController::class, 'ia'])->name('dashboard.ia');
+    
+    Route::post('/lealtad/toggle', function (Request $request) {
+    $user   = Auth::user();
+    $tenant = \App\Models\Tenant::find($user->tenant_id);
+ 
+    if (!$tenant) {
+        return back()->with('error', 'No se encontró la tienda.');
+    }
+ 
+    $nuevoEstado = !$tenant->lealtad_activo;
+    $tenant->update(['lealtad_activo' => $nuevoEstado]);
+ 
+    $mensaje = $nuevoEstado
+        ? 'Programa de lealtad activado correctamente.'
+        : 'Programa de lealtad desactivado.';
+ 
+    return back()->with('success', $mensaje);
+})->name('lealtad.toggle');
+ 
+
+    Route::post('/clientes/{id}/canjear', [App\Http\Controllers\Admin\ClientController::class, 'canjearPuntos'])->name('clientes.canjear');
 
     Route::get('/productos/{id}', [ProductoController::class, 'show'])->name('productos.show');
     Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
@@ -238,3 +253,38 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
     })->name('usuarios.destroy');
 
 });
+
+// ── SETUP ─────────────────────────────────────────────────────
+Route::get('/setup', function () {
+    if (Auth::user()->tenant_id) {
+        return redirect('/dashboard');
+    }
+    return view('setup');
+})->name('setup')->middleware('auth');
+
+Route::post('/setup', function (Request $request) {
+    $request->validate([
+        'store_name' => 'required|string|max:255',
+        'timezone'   => 'required|string',
+    ]);
+
+    $tenant = \App\Models\Tenant::create([
+        'id'         => \Illuminate\Support\Str::uuid(),
+        'store_name' => $request->store_name,
+        'plan'       => 'gratis',
+        'timezone'   => $request->timezone ?? 'America/Mexico_City',
+    ]);
+
+    Auth::user()->update([
+        'store_name' => $request->store_name,
+        'tenant_id'  => $tenant->id,
+    ]);
+
+    // ← NUEVO: redirigir a pago si eligió Pro
+    if (session('pendiente_plan_pro')) {
+        session()->forget('pendiente_plan_pro');
+        return redirect('/pago/crear-preferencia');
+    }
+
+    return redirect('/dashboard');
+})->name('setup.post')->middleware('auth');
