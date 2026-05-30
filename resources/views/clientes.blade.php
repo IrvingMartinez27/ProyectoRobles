@@ -14,8 +14,6 @@
     #modal-nuevo-cliente.activo { display: flex; }
     #modal-historial { display: none; }
     #modal-historial.activo { display: flex; }
-    #modal-canjear { display: none; }
-    #modal-canjear.activo { display: flex; }
     .fila-cliente:hover td { background-color: #f9f9f9; }
 </style>
 </head>
@@ -111,17 +109,15 @@
             </button>
 
             {{-- PROGRAMA DE LEALTAD --}}
-           @if($esPro)
-<div class="bg-amber-50 border border-amber-200 p-6 space-y-4">
-    <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-amber-500">stars</span>
-        <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">Programa de lealtad</p>
-    </div>
- 
-    {{-- TOGGLE ACTIVAR/DESACTIVAR --}}
-    <form method="POST" action="{{ route('lealtad.toggle') }}">
-        @csrf
-        <div class="flex items-center justify-between bg-white border border-amber-200 px-4 py-3">
+            @if($esPro)
+            <div class="bg-amber-50 border border-amber-200 p-6 space-y-4">
+            <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-500">stars</span>
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">Programa de lealtad</p>
+            </div>
+            <form method="POST" action="{{ route('lealtad.toggle') }}">
+            @csrf
+            <div class="flex items-center justify-between bg-white border border-amber-200 px-4 py-3">
             <div>
                 <p class="text-[10px] font-black uppercase tracking-widest text-[#1a1c1c]">
                     {{ $lealtadActivo ? 'Activo' : 'Inactivo' }}
@@ -132,20 +128,21 @@
             </div>
             <button type="submit"
                     class="px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all
-                        {{ $lealtadActivo
-                            ? 'bg-amber-500 text-white hover:bg-amber-600'
-                            : 'bg-[#f3f3f4] text-[#747688] hover:bg-amber-100 hover:text-amber-700' }}">
+                        {{ $lealtadActivo ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-[#f3f3f4] text-[#747688] hover:bg-amber-100 hover:text-amber-700' }}">
                 {{ $lealtadActivo ? 'Desactivar' : 'Activar' }}
             </button>
-        </div>
-    </form>
- 
+            </div>
+            </form>
     @if($lealtadActivo)
-    <p class="text-sm text-amber-700 mb-1">1 punto por cada <span class="font-black">$50</span> gastados</p>
+    <p class="text-sm text-amber-700">1 punto por cada <span class="font-black">$50</span> gastados</p>
     <p class="text-sm text-amber-700">1 punto = <span class="font-black">$1</span> de descuento</p>
     <div class="pt-4 border-t border-amber-200">
         <p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Total puntos activos</p>
         <p class="text-2xl font-black text-amber-700">{{ collect($clientes)->sum('puntos') }}</p>
+    </div>
+    <div class="bg-amber-100 border border-amber-300 px-4 py-3 text-xs text-amber-800 flex items-start gap-2">
+        <span class="material-symbols-outlined text-sm shrink-0 mt-0.5">info</span>
+        <span>Los puntos se canjean al registrar una venta desde <a href="{{ route('sales') }}" class="font-black underline">Nueva Venta</a>.</span>
     </div>
     @endif
 </div>
@@ -202,15 +199,9 @@
                         <td class="px-6 py-4"><p class="text-sm text-[#747688]">{{ $cliente['telefono'] ?? '—' }}</p></td>
                         @if($esPro)
                         <td class="px-6 py-4 text-center">
-                            <div class="flex items-center justify-center gap-1">
-                                <span class="text-lg font-black text-amber-600">{{ $cliente['puntos'] ?? 0 }}</span>
-                                @if(($cliente['puntos'] ?? 0) > 0)
-                                <button onclick="abrirModalCanjear({{ json_encode($cliente) }})"
-                                        class="ml-1 text-[9px] font-black px-2 py-0.5 bg-amber-100 text-amber-700 hover:bg-amber-200 transition-all uppercase">
-                                    Canjear
-                                </button>
-                                @endif
-                            </div>
+                            <span class="text-lg font-black {{ ($cliente['puntos'] ?? 0) > 0 ? 'text-amber-600' : 'text-[#c4c5da]' }}">
+                                {{ $cliente['puntos'] ?? 0 }}
+                            </span>
                         </td>
                         @endif
                         <td class="px-6 py-4 text-center"><span class="text-lg font-black">{{ $cliente['num_compras'] }}</span></td>
@@ -304,60 +295,10 @@
     </div>
 </div>
 
-{{-- MODAL CANJEAR PUNTOS (solo Pro) --}}
-@if($esPro)
-<div id="modal-canjear" class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm" onclick="if(event.target===this) cerrarModalCanjear()">
-    <div class="bg-white w-full max-w-sm mx-4">
-        <div class="flex items-center justify-between px-6 py-5 border-b border-[#c4c5da]/20">
-            <div>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-amber-600 mb-1">Programa de lealtad</p>
-                <h2 class="text-xl font-bold tracking-tight" id="canjear-nombre">—</h2>
-            </div>
-            <button onclick="cerrarModalCanjear()" class="p-2 hover:bg-[#f3f3f4] transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        <div class="px-6 py-5 space-y-4">
-            <div class="bg-amber-50 border border-amber-200 px-4 py-3 flex justify-between items-center">
-                <span class="text-[10px] font-black uppercase tracking-widest text-amber-700">Puntos disponibles</span>
-                <span class="text-2xl font-black text-amber-600" id="canjear-puntos-disponibles">0</span>
-            </div>
-            <div class="bg-[#f3f3f4] px-4 py-3 text-sm text-[#747688]">
-                <p>1 punto = <span class="font-black text-[#1a1c1c]">$1 de descuento</span></p>
-            </div>
-            <form method="POST" id="form-canjear" class="space-y-3">
-                @csrf
-                @method('POST')
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Puntos a canjear</label>
-                    <input type="number" name="puntos_canjear" id="canjear-input" placeholder="0" min="1"
-                           oninput="calcularDescuento()"
-                           class="border border-[#c4c5da]/40 px-4 py-3 text-lg font-black focus:outline-none focus:border-amber-500 bg-[#f9f9f9]"/>
-                </div>
-                <div class="bg-amber-50 px-4 py-3 flex justify-between items-center">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-amber-700">Descuento</span>
-                    <span class="text-xl font-black text-amber-600" id="canjear-descuento">$0.00</span>
-                </div>
-                <p id="canjear-error" class="text-xs text-red-500 font-bold hidden">No puedes canjear más puntos de los disponibles.</p>
-            </form>
-        </div>
-        <div class="flex gap-3 px-6 pb-6">
-            <button type="button" onclick="confirmarCanje()" class="flex-1 py-4 bg-amber-500 text-white text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-sm">redeem</span>Confirmar canje
-            </button>
-            <button onclick="cerrarModalCanjear()" class="px-4 border border-[#c4c5da]/40 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
-                Cancelar
-            </button>
-        </div>
-    </div>
-</div>
-@endif
-
 @include('partials._sidebar')
 
 <script>
 const ES_PRO_CLIENTES = {{ $esPro ? 'true' : 'false' }};
-let clienteActualCanje = null;
 
 function abrirModalCliente() { document.getElementById('modal-nuevo-cliente').classList.add('activo'); document.body.style.overflow='hidden'; }
 function cerrarModalCliente() { document.getElementById('modal-nuevo-cliente').classList.remove('activo'); document.body.style.overflow=''; }
@@ -383,58 +324,6 @@ function abrirHistorial(cliente) {
     document.body.style.overflow = 'hidden';
 }
 function cerrarHistorial() { document.getElementById('modal-historial').classList.remove('activo'); document.body.style.overflow=''; }
-
-function abrirModalCanjear(cliente) {
-    clienteActualCanje = cliente;
-    document.getElementById('canjear-nombre').textContent = cliente.nombre;
-    document.getElementById('canjear-puntos-disponibles').textContent = cliente.puntos ?? 0;
-    document.getElementById('canjear-input').value = '';
-    document.getElementById('canjear-descuento').textContent = '$0.00';
-    document.getElementById('canjear-error').classList.add('hidden');
-    document.getElementById('form-canjear').action = `/clientes/${cliente.id}/canjear`;
-    document.getElementById('modal-canjear').classList.add('activo');
-    document.body.style.overflow = 'hidden';
-}
-function cerrarModalCanjear() { document.getElementById('modal-canjear').classList.remove('activo'); document.body.style.overflow=''; clienteActualCanje = null; }
-
-function calcularDescuento() {
-    const puntos = parseInt(document.getElementById('canjear-input').value) || 0;
-    const disponibles = clienteActualCanje?.puntos ?? 0;
-    const errorEl = document.getElementById('canjear-error');
-    document.getElementById('canjear-descuento').textContent = '$' + puntos.toFixed(2);
-    if (puntos > disponibles) {
-        errorEl.classList.remove('hidden');
-    } else {
-        errorEl.classList.add('hidden');
-    }
-}
-
-function confirmarCanje() {
-    const puntos = parseInt(document.getElementById('canjear-input').value) || 0;
-    const disponibles = clienteActualCanje?.puntos ?? 0;
-    if (puntos <= 0) { alert('Ingresa los puntos a canjear'); return; }
-    if (puntos > disponibles) { document.getElementById('canjear-error').classList.remove('hidden'); return; }
-    
-    // Crear form dinámico con POST
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `/clientes/${clienteActualCanje.id}/canjear`;
-    
-    const csrf = document.createElement('input');
-    csrf.type = 'hidden';
-    csrf.name = '_token';
-    csrf.value = '{{ csrf_token() }}';
-    
-    const puntosInput = document.createElement('input');
-    puntosInput.type = 'hidden';
-    puntosInput.name = 'puntos_canjear';
-    puntosInput.value = puntos;
-    
-    form.appendChild(csrf);
-    form.appendChild(puntosInput);
-    document.body.appendChild(form);
-    form.submit();
-}
 
 function buscarCliente(query) {
     const q = query.toLowerCase();

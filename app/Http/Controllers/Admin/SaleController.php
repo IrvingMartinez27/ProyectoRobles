@@ -71,6 +71,90 @@ class SaleController extends Controller
         return view('sales', compact('ventas', 'clientes', 'productos', 'plan', 'lealtadActivo'));
     }
 
+    // ── VOZ ───────────────────────────────────────────────────
+    public function voz(Request $request)
+    {
+        $texto     = $request->input('texto', '');
+        $productos = $request->input('productos', []);
+
+        $lista = collect($productos)->map(function($p) {
+            $tallas = $p['tallas'] ?? [];
+            $partes = [];
+
+            foreach ($tallas as $key => $value) {
+                if (is_array($value)) {
+                    // Formato [{talla: '27 MX', stock: 6}, ...]
+                    $nombreTalla = $value['talla'] ?? $key;
+                    $stock       = $value['stock'] ?? 0;
+                } else {
+                    // Formato {'27 MX': 6, ...}
+                    $nombreTalla = $key;
+                    $stock       = $value;
+                }
+
+                if (is_numeric($stock) && $stock > 0) {
+                    $partes[] = "{$nombreTalla}(stock:{$stock})";
+                }
+            }
+
+            $tallasStr = implode(', ', $partes);
+            $nombre    = is_string($p['nombre'] ?? '') ? $p['nombre'] : '';
+            $precio    = is_numeric($p['precio'] ?? 0) ? $p['precio'] : 0;
+
+            return "ID:{$p['id']} | Nombre:{$nombre} | Precio:\${$precio} | TallasDisponibles:[{$tallasStr}]";
+        })->join("\n");
+
+        $prompt = "Eres un asistente de punto de venta de una tienda deportiva mexicana.
+
+El vendedor dijo: \"{$texto}\"
+
+Inventario disponible (SOLO estos productos y SOLO estas tallas existen):
+{$lista}
+
+INSTRUCCIONES:
+1. Identifica el producto más parecido al nombre mencionado (nombre parcial o aproximado cuenta)
+2. La talla DEBE estar EXACTAMENTE como aparece en TallasDisponibles (ej: '27 MX', no solo '27')
+3. Si no mencionan talla, elige la primera disponible de ese producto
+4. La cantidad por defecto es 1 si no se menciona
+5. El mensaje debe confirmar producto, talla y cantidad
+
+Responde SOLO con JSON válido sin backticks ni texto adicional:
+{\"producto_id\": \"123\", \"nombre\": \"nombre exacto\", \"talla\": \"27 MX\", \"cantidad\": 1, \"mensaje\": \"Jordan 1 talla 27 MX x1 agregado\"}
+
+Si no encuentras el producto:
+{\"producto_id\": null, \"mensaje\": \"No encontré ese producto en el inventario\"}";
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'x-api-key'         => config('services.anthropic.key'),
+                'anthropic-version' => '2023-06-01',
+                'content-type'      => 'application/json',
+            ])->timeout(15)->post('https://api.anthropic.com/v1/messages', [
+                'model'      => 'claude-haiku-4-5-20251001',
+                'max_tokens' => 200,
+                'messages'   => [['role' => 'user', 'content' => $prompt]],
+            ]);
+
+            $body  = $response->body();
+            $text  = json_decode($body, true)['content'][0]['text'] ?? '{}';
+            $clean = preg_replace('/```json|```/', '', $text);
+            $data  = json_decode(trim($clean), true);
+
+            if (!$data || !isset($data['producto_id'])) {
+                throw new \Exception('Respuesta inválida');
+            }
+
+            return response()->json($data);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'producto_id' => null,
+                'mensaje'     => 'Error al procesar. Intenta de nuevo.',
+            ]);
+        }
+    }
+
+    // ── STORE ─────────────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
@@ -120,7 +204,7 @@ class SaleController extends Controller
             $clienteId = $request->cliente_id;
             if (empty($clienteId) || !is_numeric($clienteId)) {
                 $nombreCliente = $request->cliente_nombre ?? 'Cliente general';
-                $clienteObj = client::firstOrCreate(
+                $clienteObj    = client::firstOrCreate(
                     ['name' => trim($nombreCliente)],
                     ['telefono' => null, 'direccion' => null, 'puntos' => 0]
                 );
@@ -139,7 +223,7 @@ class SaleController extends Controller
                 ]);
             }
 
-            $subtotal        = 0;
+            $subtotal = 0;
             foreach ($request->productos as $i => $productoId) {
                 $subtotal += ($request->cantidades[$i] ?? 1) * ($request->precios[$i] ?? 0);
             }
@@ -182,7 +266,6 @@ class SaleController extends Controller
                 }
             }
 
-            // Actualizar puntos solo si lealtad está activo
             if ($lealtadActivo) {
                 $clienteObj = client::find($clienteId);
                 if ($clienteObj) {

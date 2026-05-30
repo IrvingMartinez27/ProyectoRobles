@@ -31,6 +31,9 @@
     input:checked + .toggle-slider:before { transform: translateX(20px); }
     .pro-lock { cursor: pointer; }
     .pro-lock:hover .pro-badge { opacity: 100; }
+    #btn-voz { transition: all 0.2s; }
+    #btn-voz.escuchando { background: #dc2626 !important; animation: pulse-voz 1s infinite; }
+    @keyframes pulse-voz { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.8; transform:scale(1.05); } }
     @media print {
         body > *:not(#print-ticket) { display: none !important; }
         #print-ticket { display: block !important; position: fixed; inset: 0; background: white; padding: 24px; z-index: 9999; }
@@ -97,7 +100,6 @@ $lealtadActivo = $lealtadActivo ?? false;
     <span class="material-symbols-outlined text-sm">error</span>{{ session('error') }}
 </div>
 @endif
-
 <main class="pb-32 md:pb-12 px-4 md:px-6 max-w-[1600px] mx-auto">
     <div class="grid grid-cols-3 gap-3 mb-6">
         <div class="bg-white border border-[#c4c5da]/20 p-4 text-center">
@@ -333,10 +335,50 @@ $lealtadActivo = $lealtadActivo ?? false;
                 <p class="text-[10px] font-bold uppercase tracking-widest text-[#1737c8] mb-0.5">Registro</p>
                 <h2 class="text-xl font-bold tracking-tight">Nueva venta</h2>
             </div>
-            <button onclick="cerrarModalVenta()" class="p-2 hover:bg-[#f3f3f4] transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+            <div class="flex items-center gap-2">
+                @if($esPro)
+                <button type="button" id="btn-voz" onclick="toggleVoz()"
+                        class="p-2 bg-[#f3f3f4] border border-[#c4c5da]/40 hover:bg-[#1737c8] hover:text-white hover:border-[#1737c8] transition-all"
+                        title="Agregar producto por voz">
+                    <span class="material-symbols-outlined text-sm" id="icon-voz">mic</span>
+                </button>
+                @endif
+                <button onclick="cerrarModalVenta()" class="p-2 hover:bg-[#f3f3f4] transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
         </div>
+
+        @if($esPro)
+        <div id="voz-status" class="hidden px-6 pt-4">
+            <div id="voz-escuchando" class="hidden bg-red-50 border border-red-200 px-4 py-3 flex items-center gap-3">
+                <span class="material-symbols-outlined text-red-500 text-sm animate-pulse">mic</span>
+                <div class="flex-1">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-red-700">Escuchando...</p>
+                    <p class="text-xs text-red-500" id="voz-transcript">Di el producto, ej: "Air Force One talla 27"</p>
+                </div>
+                <button type="button" onclick="detenerVoz()" class="text-red-400 hover:text-red-600">
+                    <span class="material-symbols-outlined text-sm">stop_circle</span>
+                </button>
+            </div>
+            <div id="voz-procesando" class="hidden bg-[#1737c8]/5 border border-[#1737c8]/20 px-4 py-3 flex items-center gap-3">
+                <svg class="animate-spin w-4 h-4 text-[#1737c8] shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <p class="text-xs font-bold text-[#1737c8]">Interpretando con IA...</p>
+            </div>
+            <div id="voz-resultado" class="hidden bg-green-50 border border-green-200 px-4 py-3 flex items-center gap-3">
+                <span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>
+                <p class="text-xs font-bold text-green-700" id="voz-resultado-text"></p>
+            </div>
+            <div id="voz-error" class="hidden bg-red-50 border border-red-200 px-4 py-3 flex items-center gap-3">
+                <span class="material-symbols-outlined text-red-400 text-sm">error</span>
+                <p class="text-xs font-bold text-red-600" id="voz-error-text"></p>
+            </div>
+        </div>
+        @endif
+
         <form method="POST" action="{{ route('ventas.store') }}" id="form-nueva-venta" class="px-6 py-5 space-y-5">
             @csrf
             <input type="hidden" name="metodo_pago" id="metodo-pago-hidden" value="efectivo"/>
@@ -344,7 +386,6 @@ $lealtadActivo = $lealtadActivo ?? false;
             <input type="hidden" name="recibido" id="recibido-hidden" value="0"/>
             <input type="hidden" name="cambio" id="cambio-hidden" value="0"/>
             <input type="hidden" name="puntos_canjear" id="puntos-canjear-hidden" value="0"/>
-            
 
             {{-- Cliente --}}
             <div class="flex flex-col gap-1.5 relative">
@@ -358,34 +399,53 @@ $lealtadActivo = $lealtadActivo ?? false;
                 <div id="clientes-sugerencias" class="absolute top-[72px] left-0 right-0 bg-white border border-[#c4c5da]/40 shadow-lg z-50 hidden max-h-40 overflow-y-auto"></div>
                 <div id="clientes-data" class="hidden">
                     @foreach($clientes ?? [] as $cliente)
-                    <span data-id="{{ $cliente->id ?? $cliente['id'] }}" 
-                        data-nombre="{{ $cliente->name ?? $cliente['nombre'] }}"
-                        data-puntos="{{ $cliente->puntos ?? 0 }}"></span>
+                    <span data-id="{{ $cliente->id ?? $cliente['id'] }}"
+                          data-nombre="{{ $cliente->name ?? $cliente['nombre'] }}"
+                          data-puntos="{{ $cliente->puntos ?? 0 }}"></span>
                     @endforeach
                 </div>
             </div>
-            {{-- PROGRAMA DE LEALTAD --}}
-            @if($lealtadActivo)
-            <div id="lealtad-section" class="hidden bg-amber-50 border border-amber-200 px-4 py-3 space-y-2">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-amber-500 text-sm">stars</span>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">Programa de lealtad</p>
-                    </div>
-                    <span class="text-sm font-black text-amber-600" id="lealtad-puntos-display">0 puntos</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-[9px] font-black uppercase tracking-widest text-amber-700 shrink-0">Canjear puntos:</label>
-                    <input type="number" id="puntos-canjear-input" placeholder="0" min="0"
-                        oninput="actualizarCanjePuntos()"
-                        class="flex-1 border border-amber-300 bg-white px-3 py-1.5 text-sm font-black focus:outline-none focus:border-amber-500"/>
-                    <span class="text-[9px] text-amber-600 font-bold shrink-0" id="lealtad-descuento-display">-$0</span>
-                </div>
-                <p class="text-[9px] text-amber-600">1 punto = $1 de descuento</p>
-            </div>
-            @endif
 
-            {{-- TIPO DE VENTA — con bloqueo si es plan gratis --}}
+            {{-- PROGRAMA DE LEALTAD --}}
+@if($lealtadActivo)
+<div id="lealtad-section" class="hidden space-y-2">
+    {{-- Pregunta inicial --}}
+    <div id="lealtad-pregunta" class="bg-amber-50 border border-amber-200 px-4 py-4">
+        <div class="flex items-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-amber-500 text-sm">stars</span>
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">Programa de lealtad</p>
+            <span class="text-sm font-black text-amber-600 ml-auto" id="lealtad-puntos-display">0 pts</span>
+        </div>
+        <p class="text-xs text-amber-800 mb-3" id="lealtad-mensaje">¿Qué deseas hacer con tus puntos?</p>
+        <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="elegirLealtad('acumular')"
+                    class="py-2.5 text-[10px] font-black uppercase tracking-widest border-2 border-amber-300 text-amber-700 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-sm">savings</span>Acumular
+            </button>
+            <button type="button" onclick="elegirLealtad('usar')"
+                    class="py-2.5 text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white hover:bg-amber-600 transition-all flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-sm">redeem</span>Usar puntos
+            </button>
+        </div>
+    </div>
+    {{-- Sección de canje --}}
+    <div id="lealtad-canje" class="hidden bg-amber-50 border border-amber-200 px-4 py-3 space-y-2">
+        <div class="flex items-center gap-2">
+            <label class="text-[9px] font-black uppercase tracking-widest text-amber-700 shrink-0">Puntos a canjear:</label>
+            <input type="number" id="puntos-canjear-input" placeholder="0" min="0"
+                   oninput="actualizarCanjePuntos()"
+                   class="flex-1 border border-amber-300 bg-white px-3 py-1.5 text-sm font-black focus:outline-none focus:border-amber-500"/>
+            <span class="text-[9px] text-amber-600 font-bold shrink-0" id="lealtad-descuento-display">-$0</span>
+        </div>
+        <div class="flex items-center justify-between">
+            <p class="text-[9px] text-amber-600">1 punto = $1 de descuento</p>
+            <button type="button" onclick="elegirLealtad('acumular')" class="text-[9px] text-amber-500 underline font-bold">Cancelar</button>
+        </div>
+    </div>
+</div>
+@endif
+
+            {{-- TIPO DE VENTA --}}
             @if($esPro)
             <div class="flex items-center justify-between bg-[#f9f9f9] border border-[#c4c5da]/40 px-4 py-3">
                 <div>
@@ -523,6 +583,7 @@ $lealtadActivo = $lealtadActivo ?? false;
 const PLAN = '{{ $plan ?? "gratis" }}';
 const ES_PRO = PLAN === 'pro' || PLAN === 'business';
 const ES_LEALTAD = {{ $lealtadActivo ? 'true' : 'false' }};
+const CSRF_TOKEN = '{{ csrf_token() }}';
 
 let ventaActual = null;
 let ventaModalActual = null;
@@ -530,7 +591,142 @@ let metodoPagoActual = 'efectivo';
 let tipoVentaActual  = 'menudeo';
 let totalVentaActual = 0;
 let esMayoreo = false;
+let recognition = null;
+let vozActiva = false;
 
+// ── REGISTRO POR VOZ ──────────────────────────────────────────
+function toggleVoz() {
+    if (vozActiva) { detenerVoz(); } else { iniciarVoz(); }
+}
+
+function iniciarVoz() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        mostrarVozError('Tu navegador no soporta voz. Usa Chrome o Edge.');
+        return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'es-MX';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    let transcriptFinal = '';
+
+    recognition.onstart = () => {
+        vozActiva = true;
+        transcriptFinal = '';
+        document.getElementById('btn-voz').classList.add('escuchando');
+        document.getElementById('voz-status').classList.remove('hidden');
+        document.getElementById('voz-escuchando').classList.remove('hidden');
+        document.getElementById('voz-procesando').classList.add('hidden');
+        document.getElementById('voz-resultado').classList.add('hidden');
+        document.getElementById('voz-error').classList.add('hidden');
+        document.getElementById('voz-transcript').textContent = 'Di el producto, ej: "Air Force One talla 27"';
+    };
+
+    recognition.onresult = (event) => {
+        let interino = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                transcriptFinal += event.results[i][0].transcript;
+            } else {
+                interino += event.results[i][0].transcript;
+            }
+        }
+        document.getElementById('voz-transcript').textContent = transcriptFinal || interino;
+    };
+
+    recognition.onspeechend = () => {
+        recognition.stop();
+    };
+
+    recognition.onend = () => {
+        vozActiva = false;
+        document.getElementById('btn-voz')?.classList.remove('escuchando');
+        document.getElementById('icon-voz').textContent = 'mic';
+        document.getElementById('voz-escuchando').classList.add('hidden');
+        const texto = transcriptFinal || document.getElementById('voz-transcript').textContent;
+        const placeholder = 'Di el producto, ej: "Air Force One talla 27"';
+        if (texto && texto !== placeholder) {
+            interpretarVoz(texto);
+        }
+    };
+
+    recognition.onerror = (e) => {
+        vozActiva = false;
+        document.getElementById('btn-voz')?.classList.remove('escuchando');
+        if (e.error !== 'no-speech') {
+            mostrarVozError('Error de micrófono: ' + e.error);
+        }
+    };
+
+    recognition.start();
+}
+
+function detenerVoz() {
+    if (recognition) { recognition.stop(); recognition = null; }
+    vozActiva = false;
+    document.getElementById('btn-voz')?.classList.remove('escuchando');
+    document.getElementById('voz-escuchando')?.classList.add('hidden');
+}
+
+    function detenerVozManual() {
+    if (recognition) recognition.stop();
+}
+
+async function interpretarVoz(texto) {
+    document.getElementById('voz-procesando').classList.remove('hidden');
+    document.getElementById('voz-escuchando').classList.add('hidden');
+    const productos = Array.from(document.querySelectorAll('#productos-data span')).map(p => ({
+        id: p.dataset.id, nombre: p.dataset.nombre, precio: p.dataset.precio,
+        tallas: JSON.parse(p.dataset.tallas || '{}'),
+    }));
+    try {
+        const resp = await fetch('{{ route("ventas.voz") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+            body: JSON.stringify({ texto, productos }),
+        });
+        const data = await resp.json();
+        document.getElementById('voz-procesando').classList.add('hidden');
+        if (data.producto_id) {
+            const span = document.querySelector(`#productos-data span[data-id="${data.producto_id}"]`);
+            if (span) {
+                agregarProductoVenta(span.dataset.id, span.dataset.nombre, span.dataset.precio, data.talla || null);
+                const cantidad = parseInt(data.cantidad ?? 1);
+                if (cantidad > 1) {
+                    const key = span.dataset.id + '_' + (data.talla ?? 'sin_talla');
+                    const idx = productosVenta.findIndex(p => p.key === key);
+                    if (idx > -1) { productosVenta[idx].cantidad = cantidad; renderizarProductosVenta(); }
+                }
+                mostrarVozResultado(data.mensaje ?? '✓ Producto agregado');
+            } else {
+                mostrarVozError('Producto no encontrado en el catálogo.');
+            }
+        } else {
+            mostrarVozError(data.mensaje ?? 'No se pudo identificar el producto.');
+        }
+    } catch (err) {
+        document.getElementById('voz-procesando').classList.add('hidden');
+        mostrarVozError('Error al procesar. Intenta de nuevo.');
+    }
+}
+
+function mostrarVozResultado(msg) {
+    document.getElementById('voz-resultado-text').textContent = msg;
+    document.getElementById('voz-resultado').classList.remove('hidden');
+    setTimeout(() => document.getElementById('voz-resultado').classList.add('hidden'), 3000);
+}
+
+function mostrarVozError(msg) {
+    document.getElementById('voz-procesando').classList.add('hidden');
+    document.getElementById('voz-error-text').textContent = msg;
+    document.getElementById('voz-error').classList.remove('hidden');
+    setTimeout(() => document.getElementById('voz-error').classList.add('hidden'), 4000);
+}
+
+// ── FUNCIONES VENTAS ──────────────────────────────────────────
 function toggleMayoreoSales(activo) {
     esMayoreo = activo;
     tipoVentaActual = activo ? 'mayoreo' : 'menudeo';
@@ -726,13 +922,10 @@ function enviarWhatsApp(venta) {
         pagoInfo += `\nRecibido: $${parseFloat(venta.recibido).toFixed(2)}\nCambio: $${parseFloat(venta.cambio ?? 0).toFixed(2)}`;
     }
     const texto = `🧾 *Ticket - ${venta.cliente}*\n#ID-${venta.id}\nTotal: $${parseFloat(venta.total).toFixed(2)}\n${pagoInfo}\n\n_Gracias por tu compra en {{ Auth::user()->store_name ?? 'nuestra tienda' }}_`;
-
-    // Si tiene teléfono, abrir directo con su número
     const telefono = venta.telefono ? venta.telefono.replace(/\D/g, '') : null;
     const url = telefono
         ? `https://wa.me/52${telefono}?text=${encodeURIComponent(texto)}`
         : `https://wa.me/?text=${encodeURIComponent(texto)}`;
-
     window.open(url, '_blank');
 }
 
@@ -763,6 +956,7 @@ function abrirModalVenta() {
 }
 
 function cerrarModalVenta() {
+    if (vozActiva) detenerVoz();
     document.getElementById('modal-nueva-venta').classList.remove('activo');
     document.body.style.overflow = '';
     document.getElementById('cliente-search').value = '';
@@ -773,10 +967,13 @@ function cerrarModalVenta() {
     productosVenta = [];
     esMayoreo = false;
     renderizarProductosVenta();
+    if (ES_PRO) document.getElementById('voz-status')?.classList.add('hidden');
     if (ES_LEALTAD) {
     document.getElementById('lealtad-section')?.classList.add('hidden');
+    document.getElementById('lealtad-pregunta')?.classList.remove('hidden');
+    document.getElementById('lealtad-canje')?.classList.add('hidden');
     document.getElementById('puntos-canjear-hidden').value = 0;
-}
+    }
 }
 
 function buscarClienteVenta(query) {
@@ -795,17 +992,22 @@ function seleccionarCliente(id, nombre) {
     document.getElementById('cliente-id-hidden').value = id;
     document.getElementById('clientes-sugerencias').classList.add('hidden');
 
-    // Mostrar puntos si es Pro y cliente tiene puntos
     if (ES_LEALTAD) {
         const span = Array.from(document.querySelectorAll('#clientes-data span')).find(s => s.dataset.id == id);
         const puntos = parseInt(span?.dataset.puntos ?? 0);
         const seccion = document.getElementById('lealtad-section');
+
         if (puntos > 0) {
-            document.getElementById('lealtad-puntos-display').textContent = puntos + ' puntos disponibles';
+            // Mostrar mensaje tipo membresía
+            document.getElementById('lealtad-puntos-display').textContent = puntos + ' pts';
+            document.getElementById('lealtad-mensaje').textContent =
+                `⭐ ${nombre.split(' ')[0]} tiene ${puntos} punto${puntos !== 1 ? 's' : ''} ($${puntos} de descuento). ¿Los acumula o los quiere utilizar?`;
             document.getElementById('puntos-canjear-input').max = puntos;
             document.getElementById('puntos-canjear-input').value = '';
             document.getElementById('lealtad-descuento-display').textContent = '-$0';
             document.getElementById('puntos-canjear-hidden').value = 0;
+            document.getElementById('lealtad-pregunta').classList.remove('hidden');
+            document.getElementById('lealtad-canje').classList.add('hidden');
             seccion.classList.remove('hidden');
         } else {
             seccion.classList.add('hidden');
@@ -813,6 +1015,23 @@ function seleccionarCliente(id, nombre) {
         }
     }
 }
+
+function elegirLealtad(opcion) {
+    if (opcion === 'usar') {
+        document.getElementById('lealtad-pregunta').classList.add('hidden');
+        document.getElementById('lealtad-canje').classList.remove('hidden');
+        document.getElementById('puntos-canjear-input').focus();
+    } else {
+        document.getElementById('lealtad-canje').classList.add('hidden');
+        document.getElementById('lealtad-pregunta').classList.remove('hidden');
+        document.getElementById('puntos-canjear-input').value = '';
+        document.getElementById('puntos-canjear-hidden').value = 0;
+        document.getElementById('lealtad-descuento-display').textContent = '-$0';
+        calcularTotalConDescuento();
+    }
+}
+
+
 document.addEventListener('click', e => {
     if (!e.target.closest('#cliente-search') && !e.target.closest('#clientes-sugerencias'))
         document.getElementById('clientes-sugerencias')?.classList.add('hidden');
@@ -895,9 +1114,7 @@ function actualizarHiddens() {
     ).join('');
 }
 
-function calcularTotal() {
-    calcularTotalConDescuento();
-}
+function calcularTotal() { calcularTotalConDescuento(); }
 
 function actualizarCanjePuntos() {
     const puntos = parseInt(document.getElementById('puntos-canjear-input').value) || 0;
@@ -914,7 +1131,6 @@ function calcularTotalConDescuento() {
     const total = Math.max(0, subtotal - descuento);
     document.getElementById('total-calculado').textContent = '$' + total.toFixed(2);
 }
-
 </script>
 
 @include('partials._sidebar')

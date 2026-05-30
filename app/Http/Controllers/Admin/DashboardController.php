@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\product;
+use App\Http\Controllers\Controller;use App\Models\product;
 use App\Models\sale;
 use App\Models\detail_sale;
 use App\Models\inventory;
@@ -23,7 +22,6 @@ class DashboardController extends Controller
             $periodo = 'dia';
         }
 
-        // ── GRÁFICA ───────────────────────────────────────────────
         if ($periodo === 'semana') {
             $labels  = [];
             $valores = [];
@@ -42,7 +40,6 @@ class DashboardController extends Controller
                 $valores[] = sale::whereBetween('created_at', [$inicio, $fin])->sum('total') ?? 0;
             }
         } else {
-            // ── GRÁFICA DEL DÍA — cada venta en su hora:minuto exacto ──
             $ventas = sale::whereDate('created_at', today())
                 ->selectRaw('DATE_FORMAT(created_at, "%H:%i") as momento, total')
                 ->orderBy('created_at')
@@ -57,12 +54,10 @@ class DashboardController extends Controller
             }
         }
 
-        // ── KPIs ──────────────────────────────────────────────────
         $ventasHoy      = sale::whereDate('created_at', today())->sum('total') ?? 0;
         $numVentasHoy   = sale::whereDate('created_at', today())->count();
         $ticketPromedio = $numVentasHoy > 0 ? round($ventasHoy / $numVentasHoy, 2) : 0;
 
-        // ── TOP PRODUCTOS ─────────────────────────────────────────
         $totalVendido = detail_sale::sum('cantidad') ?: 1;
         $topProductos = detail_sale::selectRaw('product_id, SUM(cantidad) as total_vendido')
             ->groupBy('product_id')
@@ -75,10 +70,9 @@ class DashboardController extends Controller
                 'nombre'     => $d->product->name ?? '—',
                 'ventas'     => $d->total_vendido,
                 'porcentaje' => round(($d->total_vendido / $totalVendido) * 100),
-                'imagen' => $d->product->imagen ? asset('storage/' . $d->product->imagen) : null,
+                'imagen'     => $d->product->imagen ? asset('storage/' . $d->product->imagen) : null,
             ]);
 
-        // ── LOW STOCK ─────────────────────────────────────────────
         $lowStock = inventory::with('product')
             ->where('stock', '<', 5)
             ->where('stock', '>=', 0)
@@ -108,7 +102,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    // ── ENDPOINT IA ───────────────────────────────────────────────
     public function ia(Request $request)
     {
         $plan  = Auth::user()->plan ?? 'gratis';
@@ -138,7 +131,6 @@ class DashboardController extends Controller
                 'nombre'   => $d->product->name ?? '—',
                 'cantidad' => $d->total_vendido,
                 'monto'    => $d->total_monto,
-                'imagen' => $d->product->imagen ? asset('storage/' . $d->product->imagen) : null,
             ]);
 
         $stockBajo = inventory::with('product')
@@ -174,24 +166,42 @@ DATOS:
 Responde SOLO con el JSON, sin texto adicional, sin backticks.";
 
         try {
-            $response = Http::withHeaders([
-                'x-api-key'         => config('services.anthropic.key'),
-                'anthropic-version' => '2023-06-01',
-                'content-type'      => 'application/json',
-            ])->post('https://api.anthropic.com/v1/messages', [
-                'model'      => 'claude-haiku-4-5-20251001',
-                'max_tokens' => 500,
-                'messages'   => [
-                    ['role' => 'user', 'content' => $prompt],
-                ],
-            ]);
+            $apiKey = config('services.anthropic.key');
 
-            $body    = $response->body();
-            $content = json_decode($body, true)['content'][0]['text'] ?? '{}';
-            $data    = json_decode($content, true);
+            if (empty($apiKey)) {
+                throw new \Exception('API key no configurada');
+            }
+
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'x-api-key'         => $apiKey,
+                    'anthropic-version' => '2023-06-01',
+                    'content-type'      => 'application/json',
+                ])->post('https://api.anthropic.com/v1/messages', [
+                    'model'      => 'claude-haiku-4-5',
+                    'max_tokens' => 600,
+                    'messages'   => [
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                ]);
+
+            if (!$response->successful()) {
+                throw new \Exception('Error HTTP: ' . $response->status() . ' - ' . $response->body());
+            }
+
+            $body    = $response->json();
+            $content = $body['content'][0]['text'] ?? null;
+
+            if (!$content) {
+                throw new \Exception('Sin contenido en respuesta');
+            }
+
+            // Limpiar backticks por si acaso
+            $content = preg_replace('/```json|```/', '', $content);
+            $data    = json_decode(trim($content), true);
 
             if (!$data) {
-                throw new \Exception('Respuesta inválida');
+                throw new \Exception('JSON inválido: ' . $content);
             }
 
             return response()->json($data);
@@ -200,7 +210,7 @@ Responde SOLO con el JSON, sin texto adicional, sin backticks.";
             return response()->json([
                 'alertas'       => $stockBajo->take(3)->map(fn($s) => "Stock bajo: {$s['producto']} talla {$s['talla']} ({$s['stock']} pzs)")->values()->toArray(),
                 'tendencias'    => $topProductos->take(2)->map(fn($p) => "{$p['nombre']} es tu producto más vendido")->values()->toArray(),
-                'prediccion'    => 'No se pudo conectar con la IA. Revisa tu API key.',
+                'prediccion'    => 'Error: ' . $e->getMessage(),
                 'recomendacion' => 'Verifica el inventario de productos con poco stock.',
             ]);
         }

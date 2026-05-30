@@ -254,6 +254,8 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
 
 });
 
+    Route::post('/ventas/voz', [App\Http\Controllers\Admin\SaleController::class, 'voz'])->name('ventas.voz');
+
 // ── SETUP ─────────────────────────────────────────────────────
 Route::get('/setup', function () {
     if (Auth::user()->tenant_id) {
