@@ -11,23 +11,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withProviders([
-        // Registra el proveedor de Tenancy para que los eventos funcionen automáticamente
         App\Providers\TenancyServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
-        // Registra los middlewares con sus alias cortos
         $middleware->alias([
             'solo.admin'         => \App\Http\Middleware\SoloAdmin::class,
             'inicializar.tenant' => \App\Http\Middleware\InicializarTenant::class,
             'verificar.plan'     => \App\Http\Middleware\VerificarPlan::class,
+            'role'               => \App\Http\Middleware\CheckRole::class,
         ]);
 
-        // Agrega el middleware de tenant a todas las rutas web autenticadas
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\InicializarTenant::class,
         ]);
 
-        // Evita el 419 en desarrollo — extiende la sesión a 8 horas
         $middleware->validateCsrfTokens(except: [
             'pago/webhook',
         ]);

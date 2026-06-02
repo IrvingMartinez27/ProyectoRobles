@@ -257,21 +257,34 @@
             </div>
 
             {{-- PRECIO Y CATEGORÍA --}}
-            <div class="grid grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Precio</label>
-                    <input type="number" name="precio" placeholder="0.00" step="0.01"
-                           class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Categoría</label>
-                    <select name="categoria" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]">
-                        <option value="ropa">Ropa</option>
-                        <option value="calzado">Calzado</option>
-                        <option value="accesorios">Accesorios</option>
-                    </select>
-                </div>
-            </div>
+            {{-- PRECIO, COSTO Y CATEGORÍA --}}
+<div class="grid grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1">
+        <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Precio de venta</label>
+        <input type="number" name="precio" placeholder="0.00" step="0.01"
+               class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]"/>
+    </div>
+    <div class="flex flex-col gap-1">
+        <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">
+            Costo proveedor
+            @if(!$esBusiness)
+            <span class="text-[9px] font-black bg-[#1737c8] text-white px-1.5 py-0.5 rounded-full ml-1">Business</span>
+            @endif
+        </label>
+        <input type="number" name="costo" placeholder="0.00" step="0.01"
+               {{ !$esBusiness ? 'disabled' : '' }}
+               class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9] {{ !$esBusiness ? 'opacity-40 cursor-not-allowed' : '' }}"/>
+        <p class="text-[9px] text-[#747688]">Lo que pagaste al proveedor</p>
+    </div>
+</div>
+<div class="flex flex-col gap-1">
+    <label class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Categoría</label>
+    <select name="categoria" class="border border-[#c4c5da]/40 px-4 py-3 text-sm focus:outline-none focus:border-[#1737c8] bg-[#f9f9f9]">
+        <option value="ropa">Ropa</option>
+        <option value="calzado">Calzado</option>
+        <option value="accesorios">Accesorios</option>
+    </select>
+</div>
 
             {{-- TALLAS --}}
             <div class="flex flex-col gap-3">

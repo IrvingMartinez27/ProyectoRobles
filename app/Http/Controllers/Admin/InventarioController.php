@@ -6,13 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\product;
 use App\Models\inventory;
 use App\Models\category;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class InventarioController extends Controller
 {
-    // Límite de productos para el plan gratis
     const LIMITE_PLAN_GRATIS = 20;
 
     public function index()
@@ -30,34 +30,46 @@ class InventarioController extends Controller
                     'nombre'      => $producto->name,
                     'categoria'   => strtolower($producto->category->name ?? 'sin categoría'),
                     'precio'      => $producto->precio,
+                    'costo'       => $producto->costo ?? 0,
                     'imagen'      => $producto->imagen ? asset('storage/' . $producto->imagen) : null,
                     'tallas'      => $tallas,
                     'stock_total' => array_sum($tallas),
                 ];
             });
 
-        $totalProductos  = $productos->count();
-        $limiteAlcanzado = $totalProductos >= self::LIMITE_PLAN_GRATIS;
         $plan            = Auth::user()->plan ?? 'gratis';
+        $esBusiness      = $plan === 'business';
+        $totalProductos  = $productos->count();
 
-        return view('inventario', compact('productos', 'totalProductos', 'limiteAlcanzado', 'plan'));
+        // Para gratis usamos el contador histórico acumulado
+        $productosCreados = Auth::user()->productos_creados_totales ?? 0;
+        $limiteAlcanzado  = $plan === 'gratis' && $productosCreados >= self::LIMITE_PLAN_GRATIS;
+
+        return view('inventario', compact(
+            'productos', 'totalProductos', 'limiteAlcanzado',
+            'plan', 'esBusiness', 'productosCreados'
+        ));
     }
 
     public function store(Request $request)
     {
-        // Verificar límite del plan gratis
-        $plan           = Auth::user()->plan ?? 'gratis';
-        $totalProductos = product::where('estado', true)->count();
+        $plan       = Auth::user()->plan ?? 'gratis';
+        $esBusiness = $plan === 'business';
+        $user       = Auth::user();
 
-        if ($plan === 'gratis' && $totalProductos >= self::LIMITE_PLAN_GRATIS) {
-            return redirect()->route('inventario')
-                ->with('limite_alcanzado', true)
-                ->with('error', 'Alcanzaste el límite de ' . self::LIMITE_PLAN_GRATIS . ' productos del plan Gratis. Actualiza a Pro para productos ilimitados.');
+        // ── LÍMITE PLAN GRATIS (histórico acumulado) ──────────
+        if ($plan === 'gratis') {
+            $productosCreados = $user->productos_creados_totales ?? 0;
+            if ($productosCreados >= self::LIMITE_PLAN_GRATIS) {
+                return redirect()->route('inventario')
+                    ->with('error', 'Alcanzaste el límite de ' . self::LIMITE_PLAN_GRATIS . ' productos del Plan Gratis. Este límite es permanente — actualiza a Pro para productos ilimitados.');
+            }
         }
 
         $request->validate([
             'nombre'     => 'required|string',
             'precio'     => 'required|numeric|min:0',
+            'costo'      => 'nullable|numeric|min:0',
             'categoria'  => 'required|string',
             'tallas'     => 'required|array|min:1',
             'cantidades' => 'required|array|min:1',
@@ -68,25 +80,29 @@ class InventarioController extends Controller
             'imagen.max'   => 'La imagen no puede pesar más de 2MB.',
         ]);
 
-        // Buscar o crear la categoría
         $categoria = category::firstOrCreate(
             ['name' => ucfirst($request->categoria)]
         );
 
-        // Si el producto ya existe (mismo nombre), solo sumamos stock
+        $esProductoNuevo = false;
         $producto = product::whereRaw('LOWER(name) = ?', [strtolower($request->nombre)])->first();
 
         if (!$producto) {
+            $esProductoNuevo = true;
             $producto = product::create([
                 'name'        => $request->nombre,
                 'descripcion' => '',
                 'precio'      => $request->precio,
+                'costo'       => $esBusiness ? ($request->costo ?? 0) : 0,
                 'category_id' => $categoria->id,
                 'estado'      => true,
             ]);
+        } else {
+            if ($esBusiness && $request->filled('costo')) {
+                $producto->update(['costo' => $request->costo]);
+            }
         }
 
-        // Guardar imagen si se subió
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
             if ($producto->imagen) {
                 Storage::disk('public')->delete($producto->imagen);
@@ -95,10 +111,8 @@ class InventarioController extends Controller
             product::where('id', $producto->id)->update(['imagen' => $path]);
         }
 
-        // Guardar o sumar cada talla
         foreach ($request->tallas as $index => $talla) {
             $cantidad = $request->cantidades[$index] ?? 0;
-
             if (empty(trim($talla))) continue;
 
             $inventario = inventory::where('product_id', $producto->id)
@@ -117,6 +131,14 @@ class InventarioController extends Controller
             }
         }
 
+        // ── INCREMENTAR CONTADOR HISTÓRICO (solo plan gratis y producto nuevo) ──
+        if ($plan === 'gratis' && $esProductoNuevo) {
+            // Usamos la BD central para actualizar el contador
+            \DB::connection('mysql')->table('users')
+                ->where('id', $user->id)
+                ->increment('productos_creados_totales');
+        }
+
         return redirect()->route('inventario')->with('success', 'Producto guardado correctamente.');
     }
 
@@ -127,6 +149,14 @@ class InventarioController extends Controller
             'tallas'      => 'required|array',
         ]);
 
+        $plan       = Auth::user()->plan ?? 'gratis';
+        $esBusiness = $plan === 'business';
+
+        if ($esBusiness && $request->filled('costo')) {
+            product::where('id', $request->producto_id)
+                ->update(['costo' => $request->costo]);
+        }
+
         foreach ($request->tallas as $talla => $cantidad) {
             inventory::where('product_id', $request->producto_id)
                 ->where('talla', $talla)
@@ -134,5 +164,22 @@ class InventarioController extends Controller
         }
 
         return redirect()->route('inventario')->with('success', 'Stock actualizado correctamente.');
+    }
+
+    public function destroy($id)
+    {
+        $producto = product::findOrFail($id);
+
+        if ($producto->imagen) {
+            Storage::disk('public')->delete($producto->imagen);
+        }
+
+        inventory::where('product_id', $id)->delete();
+        $producto->update(['estado' => false]);
+
+        // NOTA: NO decrementamos productos_creados_totales
+        // El límite es histórico y permanente en plan gratis
+
+        return redirect()->route('inventario')->with('success', 'Producto eliminado correctamente.');
     }
 }

@@ -338,10 +338,14 @@ $lealtadActivo = $lealtadActivo ?? false;
             <div class="flex items-center gap-2">
                 @if($esPro)
                 <button type="button" id="btn-voz" onclick="toggleVoz()"
-                        class="p-2 bg-[#f3f3f4] border border-[#c4c5da]/40 hover:bg-[#1737c8] hover:text-white hover:border-[#1737c8] transition-all"
-                        title="Agregar producto por voz">
-                    <span class="material-symbols-outlined text-sm" id="icon-voz">mic</span>
-                </button>
+        class="relative p-2 bg-[#f3f3f4] border border-[#c4c5da]/40 hover:bg-[#1737c8] hover:text-white hover:border-[#1737c8] transition-all"
+        title="Agregar producto por voz ({{ $creditosVoz }} créditos restantes)">
+    <span class="material-symbols-outlined text-sm" id="icon-voz">mic</span>
+    <span id="badge-voz"
+          class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-[#1737c8] text-white text-[9px] font-black flex items-center justify-center rounded-full leading-none">
+        {{ $creditosVoz }}
+    </span>
+</button>
                 @endif
                 <button onclick="cerrarModalVenta()" class="p-2 hover:bg-[#f3f3f4] transition-colors">
                     <span class="material-symbols-outlined">close</span>
@@ -690,6 +694,8 @@ async function interpretarVoz(texto) {
         });
         const data = await resp.json();
         document.getElementById('voz-procesando').classList.add('hidden');
+        if (data.creditos_restantes !== undefined) actualizarBadgeVoz(data.creditos_restantes);
+        if (data.limite) { mostrarVozError(data.mensaje); return; }
         if (data.producto_id) {
             const span = document.querySelector(`#productos-data span[data-id="${data.producto_id}"]`);
             if (span) {
@@ -710,6 +716,21 @@ async function interpretarVoz(texto) {
     } catch (err) {
         document.getElementById('voz-procesando').classList.add('hidden');
         mostrarVozError('Error al procesar. Intenta de nuevo.');
+    }
+}
+
+
+function actualizarBadgeVoz(creditos) {
+    const badge = document.getElementById('badge-voz');
+    if (!badge) return;
+    badge.textContent = creditos;
+    if (creditos <= 10) {
+        badge.classList.remove('bg-\\[#1737c8\\]');
+        badge.style.backgroundColor = '#ef4444';
+    }
+    if (creditos <= 0) {
+        const btn = document.getElementById('btn-voz');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
     }
 }
 

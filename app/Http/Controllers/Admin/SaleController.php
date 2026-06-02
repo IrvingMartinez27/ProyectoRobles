@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 
 class SaleController extends Controller
 {
+    const LIMITE_VOZ_MENSUAL = 150;
+
     public function index()
     {
         $ventas = sale::with(['client', 'details.product', 'ticket'])
@@ -68,61 +70,89 @@ class SaleController extends Controller
         $tenant        = Tenant::find(Auth::user()->tenant_id);
         $lealtadActivo = in_array($plan, ['pro', 'business']) && ($tenant->lealtad_activo ?? false);
 
-        return view('sales', compact('ventas', 'clientes', 'productos', 'plan', 'lealtadActivo'));
+        // Créditos de voz restantes
+        $creditosVoz = $this->creditosVozRestantes(Auth::user());
+
+        return view('sales', compact('ventas', 'clientes', 'productos', 'plan', 'lealtadActivo', 'creditosVoz'));
+    }
+
+    // ── CRÉDITOS DE VOZ ───────────────────────────────────────
+    private function creditosVozRestantes($user): int
+    {
+        $primerDiaMes = now()->format('Y-m-01');
+        if ($user->voz_reset_fecha !== $primerDiaMes) {
+            return self::LIMITE_VOZ_MENSUAL;
+        }
+        return max(0, ($user->creditos_voz_mensuales ?? self::LIMITE_VOZ_MENSUAL));
+    }
+
+    private function resetearCreditosVozSiNecesario($user): void
+    {
+        $primerDiaMes = now()->format('Y-m-01');
+        if ($user->voz_reset_fecha !== $primerDiaMes) {
+            \DB::connection('mysql')->table('users')
+                ->where('id', $user->id)
+                ->update([
+                    'creditos_voz_mensuales' => self::LIMITE_VOZ_MENSUAL,
+                    'voz_reset_fecha'        => $primerDiaMes,
+                ]);
+        }
     }
 
     // ── VOZ ───────────────────────────────────────────────────
     public function voz(Request $request)
     {
+        $user  = Auth::user();
+        $plan  = $user->plan ?? 'gratis';
+        $esPro = in_array($plan, ['pro', 'business']);
+
+        if (!$esPro) {
+            return response()->json([
+                'producto_id' => null,
+                'mensaje'     => 'El registro por voz requiere Plan Pro.',
+            ]);
+        }
+
+        // Reset mensual si corresponde
+        $this->resetearCreditosVozSiNecesario($user);
+        $user->refresh();
+
+        // Verificar créditos
+        $creditos = $user->creditos_voz_mensuales ?? self::LIMITE_VOZ_MENSUAL;
+        if ($creditos <= 0) {
+            return response()->json([
+                'producto_id' => null,
+                'limite'      => true,
+                'mensaje'     => 'Agotaste tus 150 registros de voz este mes. Se renuevan el 1 de ' . now()->addMonth()->locale('es')->isoFormat('MMMM') . '.',
+            ]);
+        }
+
         $texto     = $request->input('texto', '');
         $productos = $request->input('productos', []);
 
         $lista = collect($productos)->map(function($p) {
             $tallas = $p['tallas'] ?? [];
             $partes = [];
-
             foreach ($tallas as $key => $value) {
                 if (is_array($value)) {
-                    // Formato [{talla: '27 MX', stock: 6}, ...]
                     $nombreTalla = $value['talla'] ?? $key;
                     $stock       = $value['stock'] ?? 0;
                 } else {
-                    // Formato {'27 MX': 6, ...}
                     $nombreTalla = $key;
                     $stock       = $value;
                 }
-
                 if (is_numeric($stock) && $stock > 0) {
                     $partes[] = "{$nombreTalla}(stock:{$stock})";
                 }
             }
-
             $tallasStr = implode(', ', $partes);
             $nombre    = is_string($p['nombre'] ?? '') ? $p['nombre'] : '';
             $precio    = is_numeric($p['precio'] ?? 0) ? $p['precio'] : 0;
-
-            return "ID:{$p['id']} | Nombre:{$nombre} | Precio:\${$precio} | TallasDisponibles:[{$tallasStr}]";
+            return "ID:{$p['id']}|{$nombre}|\${$precio}|[{$tallasStr}]";
         })->join("\n");
 
-        $prompt = "Eres un asistente de punto de venta de una tienda deportiva mexicana.
-
-El vendedor dijo: \"{$texto}\"
-
-Inventario disponible (SOLO estos productos y SOLO estas tallas existen):
-{$lista}
-
-INSTRUCCIONES:
-1. Identifica el producto más parecido al nombre mencionado (nombre parcial o aproximado cuenta)
-2. La talla DEBE estar EXACTAMENTE como aparece en TallasDisponibles (ej: '27 MX', no solo '27')
-3. Si no mencionan talla, elige la primera disponible de ese producto
-4. La cantidad por defecto es 1 si no se menciona
-5. El mensaje debe confirmar producto, talla y cantidad
-
-Responde SOLO con JSON válido sin backticks ni texto adicional:
-{\"producto_id\": \"123\", \"nombre\": \"nombre exacto\", \"talla\": \"27 MX\", \"cantidad\": 1, \"mensaje\": \"Jordan 1 talla 27 MX x1 agregado\"}
-
-Si no encuentras el producto:
-{\"producto_id\": null, \"mensaje\": \"No encontré ese producto en el inventario\"}";
+        // Prompt ultra optimizado para mínimo de tokens
+        $prompt = "Tienda deportiva. Vendedor dijo: \"{$texto}\"\nProductos:\n{$lista}\n\nResponde JSON sin backticks: {\"producto_id\":\"id\",\"talla\":\"talla exacta\",\"cantidad\":1,\"mensaje\":\"confirmación\"}\nSi no encuentras: {\"producto_id\":null,\"mensaje\":\"No encontrado\"}";
 
         try {
             $response = \Illuminate\Support\Facades\Http::withHeaders([
@@ -131,7 +161,7 @@ Si no encuentras el producto:
                 'content-type'      => 'application/json',
             ])->timeout(15)->post('https://api.anthropic.com/v1/messages', [
                 'model'      => 'claude-haiku-4-5-20251001',
-                'max_tokens' => 200,
+                'max_tokens' => 100,
                 'messages'   => [['role' => 'user', 'content' => $prompt]],
             ]);
 
@@ -143,6 +173,14 @@ Si no encuentras el producto:
             if (!$data || !isset($data['producto_id'])) {
                 throw new \Exception('Respuesta inválida');
             }
+
+            // Decrementar crédito
+            \DB::connection('mysql')->table('users')
+                ->where('id', $user->id)
+                ->decrement('creditos_voz_mensuales');
+
+            $creditosRestantes = max(0, $creditos - 1);
+            $data['creditos_restantes'] = $creditosRestantes;
 
             return response()->json($data);
 
@@ -166,7 +204,6 @@ Si no encuentras el producto:
             'productos.min'      => 'Agrega al menos un producto.',
         ]);
 
-        // ── VALIDAR STOCK ──────────────────────────────────────
         foreach ($request->productos as $i => $productoId) {
             $cantidad = $request->cantidades[$i] ?? 1;
             $talla    = $request->tallas[$i] ?? null;
@@ -189,7 +226,6 @@ Si no encuentras el producto:
         $lealtadActivo = $esPro && ($tenant->lealtad_activo ?? false);
         $puntosCanjear = $lealtadActivo ? (int) ($request->puntos_canjear ?? 0) : 0;
 
-        // ── VALIDAR PUNTOS ─────────────────────────────────────
         if ($puntosCanjear > 0) {
             $clienteCheck = client::find($request->cliente_id);
             if ($clienteCheck && $clienteCheck->puntos < $puntosCanjear) {

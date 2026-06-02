@@ -29,17 +29,17 @@
         <p class="text-[9px] font-black uppercase tracking-widest text-[#c4c5da] px-2 pt-2 pb-3">Navegación</p>
 
         <a href="{{ route('sales') }}" onclick="cerrarSidebar()"
-           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('sales') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
             <span class="material-symbols-outlined text-[16px]">add_circle</span>Nueva venta
         </a>
 
         <a href="{{ route('catalog') }}" onclick="cerrarSidebar()"
-           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('catalog') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
             <span class="material-symbols-outlined text-[16px]">storefront</span>Catálogo
         </a>
 
         <a href="{{ route('inventario') }}" onclick="cerrarSidebar()"
-           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('inventario') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
             <span class="material-symbols-outlined text-[16px]">inventory_2</span>Inventario
         </a>
 
@@ -48,24 +48,63 @@
         <p class="text-[9px] font-black uppercase tracking-widest text-[#1737c8] px-2 pt-2 pb-1">Administración</p>
 
         <a href="{{ route('dashboard') }}" onclick="cerrarSidebar()"
-           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('dashboard') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
             <span class="material-symbols-outlined text-[16px]">grid_view</span>Dashboard
         </a>
 
         <a href="{{ route('clientes') }}" onclick="cerrarSidebar()"
-           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('clientes') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
             <span class="material-symbols-outlined text-[16px]">group</span>Clientes
         </a>
 
         <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
-           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('reporte') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
             <span class="material-symbols-outlined text-[16px]">bar_chart</span>Reportes
         </a>
 
         <a href="{{ route('usuarios') }}" onclick="cerrarSidebar()"
-           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8] transition-all">
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('usuarios') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
             <span class="material-symbols-outlined text-[16px]">manage_accounts</span>Usuarios
         </a>
+
+        {{-- PRO --}}
+        @php $plan = Auth::user()->plan ?? 'gratis'; @endphp
+        @if(in_array($plan, ['pro', 'business']))
+        <div class="border-t border-[#c4c5da]/20 my-2"></div>
+        <p class="text-[9px] font-black uppercase tracking-widest text-amber-500 px-2 pt-2 pb-1">⭐ Pro</p>
+
+        <a href="{{ route('reporte') }}" onclick="cerrarSidebar()"
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('reporte') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
+            <span class="material-symbols-outlined text-[16px]">analytics</span>Reportes avanzados
+        </a>
+        @endif
+
+        {{-- BUSINESS --}}
+        @if($plan === 'business')
+        <div class="border-t border-[#c4c5da]/20 my-2"></div>
+        <p class="text-[9px] font-black uppercase tracking-widest px-2 pt-2 pb-1" style="color:#7c3aed;">⚡ Business</p>
+
+        <a href="{{ route('almacenes.index') }}" onclick="cerrarSidebar()"
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('almacenes.*') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
+            <span class="material-symbols-outlined text-[16px]">store</span>Almacenes
+        </a>
+
+        <a href="{{ route('gastos.index') }}" onclick="cerrarSidebar()"
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('gastos.*') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
+            <span class="material-symbols-outlined text-[16px]">payments</span>Gastos
+        </a>
+
+        <a href="{{ route('rentabilidad.index') }}" onclick="cerrarSidebar()"
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('rentabilidad.*') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
+            <span class="material-symbols-outlined text-[16px]">trending_up</span>Rentabilidad
+        </a>
+
+        <a href="{{ route('chat.ia.index') }}" onclick="cerrarSidebar()"
+           class="flex items-center gap-3 px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest {{ request()->routeIs('chat.ia.*') ? 'bg-[#f3f3f4] text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }} transition-all">
+            <span class="material-symbols-outlined text-[16px]">auto_awesome</span>Chat IA
+        </a>
+        @endif
+
         @endif
 
     </div>
@@ -84,7 +123,10 @@
                 <p class="text-[10px] text-[#747688] truncate">
                     {{ Auth::user()->role === 'admin' ? 'Administrador' : 'Vendedor' }}
                     @if(isset(Auth::user()->plan))
-                    · <span class="{{ Auth::user()->plan === 'gratis' ? 'text-[#747688]' : 'text-[#1737c8]' }} font-bold uppercase">{{ Auth::user()->plan }}</span>
+                    · <span class="{{ Auth::user()->plan === 'gratis' ? 'text-[#747688]' : (Auth::user()->plan === 'business' ? 'font-bold uppercase' : 'text-[#1737c8] font-bold uppercase') }}"
+                            @if(Auth::user()->plan === 'business') style="color:#7c3aed;" @endif>
+                        {{ Auth::user()->plan }}
+                      </span>
                     @endif
                 </p>
             </div>

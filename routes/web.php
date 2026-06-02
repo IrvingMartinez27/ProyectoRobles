@@ -206,7 +206,7 @@ Route::middleware(['auth', 'solo.admin'])->group(function () {
                             ->where('tenant_id', Auth::user()->tenant_id)
                             ->count();
 
-        if ($plan === 'gratis' && $totalUsuarios >= 1) {
+        if ($plan === 'gratis' && $totalUsuarios >= 0) {
             return back()
                 ->with('limite_usuarios', true)
                 ->with('error', 'El plan Gratis solo permite 1 usuario. Actualiza a Pro para agregar vendedores ilimitados.');
@@ -290,3 +290,20 @@ Route::post('/setup', function (Request $request) {
 
     return redirect('/dashboard');
 })->name('setup.post')->middleware('auth');
+
+// Business
+Route::middleware('role:owner,admin')->group(function () {
+    Route::get('/almacenes', [App\Http\Controllers\Admin\AlmacenController::class, 'index'])->name('almacenes.index');
+    Route::post('/almacenes', [App\Http\Controllers\Admin\AlmacenController::class, 'store'])->name('almacenes.store');
+    Route::put('/almacenes/{id}', [App\Http\Controllers\Admin\AlmacenController::class, 'update'])->name('almacenes.update');
+    Route::delete('/almacenes/{id}', [App\Http\Controllers\Admin\AlmacenController::class, 'destroy'])->name('almacenes.destroy');
+
+    Route::get('/gastos', [App\Http\Controllers\Admin\GastoOperativoController::class, 'index'])->name('gastos.index');
+    Route::post('/gastos', [App\Http\Controllers\Admin\GastoOperativoController::class, 'store'])->name('gastos.store');
+    Route::delete('/gastos/{id}', [App\Http\Controllers\Admin\GastoOperativoController::class, 'destroy'])->name('gastos.destroy');
+
+    Route::get('/rentabilidad', [App\Http\Controllers\Admin\RentabilidadController::class, 'index'])->name('rentabilidad.index');
+
+    Route::get('/chat-ia', [App\Http\Controllers\Admin\ChatIAController::class, 'index'])->name('chat.ia.index');
+    Route::post('/chat-ia/mensaje', [App\Http\Controllers\Admin\ChatIAController::class, 'mensaje'])->name('chat.ia.mensaje');
+});

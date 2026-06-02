@@ -44,7 +44,7 @@
             </div>
             <p class="text-sm text-[#5e5e5e] mb-6">Perfecto para tiendas que están arrancando.</p>
             <ul class="space-y-3 mb-8 flex-1">
-                @foreach(['Hasta 100 productos', '1 usuario', 'Inventario básico', 'Registro de ventas'] as $feat)
+                @foreach(['Hasta 20 productos', '1 usuario', 'Inventario básico', 'Registro de ventas'] as $feat)
                 <li class="flex items-center gap-2 text-sm text-[#1a1c1c]">
                     <span class="material-symbols-outlined text-[#1737c8] text-sm">check</span>{{ $feat }}
                 </li>
@@ -99,7 +99,7 @@
 
         {{-- PLAN BUSINESS --}}
         <div class="border border-[#c4c5da]/40 rounded-2xl p-8 flex flex-col">
-            <p class="text-[10px] font-black uppercase tracking-widest text-[#747688] mb-2">Para cadenas</p>
+            <p class="text-[10px] font-black uppercase tracking-widest text-[#747688] mb-2">Para almacenes</p>
             <h2 class="text-3xl font-black text-[#1a1c1c] mb-1">Business</h2>
             <div class="flex items-end gap-1 mb-4">
                 <span class="text-4xl font-black text-[#1a1c1c]">$999</span>

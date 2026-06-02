@@ -25,7 +25,10 @@
 
 @include('partials._nav')
 
-@php $plan = $plan ?? (Auth::user()->plan ?? 'gratis'); @endphp
+@php
+$plan       = $plan ?? (Auth::user()->plan ?? 'gratis');
+$esBusiness = $esBusiness ?? ($plan === 'business');
+@endphp
 
 <main class="pt-24 pb-20 md:pb-12 px-6 max-w-7xl mx-auto">
 
@@ -43,10 +46,30 @@
     </div>
     @endif
 
-    <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-            <span class="text-[0.75rem] uppercase tracking-[0.2em] font-semibold text-[#1737c8] mb-2 block">Descripción general</span>
-            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-[#1a1c1c]">Rendimiento diario</h1>
+    {{-- HEADER --}}
+    <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="flex items-center gap-4 flex-wrap">
+            <div>
+                <span class="text-[0.75rem] uppercase tracking-[0.2em] font-semibold text-[#1737c8] mb-2 block">Descripción general</span>
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-[#1a1c1c]">
+                    {{ $esBusiness ? 'Dashboard Business' : 'Rendimiento diario' }}
+                </h1>
+            </div>
+            {{-- SELECTOR ALMACÉN BUSINESS --}}
+            @if($esBusiness && count($almacenes) > 0)
+            <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 mt-2 md:mt-0" id="form-almacen">
+                <input type="hidden" name="periodo" value="{{ $periodo }}"/>
+                <select name="almacen_id" onchange="document.getElementById('form-almacen').submit()"
+                        class="border border-[#c4c5da]/40 px-3 py-2 text-sm font-bold focus:outline-none focus:border-[#1737c8] bg-white cursor-pointer">
+                    <option value="">🏪 Todos los almacenes</option>
+                    @foreach($almacenes as $a)
+                    <option value="{{ $a->id }}" {{ $almacenId == $a->id ? 'selected' : '' }}>
+                        {{ $a->tipo === 'fisico' ? '🏪' : '📦' }} {{ $a->nombre }}
+                    </option>
+                    @endforeach
+                </select>
+            </form>
+            @endif
         </div>
         <div class="flex gap-3">
             <a href="{{ route('sales') }}">
@@ -62,7 +85,37 @@
         </div>
     </header>
 
-    {{-- KPIs --}}
+    {{-- KPIs BUSINESS: ESTADO FINANCIERO DEL MES --}}
+    @if($esBusiness)
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="kpi-card bg-white border border-[#c4c5da]/20 p-6">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-lg">💰</span>
+                <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Ingreso bruto del mes</p>
+            </div>
+            <p class="text-3xl font-black text-[#1a1c1c]">${{ number_format($ingresoBruto, 2) }}</p>
+            <p class="text-[10px] text-[#747688] mt-1">Todo lo cobrado</p>
+        </div>
+        <div class="kpi-card bg-white border border-[#c4c5da]/20 p-6">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-lg">📉</span>
+                <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Costos y gastos del mes</p>
+            </div>
+            <p class="text-3xl font-black text-red-500">-${{ number_format($costosGastos, 2) }}</p>
+            <p class="text-[10px] text-[#747688] mt-1">Proveedor + operativos</p>
+        </div>
+        <div class="kpi-card p-6 {{ $utilidadReal >= 0 ? 'bg-green-500' : 'bg-red-500' }}">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-lg">{{ $utilidadReal >= 0 ? '🟢' : '🔴' }}</span>
+                <p class="text-[10px] font-black uppercase tracking-widest text-white/70">Utilidad real del mes</p>
+            </div>
+            <p class="text-3xl font-black text-white">${{ number_format($utilidadReal, 2) }}</p>
+            <p class="text-[10px] text-white/70 mt-1">Lana libre en tu bolsa</p>
+        </div>
+    </div>
+    @endif
+
+    {{-- KPIs ESTÁNDAR --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div class="kpi-card bg-[#1737c8] p-6 flex items-center justify-between">
             <div>
@@ -87,161 +140,87 @@
         </div>
     </div>
 
-    @if(in_array($plan ?? 'gratis', ['pro', 'business']))
-<section id="ia-section" class="mb-8">
-    <div class="bg-white border border-[#c4c5da]/20 overflow-hidden">
- 
-        {{-- Header --}}
-        <div class="flex items-center justify-between px-6 py-4 border-b border-[#c4c5da]/10 bg-[#f9f9f9]">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-[#1737c8] flex items-center justify-center">
-                    <span class="material-symbols-outlined text-white text-sm">auto_awesome</span>
+    {{-- IA SECTION --}}
+    @if(in_array($plan, ['pro', 'business']))
+    <section id="ia-section" class="mb-8">
+        <div class="bg-white border border-[#c4c5da]/20 overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#c4c5da]/10 bg-[#f9f9f9]">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-[#1737c8] flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">auto_awesome</span>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Asistente IA</p>
+                        <p class="text-sm font-bold text-[#1a1c1c]">Análisis inteligente de tu negocio</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Asistente IA</p>
-                    <p class="text-sm font-bold text-[#1a1c1c]">Análisis inteligente de tu negocio</p>
+                <div class="flex items-center gap-2">
+                    @if($esBusiness)
+                    <a href="{{ route('chat.ia.index') }}" class="flex items-center gap-1.5 px-3 py-2 bg-[#1737c8]/10 text-[#1737c8] text-[10px] font-black uppercase tracking-widest hover:bg-[#1737c8] hover:text-white transition-all">
+                        <span class="material-symbols-outlined text-sm">chat</span>Chat IA
+                    </a>
+                    @endif
+                    <button onclick="cargarIA()" id="btn-ia-refresh"
+                            class="flex items-center gap-2 px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
+                        <span class="material-symbols-outlined text-sm">refresh</span>Actualizar
+                    </button>
                 </div>
             </div>
-            <button onclick="cargarIA()" id="btn-ia-refresh"
-                    class="flex items-center gap-2 px-4 py-2 border border-[#c4c5da]/40 text-[10px] font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all">
-                <span class="material-symbols-outlined text-sm">refresh</span>Actualizar
-            </button>
+            <div id="ia-contenido" class="p-6">
+                <div id="ia-inicial" class="text-center py-8">
+                    <span class="material-symbols-outlined text-4xl text-[#c4c5da] block mb-3">auto_awesome</span>
+                    <p class="text-sm text-[#747688] mb-4">Obtén análisis inteligente de tus ventas e inventario</p>
+                    <button onclick="cargarIA()" class="bg-[#1737c8] text-white px-6 py-3 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 mx-auto">
+                        <span class="material-symbols-outlined text-sm">auto_awesome</span>Analizar ahora
+                    </button>
+                </div>
+                <div id="ia-loading" class="hidden text-center py-8">
+                    <div class="inline-flex items-center gap-3 text-[#747688]">
+                        <svg class="animate-spin w-5 h-5 text-[#1737c8]" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        <span class="text-sm font-bold">Analizando tu negocio...</span>
+                    </div>
+                </div>
+                <div id="ia-resultados" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-red-500 text-sm">warning</span>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Alertas</p>
+                        </div>
+                        <div id="ia-alertas" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="material-symbols-outlined text-green-500 text-sm">trending_up</span>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Tendencias</p>
+                        </div>
+                        <div id="ia-tendencias" class="space-y-2"></div>
+                    </div>
+                    <div class="md:col-span-2 bg-[#1737c8]/5 border border-[#1737c8]/20 px-5 py-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-[#1737c8] text-sm">insights</span>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-[#1737c8]">Predicción</p>
+                        </div>
+                        <p id="ia-prediccion" class="text-sm text-[#1a1c1c] font-medium"></p>
+                    </div>
+                    <div class="md:col-span-2 bg-green-50 border border-green-200 px-5 py-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-green-600 text-sm">lightbulb</span>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-green-700">Recomendación</p>
+                        </div>
+                        <p id="ia-recomendacion" class="text-sm text-green-800 font-medium"></p>
+                    </div>
+                </div>
+                <div id="ia-error" class="hidden text-center py-6">
+                    <span class="material-symbols-outlined text-amber-500 text-3xl block mb-2">error_outline</span>
+                    <p class="text-sm text-[#747688]" id="ia-error-msg">No se pudo cargar el análisis</p>
+                </div>
+            </div>
         </div>
- 
-        {{-- Contenido IA --}}
-        <div id="ia-contenido" class="p-6">
- 
-            {{-- Estado inicial --}}
-            <div id="ia-inicial" class="text-center py-8">
-                <span class="material-symbols-outlined text-4xl text-[#c4c5da] block mb-3">auto_awesome</span>
-                <p class="text-sm text-[#747688] mb-4">Obtén análisis inteligente de tus ventas e inventario</p>
-                <button onclick="cargarIA()"
-                        class="bg-[#1737c8] text-white px-6 py-3 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 mx-auto">
-                    <span class="material-symbols-outlined text-sm">auto_awesome</span>Analizar ahora
-                </button>
-            </div>
- 
-            {{-- Loading --}}
-            <div id="ia-loading" class="hidden text-center py-8">
-                <div class="inline-flex items-center gap-3 text-[#747688]">
-                    <svg class="animate-spin w-5 h-5 text-[#1737c8]" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    <span class="text-sm font-bold">Analizando tu negocio...</span>
-                </div>
-            </div>
- 
-            {{-- Resultados --}}
-            <div id="ia-resultados" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
- 
-                {{-- Alertas --}}
-                <div>
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="material-symbols-outlined text-red-500 text-sm">warning</span>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Alertas</p>
-                    </div>
-                    <div id="ia-alertas" class="space-y-2"></div>
-                </div>
- 
-                {{-- Tendencias --}}
-                <div>
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="material-symbols-outlined text-green-500 text-sm">trending_up</span>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Tendencias</p>
-                    </div>
-                    <div id="ia-tendencias" class="space-y-2"></div>
-                </div>
- 
-                {{-- Predicción --}}
-                <div class="md:col-span-2 bg-[#1737c8]/5 border border-[#1737c8]/20 px-5 py-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="material-symbols-outlined text-[#1737c8] text-sm">insights</span>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-[#1737c8]">Predicción</p>
-                    </div>
-                    <p id="ia-prediccion" class="text-sm text-[#1a1c1c] font-medium"></p>
-                </div>
- 
-                {{-- Recomendación --}}
-                <div class="md:col-span-2 bg-green-50 border border-green-200 px-5 py-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="material-symbols-outlined text-green-600 text-sm">lightbulb</span>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-green-700">Recomendación</p>
-                    </div>
-                    <p id="ia-recomendacion" class="text-sm text-green-800 font-medium"></p>
-                </div>
- 
-            </div>
- 
-            {{-- Error --}}
-            <div id="ia-error" class="hidden text-center py-6">
-                <span class="material-symbols-outlined text-amber-500 text-3xl block mb-2">error_outline</span>
-                <p class="text-sm text-[#747688]" id="ia-error-msg">No se pudo cargar el análisis</p>
-            </div>
- 
-        </div>
-    </div>
-</section>
- 
-<script>
-async function cargarIA() {
-    document.getElementById('ia-inicial').classList.add('hidden');
-    document.getElementById('ia-resultados').classList.add('hidden');
-    document.getElementById('ia-error').classList.add('hidden');
-    document.getElementById('ia-loading').classList.remove('hidden');
- 
-    const btn = document.getElementById('btn-ia-refresh');
-    btn.disabled = true;
- 
-    try {
-        const response = await fetch('{{ route("dashboard.ia") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            },
-        });
- 
-        const data = await response.json();
- 
-        if (data.error) throw new Error(data.error);
- 
-        // Alertas
-        const alertasEl = document.getElementById('ia-alertas');
-        alertasEl.innerHTML = (data.alertas ?? []).length > 0
-            ? data.alertas.map(a => `
-                <div class="flex items-start gap-2 bg-red-50 border border-red-100 px-3 py-2">
-                    <span class="material-symbols-outlined text-red-400 text-sm mt-0.5 shrink-0">circle</span>
-                    <p class="text-xs text-red-700 font-medium">${a}</p>
-                </div>`).join('')
-            : '<p class="text-xs text-[#747688]">Sin alertas por ahora ✓</p>';
- 
-        // Tendencias
-        const tendenciasEl = document.getElementById('ia-tendencias');
-        tendenciasEl.innerHTML = (data.tendencias ?? []).length > 0
-            ? data.tendencias.map(t => `
-                <div class="flex items-start gap-2 bg-green-50 border border-green-100 px-3 py-2">
-                    <span class="material-symbols-outlined text-green-500 text-sm mt-0.5 shrink-0">arrow_upward</span>
-                    <p class="text-xs text-green-700 font-medium">${t}</p>
-                </div>`).join('')
-            : '<p class="text-xs text-[#747688]">Sin tendencias detectadas</p>';
- 
-        document.getElementById('ia-prediccion').textContent    = data.prediccion ?? '—';
-        document.getElementById('ia-recomendacion').textContent = data.recomendacion ?? '—';
- 
-        document.getElementById('ia-loading').classList.add('hidden');
-        document.getElementById('ia-resultados').classList.remove('hidden');
- 
-    } catch (e) {
-        document.getElementById('ia-loading').classList.add('hidden');
-        document.getElementById('ia-error-msg').textContent = e.message || 'Error al cargar el análisis';
-        document.getElementById('ia-error').classList.remove('hidden');
-    }
- 
-    btn.disabled = false;
-}
-</script>
-@endif
+    </section>
+    @endif
 
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
 
@@ -250,26 +229,28 @@ async function cargarIA() {
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h2 class="text-xl font-bold tracking-tight">Analítica de ventas</h2>
-                    <p class="text-xs text-[#747688] font-semibold uppercase tracking-widest mt-1">Ventas netas en tiempo real</p>
+                    <p class="text-xs text-[#747688] font-semibold uppercase tracking-widest mt-1">
+                        {{ $esBusiness ? 'Utilidad neta en tiempo real' : 'Ventas netas en tiempo real' }}
+                    </p>
                 </div>
                 <div class="flex bg-[#f3f3f4] p-1 gap-1">
-                    <a href="{{ route('dashboard', ['periodo' => 'dia']) }}">
+                    <a href="{{ route('dashboard', array_filter(['periodo' => 'dia', 'almacen_id' => $almacenId])) }}">
                         <button class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all {{ $periodo === 'dia' ? 'bg-[#1a1c1c] text-white' : 'text-[#747688] hover:text-[#1a1c1c]' }}">Día</button>
                     </a>
                     @if($plan === 'gratis')
-                        <button onclick="abrirModalUpgrade('semana')" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#c4c5da] flex items-center gap-1 hover:text-[#1737c8] transition-all">
-                            <span class="material-symbols-outlined text-[11px]">lock</span>Sem
-                        </button>
-                        <button onclick="abrirModalUpgrade('mes')" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#c4c5da] flex items-center gap-1 hover:text-[#1737c8] transition-all">
-                            <span class="material-symbols-outlined text-[11px]">lock</span>Mes
-                        </button>
+                    <button onclick="abrirModalUpgrade('semana')" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#c4c5da] flex items-center gap-1 hover:text-[#1737c8] transition-all">
+                        <span class="material-symbols-outlined text-[11px]">lock</span>Sem
+                    </button>
+                    <button onclick="abrirModalUpgrade('mes')" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-[#c4c5da] flex items-center gap-1 hover:text-[#1737c8] transition-all">
+                        <span class="material-symbols-outlined text-[11px]">lock</span>Mes
+                    </button>
                     @else
-                        <a href="{{ route('dashboard', ['periodo' => 'semana']) }}">
-                            <button class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all {{ $periodo === 'semana' ? 'bg-[#1a1c1c] text-white' : 'text-[#747688] hover:text-[#1a1c1c]' }}">Semana</button>
-                        </a>
-                        <a href="{{ route('dashboard', ['periodo' => 'mes']) }}">
-                            <button class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all {{ $periodo === 'mes' ? 'bg-[#1a1c1c] text-white' : 'text-[#747688] hover:text-[#1a1c1c]' }}">Mes</button>
-                        </a>
+                    <a href="{{ route('dashboard', array_filter(['periodo' => 'semana', 'almacen_id' => $almacenId])) }}">
+                        <button class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all {{ $periodo === 'semana' ? 'bg-[#1a1c1c] text-white' : 'text-[#747688] hover:text-[#1a1c1c]' }}">Semana</button>
+                    </a>
+                    <a href="{{ route('dashboard', array_filter(['periodo' => 'mes', 'almacen_id' => $almacenId])) }}">
+                        <button class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all {{ $periodo === 'mes' ? 'bg-[#1a1c1c] text-white' : 'text-[#747688] hover:text-[#1a1c1c]' }}">Mes</button>
+                    </a>
                     @endif
                 </div>
             </div>
@@ -286,13 +267,13 @@ async function cargarIA() {
                 <div class="flex items-center gap-3">
                     <span class="text-2xl font-black text-[#c4c5da] w-6 shrink-0">{{ $i + 1 }}</span>
                     <div class="w-10 h-10 bg-[#f3f3f4] shrink-0 overflow-hidden">
-                    @if(!empty($producto['imagen']))
-                    <img src="{{ $producto['imagen'] }}" alt="{{ $producto['nombre'] }}" class="w-full h-full object-cover"/>
-                    @else
-                    <div class="w-full h-full flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[#c4c5da] text-lg">image</span>
-                    </div>
-                    @endif
+                        @if(!empty($producto['imagen']))
+                        <img src="{{ $producto['imagen'] }}" alt="{{ $producto['nombre'] }}" class="w-full h-full object-cover"/>
+                        @else
+                        <div class="w-full h-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[#c4c5da] text-lg">image</span>
+                        </div>
+                        @endif
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-xs font-bold uppercase truncate">{{ $producto['nombre'] }}</p>
@@ -316,13 +297,11 @@ async function cargarIA() {
                 @endfor
                 @endforelse
             </div>
-
             @if($plan === 'gratis')
             <button onclick="abrirModalUpgrade('ia')" class="w-full mt-6 py-3 border border-dashed border-[#1737c8]/30 text-[10px] font-black uppercase tracking-widest text-[#1737c8]/50 hover:border-[#1737c8] hover:text-[#1737c8] transition-all flex items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-sm">lock</span>Recomendaciones IA — Pro
             </button>
             @endif
-
             <a href="{{ route('reporte') }}">
                 <button class="w-full mt-4 py-3 border-b-2 border-[#1a1c1c] text-[10px] font-black tracking-widest uppercase hover:bg-[#1a1c1c] hover:text-white transition-all">
                     Ver reporte completo
@@ -330,7 +309,7 @@ async function cargarIA() {
             </a>
         </section>
 
-        {{-- RESTOCK POR TALLAS --}}
+        {{-- RESTOCK --}}
         <section class="md:col-span-12">
             <div class="flex items-center justify-between mb-6">
                 <div>
@@ -410,12 +389,8 @@ async function cargarIA() {
                     <h3 class="font-bold text-sm uppercase">{{ $item['nombre'] }}</h3>
                     <p class="text-[10px] text-[#747688]">#{{ $item['id'] }}</p>
                 </div>
-                <div class="col-span-2 text-center">
-                    <span class="text-[10px] font-black text-[#1737c8] uppercase">{{ $item['talla'] ?? '—' }}</span>
-                </div>
-                <div class="col-span-2 text-center">
-                    <span class="bg-red-100 text-red-700 px-2 py-1 text-[10px] font-black uppercase">{{ $item['stock'] }} pcs</span>
-                </div>
+                <div class="col-span-2 text-center"><span class="text-[10px] font-black text-[#1737c8] uppercase">{{ $item['talla'] ?? '—' }}</span></div>
+                <div class="col-span-2 text-center"><span class="bg-red-100 text-red-700 px-2 py-1 text-[10px] font-black uppercase">{{ $item['stock'] }} pcs</span></div>
                 <div class="col-span-3 flex justify-end">
                     <form method="POST" action="{{ route('reponer') }}">
                         @csrf
@@ -451,7 +426,7 @@ async function cargarIA() {
             <div class="space-y-3 mb-8">
                 <div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>Analítica semanal y mensual</div>
                 <div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>Asistente IA integrado</div>
-                <div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>Reportes avanzados con PDF</div>
+                <div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>Reportes avanzados</div>
                 <div class="flex items-center gap-2 text-sm"><span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>Usuarios y productos ilimitados</div>
             </div>
             <div class="flex gap-3">
@@ -466,33 +441,40 @@ async function cargarIA() {
 <nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center h-16 px-4 bg-white/80 backdrop-blur-xl border-t border-[#c4c5da]/20">
     <a href="/dashboard" class="flex flex-col items-center text-[#1737c8] border-t-2 border-[#1737c8] pt-2"><span class="material-symbols-outlined">dashboard</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Inicio</span></a>
     <a href="/sales" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">receipt_long</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Ventas</span></a>
-    <a href="/catalog" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">shopping_bag</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span></div></a>
+    <a href="/catalog" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">shopping_bag</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Catálogo</span></a>
     <a href="/inventario" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">inventory_2</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Stock</span></a>
     <a href="/clientes" class="flex flex-col items-center text-[#1a1c1c]/50 pt-2"><span class="material-symbols-outlined">group</span><span class="text-[10px] uppercase tracking-widest font-semibold mt-1">Clientes</span></a>
 </nav>
 
 <script>
-const labels  = @json($labels);
-const valores = @json($valores);
+const labels     = @json($labels);
+const valores    = @json($valores);
+const esBusiness = {{ $esBusiness ? 'true' : 'false' }};
 
-const ctx = document.getElementById('ventasChart').getContext('2d');
+const ctx      = document.getElementById('ventasChart').getContext('2d');
 const gradient = ctx.createLinearGradient(0, 0, 0, 280);
-gradient.addColorStop(0, 'rgba(23, 55, 200, 0.15)');
-gradient.addColorStop(1, 'rgba(23, 55, 200, 0)');
+
+if (esBusiness) {
+    gradient.addColorStop(0, 'rgba(34, 197, 94, 0.2)');
+    gradient.addColorStop(1, 'rgba(34, 197, 94, 0)');
+} else {
+    gradient.addColorStop(0, 'rgba(23, 55, 200, 0.15)');
+    gradient.addColorStop(1, 'rgba(23, 55, 200, 0)');
+}
 
 new Chart(ctx, {
     type: 'line',
     data: {
         labels,
         datasets: [{
-            label: 'Ventas ($)',
+            label: esBusiness ? 'Utilidad neta ($)' : 'Ventas ($)',
             data: valores,
-            borderColor: '#1737c8',
+            borderColor: esBusiness ? '#22c55e' : '#1737c8',
             borderWidth: 2.5,
             backgroundColor: gradient,
             fill: true,
             tension: 0.4,
-            pointBackgroundColor: '#1737c8',
+            pointBackgroundColor: esBusiness ? '#22c55e' : '#1737c8',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
             pointRadius: 4,
@@ -511,7 +493,7 @@ new Chart(ctx, {
                 bodyColor: 'rgba(255,255,255,0.7)',
                 padding: 12,
                 callbacks: {
-                    label: ctx => ' $' + parseFloat(ctx.raw).toLocaleString('es-MX', { minimumFractionDigits: 2 })
+                    label: ctx => (esBusiness ? ' Utilidad: $' : ' $') + parseFloat(ctx.raw).toLocaleString('es-MX', { minimumFractionDigits: 2 })
                 }
             }
         },
@@ -550,9 +532,40 @@ function abrirModalUpgrade(tipo) {
     document.body.style.overflow = 'hidden';
 }
 function cerrarModalUpgrade() { document.getElementById('modal-upgrade').classList.remove('activo'); document.body.style.overflow = ''; }
+
+async function cargarIA() {
+    document.getElementById('ia-inicial').classList.add('hidden');
+    document.getElementById('ia-resultados').classList.add('hidden');
+    document.getElementById('ia-error').classList.add('hidden');
+    document.getElementById('ia-loading').classList.remove('hidden');
+    const btn = document.getElementById('btn-ia-refresh');
+    btn.disabled = true;
+    try {
+        const response = await fetch('{{ route("dashboard.ia") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        document.getElementById('ia-alertas').innerHTML = (data.alertas ?? []).length > 0
+            ? data.alertas.map(a => `<div class="flex items-start gap-2 bg-red-50 border border-red-100 px-3 py-2"><span class="material-symbols-outlined text-red-400 text-sm mt-0.5 shrink-0">circle</span><p class="text-xs text-red-700 font-medium">${a}</p></div>`).join('')
+            : '<p class="text-xs text-[#747688]">Sin alertas por ahora ✓</p>';
+        document.getElementById('ia-tendencias').innerHTML = (data.tendencias ?? []).length > 0
+            ? data.tendencias.map(t => `<div class="flex items-start gap-2 bg-green-50 border border-green-100 px-3 py-2"><span class="material-symbols-outlined text-green-500 text-sm mt-0.5 shrink-0">arrow_upward</span><p class="text-xs text-green-700 font-medium">${t}</p></div>`).join('')
+            : '<p class="text-xs text-[#747688]">Sin tendencias detectadas</p>';
+        document.getElementById('ia-prediccion').textContent    = data.prediccion ?? '—';
+        document.getElementById('ia-recomendacion').textContent = data.recomendacion ?? '—';
+        document.getElementById('ia-loading').classList.add('hidden');
+        document.getElementById('ia-resultados').classList.remove('hidden');
+    } catch (e) {
+        document.getElementById('ia-loading').classList.add('hidden');
+        document.getElementById('ia-error-msg').textContent = e.message || 'Error al cargar el análisis';
+        document.getElementById('ia-error').classList.remove('hidden');
+    }
+    btn.disabled = false;
+}
 </script>
 
 @include('partials._sidebar')
-
 </body>
 </html>
