@@ -9,6 +9,7 @@ use App\Models\GastoOperativo;
 use App\Models\sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ChatIAController extends Controller
 {
@@ -21,16 +22,20 @@ class ChatIAController extends Controller
         $consultas_restantes = $this->consultasRestantes($user);
         $plan     = $user->plan ?? 'gratis';
 
-            return view('chat_ia', compact('mensajes', 'consultas_restantes', 'plan'));
-        }
+        return view('chat_ia', compact('mensajes', 'consultas_restantes', 'plan'));
+    }
 
     public function mensaje(Request $request)
     {
         $user = Auth::user();
 
-        // Reset contador mensual
+        // ── RESET CONTADOR MENSUAL ────────────────────────────
         $primerDiaMes = now()->format('Y-m-01');
-        if ($user->chat_reset_fecha !== $primerDiaMes) {
+        $resetFecha   = $user->chat_reset_fecha
+            ? Carbon::parse($user->chat_reset_fecha)->format('Y-m-01')
+            : null;
+
+        if ($resetFecha !== $primerDiaMes) {
             $user->update([
                 'chat_consultas_mes' => 0,
                 'chat_reset_fecha'   => $primerDiaMes,
@@ -38,7 +43,7 @@ class ChatIAController extends Controller
             $user->refresh();
         }
 
-        // Verificar límite
+        // ── VERIFICAR LÍMITE ──────────────────────────────────
         if ($user->chat_consultas_mes >= self::LIMITE_MENSUAL) {
             return response()->json([
                 'error'   => true,
@@ -48,7 +53,7 @@ class ChatIAController extends Controller
 
         $request->validate(['mensaje' => 'required|string|max:500']);
 
-        // Empaquetar contexto financiero
+        // ── CONTEXTO FINANCIERO ───────────────────────────────
         $mes    = now()->format('Y-m');
         $anio   = substr($mes, 0, 4);
         $mesNum = substr($mes, 5, 2);
@@ -58,11 +63,11 @@ class ChatIAController extends Controller
             ->whereMonth('created_at', $mesNum)
             ->get();
 
-        $ingresosBrutos  = $ventas->sum('total');
-        $costoProveedor  = $ventas->flatMap->details->sum(fn($d) => ($d->product->costo ?? 0) * $d->cantidad);
-        $gastos          = GastoOperativo::whereYear('fecha', $anio)->whereMonth('fecha', $mesNum)->get();
-        $totalGastos     = $gastos->sum('monto');
-        $utilidadNeta    = $ingresosBrutos - $costoProveedor - $totalGastos;
+        $ingresosBrutos = $ventas->sum('total');
+        $costoProveedor = $ventas->flatMap->details->sum(fn($d) => ($d->product->costo ?? 0) * $d->cantidad);
+        $gastos         = GastoOperativo::whereYear('fecha', $anio)->whereMonth('fecha', $mesNum)->get();
+        $totalGastos    = $gastos->sum('monto');
+        $utilidadNeta   = $ingresosBrutos - $costoProveedor - $totalGastos;
 
         $topProductos = $ventas->flatMap->details
             ->groupBy('product_id')
@@ -97,7 +102,7 @@ Nunca inventes datos — solo analiza lo que está en el contexto financiero.
 Si el usuario pregunta algo que no puedes responder con los datos disponibles, dilo claramente.
 Contexto financiero: " . json_encode($contexto, JSON_UNESCAPED_UNICODE);
 
-        // Últimos 3 mensajes del historial
+        // ── HISTORIAL ─────────────────────────────────────────
         $historial = ChatIaMensaje::where('user_id', $user->id)
             ->latest()
             ->take(3)
@@ -107,7 +112,6 @@ Contexto financiero: " . json_encode($contexto, JSON_UNESCAPED_UNICODE);
             ->values()
             ->toArray();
 
-        // Agregar mensaje actual
         $historial[] = ['role' => 'user', 'content' => $request->mensaje];
 
         // Guardar mensaje del usuario
@@ -159,9 +163,14 @@ Contexto financiero: " . json_encode($contexto, JSON_UNESCAPED_UNICODE);
     private function consultasRestantes($user): int
     {
         $primerDiaMes = now()->format('Y-m-01');
-        if ($user->chat_reset_fecha !== $primerDiaMes) {
+        $resetFecha   = $user->chat_reset_fecha
+            ? Carbon::parse($user->chat_reset_fecha)->format('Y-m-01')
+            : null;
+
+        if ($resetFecha !== $primerDiaMes) {
             return self::LIMITE_MENSUAL;
         }
+
         return max(0, self::LIMITE_MENSUAL - $user->chat_consultas_mes);
     }
 }

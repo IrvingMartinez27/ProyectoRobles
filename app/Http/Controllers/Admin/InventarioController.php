@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\product;
 use App\Models\inventory;
 use App\Models\category;
+use App\Models\Almacen;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,6 @@ class InventarioController extends Controller
         $esBusiness      = $plan === 'business';
         $totalProductos  = $productos->count();
 
-        // Para gratis usamos el contador histórico acumulado
         $productosCreados = Auth::user()->productos_creados_totales ?? 0;
         $limiteAlcanzado  = $plan === 'gratis' && $productosCreados >= self::LIMITE_PLAN_GRATIS;
 
@@ -57,12 +57,12 @@ class InventarioController extends Controller
         $esBusiness = $plan === 'business';
         $user       = Auth::user();
 
-        // ── LÍMITE PLAN GRATIS (histórico acumulado) ──────────
+        // ── LÍMITE PLAN GRATIS ────────────────────────────────
         if ($plan === 'gratis') {
             $productosCreados = $user->productos_creados_totales ?? 0;
             if ($productosCreados >= self::LIMITE_PLAN_GRATIS) {
                 return redirect()->route('inventario')
-                    ->with('error', 'Alcanzaste el límite de ' . self::LIMITE_PLAN_GRATIS . ' productos del Plan Gratis. Este límite es permanente — actualiza a Pro para productos ilimitados.');
+                    ->with('error', 'Alcanzaste el límite de ' . self::LIMITE_PLAN_GRATIS . ' productos del Plan Gratis. Actualiza a Pro para productos ilimitados.');
             }
         }
 
@@ -79,6 +79,13 @@ class InventarioController extends Controller
             'imagen.mimes' => 'Solo se permiten imágenes JPG, PNG o WEBP.',
             'imagen.max'   => 'La imagen no puede pesar más de 2MB.',
         ]);
+
+        // ── ALMACÉN LOCAL POR DEFECTO ─────────────────────────
+        $almacenId = null;
+        if ($esBusiness) {
+            $local = Almacen::where('tipo', 'fisico')->where('activo', true)->first();
+            $almacenId = $local?->id;
+        }
 
         $categoria = category::firstOrCreate(
             ['name' => ucfirst($request->categoria)]
@@ -121,19 +128,24 @@ class InventarioController extends Controller
 
             if ($inventario) {
                 $inventario->increment('stock', (int) $cantidad);
+                // Si no tiene almacén asignado, asignarlo al local
+                if (!$inventario->almacen_id && $almacenId) {
+                    $inventario->update(['almacen_id' => $almacenId]);
+                }
             } else {
                 inventory::create([
                     'product_id'     => $producto->id,
                     'talla'          => $talla,
                     'stock'          => (int) $cantidad,
                     'precio_decimal' => $request->precio,
+                    'almacen_id'     => $almacenId,
+                    'en_transito'    => 0,
                 ]);
             }
         }
 
-        // ── INCREMENTAR CONTADOR HISTÓRICO (solo plan gratis y producto nuevo) ──
+        // ── CONTADOR HISTÓRICO ────────────────────────────────
         if ($plan === 'gratis' && $esProductoNuevo) {
-            // Usamos la BD central para actualizar el contador
             \DB::connection('mysql')->table('users')
                 ->where('id', $user->id)
                 ->increment('productos_creados_totales');
@@ -176,9 +188,6 @@ class InventarioController extends Controller
 
         inventory::where('product_id', $id)->delete();
         $producto->update(['estado' => false]);
-
-        // NOTA: NO decrementamos productos_creados_totales
-        // El límite es histórico y permanente en plan gratis
 
         return redirect()->route('inventario')->with('success', 'Producto eliminado correctamente.');
     }

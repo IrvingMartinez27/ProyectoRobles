@@ -13,6 +13,18 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     public static function getCustomColumns(): array
     {
-        return ['id', 'store_name', 'plan', 'timezone','lealtad_activo'];
+        return [
+            'id',
+            'store_name',
+            'plan',
+            'timezone',
+            'lealtad_activo',
+            'ticket_color',
+            'ticket_logo',
+            'ticket_mensaje',
+            'ticket_template',
+            'ticket_whatsapp',
+            'ticket_font',
+        ];
     }
 }

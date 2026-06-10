@@ -12,10 +12,12 @@ class inventory extends Model
     protected $connection = 'tenant';
 
     protected $fillable = [
-        'product_id',
-        'talla',
-        'stock',
-        'precio_decimal',
+    'product_id',
+    'talla',
+    'stock',
+    'precio_decimal',
+    'almacen_id',
+    'en_transito',
     ];
 
     public function product()

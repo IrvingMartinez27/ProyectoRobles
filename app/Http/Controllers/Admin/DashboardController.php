@@ -9,6 +9,7 @@ use App\Models\sale;
 use App\Models\detail_sale;
 use App\Models\inventory;
 use App\Models\GastoOperativo;
+use App\Models\RestockDescarte;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
@@ -38,13 +39,13 @@ class DashboardController extends Controller
                 if ($esBusiness && $almacenId) $query->where('almacen_id', $almacenId);
 
                 if ($esBusiness) {
-                    $ventas         = $query->with('details.product')->get();
-                    $ingresos       = $ventas->sum('total');
-                    $costos         = $ventas->flatMap->details->sum(fn($d) => ($d->product->costo ?? 0) * $d->cantidad);
-                    $gastos         = GastoOperativo::whereDate('fecha', $fecha->toDateString())
+                    $ventas    = $query->with('details.product')->get();
+                    $ingresos  = $ventas->sum('total');
+                    $costos    = $ventas->flatMap->details->sum(fn($d) => ($d->product->costo ?? 0) * $d->cantidad);
+                    $gastos    = GastoOperativo::whereDate('fecha', $fecha->toDateString())
                         ->when($almacenId, fn($q) => $q->where('almacen_id', $almacenId))
                         ->sum('monto');
-                    $valores[]      = max(0, $ingresos - $costos - $gastos);
+                    $valores[] = max(0, $ingresos - $costos - $gastos);
                 } else {
                     $valores[] = (float) $query->sum('total');
                 }
@@ -94,13 +95,13 @@ class DashboardController extends Controller
                         ->with('details.product')
                         ->orderBy('created_at')
                         ->get();
-                    $gastosDia = GastoOperativo::whereDate('fecha', today())
+                    $gastosDia     = GastoOperativo::whereDate('fecha', today())
                         ->when($almacenId, fn($q) => $q->where('almacen_id', $almacenId))
                         ->sum('monto');
                     $gastoPorVenta = $ventasConDetalles->count() > 0 ? $gastosDia / $ventasConDetalles->count() : 0;
 
                     $labels  = $ventasConDetalles->map(fn($v) => Carbon::parse($v->created_at)->format('H:i'))->toArray();
-                    $valores = $ventasConDetalles->map(function($v) use ($gastoPorVenta) {
+                    $valores = $ventasConDetalles->map(function ($v) use ($gastoPorVenta) {
                         $costo = $v->details->sum(fn($d) => ($d->product->costo ?? 0) * $d->cantidad);
                         return max(0, $v->total - $costo - $gastoPorVenta);
                     })->toArray();
@@ -120,28 +121,28 @@ class DashboardController extends Controller
         $ticketPromedio = $numVentasHoy > 0 ? round($ventasHoy / $numVentasHoy, 2) : 0;
 
         // ── KPIs BUSINESS ─────────────────────────────────────
-        $ingresoBruto   = 0;
-        $costosGastos   = 0;
-        $utilidadReal   = 0;
+        $ingresoBruto = 0;
+        $costosGastos = 0;
+        $utilidadReal = 0;
 
         if ($esBusiness) {
             $mes    = now()->format('Y-m');
             $anio   = substr($mes, 0, 4);
             $mesNum = substr($mes, 5, 2);
 
-            $ventasMes = sale::with('details.product')
+            $ventasMes    = sale::with('details.product')
                 ->when($almacenId, fn($q) => $q->where('almacen_id', $almacenId))
                 ->whereYear('created_at', $anio)
                 ->whereMonth('created_at', $mesNum)
                 ->get();
 
-            $ingresoBruto  = $ventasMes->sum('total');
-            $costosMes     = $ventasMes->flatMap->details->sum(fn($d) => ($d->product->costo ?? 0) * $d->cantidad);
-            $gastosMes     = GastoOperativo::whereYear('fecha', $anio)->whereMonth('fecha', $mesNum)
+            $ingresoBruto = $ventasMes->sum('total');
+            $costosMes    = $ventasMes->flatMap->details->sum(fn($d) => ($d->product->costo ?? 0) * $d->cantidad);
+            $gastosMes    = GastoOperativo::whereYear('fecha', $anio)->whereMonth('fecha', $mesNum)
                 ->when($almacenId, fn($q) => $q->where('almacen_id', $almacenId))
                 ->sum('monto');
-            $costosGastos  = $costosMes + $gastosMes;
-            $utilidadReal  = $ingresoBruto - $costosGastos;
+            $costosGastos = $costosMes + $gastosMes;
+            $utilidadReal = $ingresoBruto - $costosGastos;
         }
 
         // ── TOP PRODUCTOS ─────────────────────────────────────
@@ -160,42 +161,203 @@ class DashboardController extends Controller
                 'imagen'     => $d->product->imagen ? asset('storage/' . $d->product->imagen) : null,
             ]);
 
+        // ── RESTOCK SEMÁFORO ──────────────────────────────────
+        $userId = Auth::id();
+
+        $descartados = RestockDescarte::where('user_id', $userId)
+            ->where('descartado_hasta', '>', now())
+            ->get()
+            ->map(fn($d) => $d->product_id . '_' . $d->talla)
+            ->toArray();
+
         $lowStock = inventory::with('product')
-            ->where('stock', '<', 5)
             ->where('stock', '>=', 0)
+            ->where('stock', '<=', 8)
             ->whereHas('product', fn($q) => $q->where('estado', true))
             ->orderBy('stock')
             ->get()
-            ->map(fn($inv) => [
-                'id'     => $inv->product->id ?? null,
-                'nombre' => $inv->product->name ?? '—',
-                'talla'  => $inv->talla,
-                'stock'  => $inv->stock,
-                'imagen' => null,
-            ])
-            ->filter(fn($p) => $p['id'] !== null)
+            ->map(function ($inv) use ($descartados) {
+                $key = $inv->product_id . '_' . $inv->talla;
+                if (in_array($key, $descartados)) return null;
+
+                if ($inv->stock === 0) {
+                    $mensaje  = '¡Sin stock!';
+                    $urgencia = 'critico';
+                } elseif ($inv->stock <= 3) {
+                    $mensaje  = "Solo {$inv->stock} pieza(s) — se está agotando";
+                    $urgencia = 'critico';
+                } elseif ($inv->stock <= 6) {
+                    $mensaje  = "Pocas piezas — {$inv->stock} restantes";
+                    $urgencia = 'advertencia';
+                } else {
+                    $mensaje  = "Stock bajo — {$inv->stock} piezas";
+                    $urgencia = 'bajo';
+                }
+
+                return [
+                    'id'       => $inv->product->id ?? null,
+                    'nombre'   => $inv->product->name ?? '—',
+                    'talla'    => $inv->talla,
+                    'stock'    => $inv->stock,
+                    'mensaje'  => $mensaje,
+                    'urgencia' => $urgencia,
+                    'imagen'   => $inv->product->imagen ? asset('storage/' . $inv->product->imagen) : null,
+                ];
+            })
+            ->filter(fn($p) => $p !== null && $p['id'] !== null)
+            ->sortBy('stock')
             ->values();
+
+        // ── DATOS PRO/BUSINESS EXCLUSIVOS ────────────────────
+        $ventasSemana       = 0;
+        $ventasSemanaPasada = 0;
+        $mejorDiaSemana     = ['dia' => '—', 'total' => 0];
+        $clientesSemana     = 0;
+        $clientesHoy        = 0;
+        $clientesNuevosHoy  = 0;
+        $productoEstrella   = null;
+        $ventasRecientes    = collect();
+        $actividadReciente  = [];
+
+        if ($plan === 'pro' || $plan === 'business') {
+            $inicioSemana    = Carbon::now()->startOfWeek();
+            $finSemana       = Carbon::now()->endOfWeek();
+            $inicioSemPasada = Carbon::now()->subWeek()->startOfWeek();
+            $finSemPasada    = Carbon::now()->subWeek()->endOfWeek();
+
+            $ventasSemana       = (float) sale::whereBetween('created_at', [$inicioSemana, $finSemana])->sum('total');
+            $ventasSemanaPasada = (float) sale::whereBetween('created_at', [$inicioSemPasada, $finSemPasada])->sum('total');
+
+            $mejorVenta = sale::whereBetween('created_at', [$inicioSemana, $finSemana])
+                ->selectRaw('DATE(created_at) as fecha, SUM(total) as total_dia')
+                ->groupBy('fecha')
+                ->orderByDesc('total_dia')
+                ->first();
+            if ($mejorVenta) {
+                $mejorDiaSemana = [
+                    'dia'   => Carbon::parse($mejorVenta->fecha)->locale('es')->isoFormat('dddd D/MM'),
+                    'total' => (float) $mejorVenta->total_dia,
+                ];
+            }
+
+            $clientesSemana = sale::whereBetween('created_at', [$inicioSemana, now()])
+                ->whereNotNull('client_id')
+                ->distinct('client_id')
+                ->count('client_id');
+
+            $clientesHoy = sale::whereDate('created_at', today())
+                ->whereNotNull('client_id')
+                ->distinct('client_id')
+                ->count('client_id');
+
+            $clientesNuevosHoy = \App\Models\Client::whereDate('created_at', today())->count();
+
+            $mesIni = Carbon::now()->startOfMonth();
+            $mesFin = Carbon::now()->endOfMonth();
+
+            $estrella = detail_sale::selectRaw('product_id, SUM(cantidad) as total_vendido, SUM(subtotal) as total_monto')
+                ->whereHas('sale', fn($q) => $q->whereBetween('created_at', [$mesIni, $mesFin]))
+                ->groupBy('product_id')
+                ->orderByDesc('total_vendido')
+                ->with('product')
+                ->first();
+
+            $totalMes = detail_sale::whereHas('sale', fn($q) => $q->whereBetween('created_at', [$mesIni, $mesFin]))->sum('cantidad') ?: 1;
+
+            if ($estrella && $estrella->product) {
+                $productoEstrella = [
+                    'nombre'     => $estrella->product->name,
+                    'ventas'     => (int) $estrella->total_vendido,
+                    'porcentaje' => round(($estrella->total_vendido / $totalMes) * 100),
+                    'imagen'     => $estrella->product->imagen ? asset('storage/' . $estrella->product->imagen) : null,
+                    'monto'      => (float) $estrella->total_monto,
+                ];
+            }
+
+            $ventasRecientes = sale::whereDate('created_at', today())
+                ->with('client')
+                ->orderByDesc('created_at')
+                ->take(5)
+                ->get()
+                ->map(fn($v) => [
+                    'id'            => $v->id,
+                    'cliente'       => $v->client->name ?? 'Cliente general',
+                    'total'         => (float) $v->total,
+                    'metodo'        => $v->metodo_pago ?? 'efectivo',
+                    'hora'          => Carbon::parse($v->created_at)->format('H:i'),
+                    'num_productos' => $v->details()->count(),
+                ]);
+
+            $actividadReciente = sale::whereDate('created_at', today())
+                ->with('client')
+                ->orderByDesc('created_at')
+                ->take(5)
+                ->get()
+                ->map(fn($v) => [
+                    'cliente'       => $v->client->name ?? 'Cliente general',
+                    'total'         => (float) $v->total,
+                    'metodo_pago'   => $v->metodo_pago ?? 'efectivo',
+                    'tipo'          => $v->tipo_venta ?? 'menudeo',
+                    'num_productos' => $v->details()->count(),
+                    'hora'          => Carbon::parse($v->created_at)->format('H:i'),
+                ])
+                ->toArray();
+        }
 
         // ── ALMACENES PARA FILTRO ─────────────────────────────
         $almacenes = $esBusiness ? \App\Models\Almacen::where('activo', true)->get() : collect();
 
         return view('dashboard', [
-            'labels'         => $labels,
-            'valores'        => $valores,
-            'periodo'        => $periodo,
-            'ventasHoy'      => $ventasHoy,
-            'numVentasHoy'   => $numVentasHoy,
-            'ticketPromedio' => $ticketPromedio,
-            'topProductos'   => $topProductos,
-            'lowStock'       => $lowStock,
-            'plan'           => $plan,
-            'esBusiness'     => $esBusiness,
-            'almacenes'      => $almacenes,
-            'almacenId'      => $almacenId,
-            'ingresoBruto'   => $ingresoBruto,
-            'costosGastos'   => $costosGastos,
-            'utilidadReal'   => $utilidadReal,
+            'labels'             => $labels,
+            'valores'            => $valores,
+            'periodo'            => $periodo,
+            'ventasHoy'          => $ventasHoy,
+            'numVentasHoy'       => $numVentasHoy,
+            'ticketPromedio'     => $ticketPromedio,
+            'topProductos'       => $topProductos,
+            'lowStock'           => $lowStock,
+            'plan'               => $plan,
+            'esBusiness'         => $esBusiness,
+            'almacenes'          => $almacenes,
+            'almacenId'          => $almacenId,
+            'ingresoBruto'       => $ingresoBruto,
+            'costosGastos'       => $costosGastos,
+            'utilidadReal'       => $utilidadReal,
+            'ventasSemana'       => $ventasSemana,
+            'ventasSemanaPasada' => $ventasSemanaPasada,
+            'mejorDiaSemana'     => $mejorDiaSemana,
+            'clientesHoy'        => $clientesHoy,
+            'clientesNuevosHoy'  => $clientesNuevosHoy,
+            'clientesSemana'     => $clientesSemana,
+            'productoEstrella'   => $productoEstrella,
+            'ventasRecientes'    => $ventasRecientes,
+            'actividadReciente'  => $actividadReciente,
         ]);
+    }
+
+    // ── DESCARTAR ALERTA DE RESTOCK ───────────────────────────
+    public function descartarRestock(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|integer',
+            'talla'      => 'required|string',
+            'dias'       => 'sometimes|integer|min:1|max:30',
+        ]);
+
+        $dias = $request->input('dias', 7);
+
+        RestockDescarte::updateOrCreate(
+            [
+                'user_id'    => Auth::id(),
+                'product_id' => $request->product_id,
+                'talla'      => $request->talla,
+            ],
+            [
+                'descartado_hasta' => now()->addDays($dias),
+            ]
+        );
+
+        return response()->json(['ok' => true]);
     }
 
     public function ia(Request $request)
@@ -209,7 +371,7 @@ class DashboardController extends Controller
 
         $ventasUltimos7 = [];
         for ($i = 6; $i >= 0; $i--) {
-            $fecha = Carbon::now()->subDays($i);
+            $fecha            = Carbon::now()->subDays($i);
             $ventasUltimos7[] = [
                 'fecha' => $fecha->format('d/m'),
                 'total' => (float) sale::whereDate('created_at', $fecha->toDateString())->sum('total'),
@@ -225,14 +387,15 @@ class DashboardController extends Controller
             ->get()
             ->map(fn($d) => [
                 'nombre'   => $d->product->name ?? '—',
-                'cantidad' => $d->total_vendido,
-                'monto'    => $d->total_monto,
+                'cantidad' => (int) $d->total_vendido,
+                'monto'    => (float) $d->total_monto,
             ]);
 
         $stockBajo = inventory::with('product')
-            ->where('stock', '<', 5)
+            ->where('stock', '<=', 8)
             ->where('stock', '>=', 0)
             ->whereHas('product', fn($q) => $q->where('estado', true))
+            ->orderBy('stock')
             ->get()
             ->map(fn($inv) => [
                 'producto' => $inv->product->name ?? '—',
@@ -240,26 +403,46 @@ class DashboardController extends Controller
                 'stock'    => $inv->stock,
             ]);
 
+        $totalVentas7dias = collect($ventasUltimos7)->sum('total');
+        $promedioVentas7  = $totalVentas7dias > 0 ? round($totalVentas7dias / 7, 0) : 0;
+        $diasSinVentas    = collect($ventasUltimos7)->where('total', 0)->count();
+        $mejorDia         = collect($ventasUltimos7)->sortByDesc('total')->first();
+
         $mesActual = Carbon::now()->locale('es')->isoFormat('MMMM');
         $storeName = Auth::user()->store_name ?? 'la tienda';
 
-        $prompt = "Eres un asistente de negocios para una tienda deportiva mexicana llamada '{$storeName}'. 
-Analiza los siguientes datos y responde en JSON con exactamente esta estructura:
+        $prompt = "Eres el asistente IA de Quivex, un sistema POS para tiendas de moda y streetwear mexicanas.
 
+CONTEXTO: Estás analizando los datos reales de '{$storeName}' para dar recomendaciones útiles y accionables DENTRO del sistema Quivex.
+
+LO QUE EL DUEÑO PUEDE HACER EN QUIVEX (recomienda solo esto):
+- Reponer stock de productos específicos desde el módulo Inventario
+- Registrar ventas por voz o manualmente
+- Activar o usar el programa de lealtad para retener clientes frecuentes
+- Revisar el reporte semanal o mensual para detectar patrones
+- Hacer ventas de mayoreo con precios especiales para mover stock parado
+- Consultar el historial de sus clientes más frecuentes
+
+NUNCA menciones: pre-pedidos, email marketing, redes sociales, publicidad, apps externas, sistemas ajenos a Quivex.
+
+MÉTRICAS RESUMIDAS:
+- Promedio diario últimos 7 días: $" . number_format($promedioVentas7, 0) . "
+- Días sin ventas en los últimos 7: {$diasSinVentas}
+- Mejor día: " . ($mejorDia ? $mejorDia['fecha'] . " con $" . number_format($mejorDia['total'], 0) : 'N/A') . "
+
+DATOS COMPLETOS:
+- Mes: {$mesActual}
+- Ventas día a día (últimos 7): " . json_encode($ventasUltimos7) . "
+- Top 5 productos más vendidos: " . json_encode($topProductos) . "
+- Productos con stock bajo (8 o menos piezas): " . json_encode($stockBajo) . "
+
+FORMATO DE RESPUESTA — responde ÚNICAMENTE con este JSON, sin texto extra ni backticks:
 {
-  \"alertas\": [\"alerta 1\", \"alerta 2\"],
-  \"tendencias\": [\"tendencia 1\", \"tendencia 2\"],
-  \"prediccion\": \"texto corto sobre predicción para los próximos días\",
-  \"recomendacion\": \"una recomendación concreta de acción\"
-}
-
-DATOS:
-- Mes actual: {$mesActual}
-- Ventas últimos 7 días: " . json_encode($ventasUltimos7) . "
-- Top productos vendidos: " . json_encode($topProductos) . "
-- Productos con stock bajo (menos de 5 piezas): " . json_encode($stockBajo) . "
-
-Responde SOLO con el JSON, sin texto adicional, sin backticks.";
+  \"alertas\": [\"máximo 3 alertas urgentes y específicas con nombres de productos y números\"],
+  \"tendencias\": [\"máximo 3 patrones reales detectados en los datos, no obviedades\"],
+  \"prediccion\": \"qué esperar los próximos 2-3 días con números específicos basados en los datos\",
+  \"recomendacion\": \"UNA acción concreta que puede hacer HOY en Quivex, mencionando el módulo específico\"
+}";
 
         try {
             $apiKey = config('services.anthropic.key');
@@ -272,7 +455,7 @@ Responde SOLO con el JSON, sin texto adicional, sin backticks.";
                     'content-type'      => 'application/json',
                 ])->post('https://api.anthropic.com/v1/messages', [
                     'model'      => 'claude-haiku-4-5-20251001',
-                    'max_tokens' => 600,
+                    'max_tokens' => 700,
                     'messages'   => [['role' => 'user', 'content' => $prompt]],
                 ]);
 
@@ -291,11 +474,21 @@ Responde SOLO con el JSON, sin texto adicional, sin backticks.";
             return response()->json($data);
 
         } catch (\Exception $e) {
+            $alertasFallback = $stockBajo->take(3)->map(fn($s) =>
+                "Stock bajo: {$s['producto']} talla {$s['talla']} — solo {$s['stock']} pieza(s). Ve a Inventario y reponlo."
+            )->values()->toArray();
+
+            $tendenciasFallback = $topProductos->take(2)->map(fn($p) =>
+                "{$p['nombre']} lidera ventas con {$p['cantidad']} unidades vendidas"
+            )->values()->toArray();
+
             return response()->json([
-                'alertas'       => $stockBajo->take(3)->map(fn($s) => "Stock bajo: {$s['producto']} talla {$s['talla']} ({$s['stock']} pzs)")->values()->toArray(),
-                'tendencias'    => $topProductos->take(2)->map(fn($p) => "{$p['nombre']} es tu producto más vendido")->values()->toArray(),
-                'prediccion'    => 'Error: ' . $e->getMessage(),
-                'recomendacion' => 'Verifica el inventario de productos con poco stock.',
+                'alertas'       => $alertasFallback,
+                'tendencias'    => $tendenciasFallback,
+                'prediccion'    => "Promedio diario de los últimos 7 días: $" . number_format($promedioVentas7, 0) . ". " . ($diasSinVentas > 0 ? "{$diasSinVentas} día(s) sin ventas registradas." : "Sin días sin ventas."),
+                'recomendacion' => $stockBajo->count() > 0
+                    ? "Ve a Inventario y repón el stock de {$stockBajo->first()['producto']} talla {$stockBajo->first()['talla']} — quedan solo {$stockBajo->first()['stock']} pieza(s)."
+                    : 'Revisa el reporte semanal para identificar tus mejores días de venta.',
             ]);
         }
     }
