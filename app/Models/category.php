@@ -2,31 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Str;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Category extends Model
+class category extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
-    protected $connection = 'tenant';
+    protected $table = 'categories';
 
-    protected $fillable = ['name', 'slug', 'descripcion'];
-
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($category) {
-            $category->slug = Str::slug($category->name ?? 'categoria') . '-' . uniqid();
-            if (empty($category->descripcion)) {
-                $category->descripcion = 'Categoría de ' . $category->name;
-            }
-        });
-    }
-
-    public function products()
-    {
-        return $this->hasMany(Product::class);
-    }
+    protected $fillable = [
+        'tenant_id',
+        'name',
+    ];
 }

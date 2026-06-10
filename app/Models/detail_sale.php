@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class detail_sale extends Model
 {
-    public $timestamps = false;
+    use HasFactory, BelongsToTenant;
 
-    protected $connection = 'tenant';
+    protected $table = 'detail_sales';
 
     protected $fillable = [
+        'tenant_id',
         'sale_id',
         'product_id',
         'cantidad',
@@ -18,14 +21,4 @@ class detail_sale extends Model
         'subtotal',
         'talla',
     ];
-
-    public function product()
-    {
-        return $this->belongsTo(product::class);
-    }
-
-    public function sale()
-    {
-        return $this->belongsTo(sale::class);
-    }
 }

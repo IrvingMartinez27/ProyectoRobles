@@ -2,36 +2,24 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class inventory extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
-    protected $connection = 'tenant';
+    protected $table = 'inventories';
 
     protected $fillable = [
-    'product_id',
-    'talla',
-    'stock',
-    'precio_decimal',
-    'almacen_id',
-    'en_transito',
+        'tenant_id',
+        'product_id',
+        'talla',
+        'stock',
+        'precio_decimal',
+        'almacen_id',
+        'en_transito',
+        'apartado',
     ];
-
-    public function product()
-    {
-        return $this->belongsTo(product::class);
-    }
-
-    public function products()
-    {
-        return $this->belongsTo(product::class);
-    }
-
-    public function details()
-    {
-        return $this->hasMany(detail_sale::class);
-    }
 }

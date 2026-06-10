@@ -2,26 +2,21 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Almacen extends Model
 {
-    protected $connection = 'tenant';
+    use HasFactory, BelongsToTenant;
 
-    protected $fillable = [
-        'nombre',
-        'tipo',
-        'activo',
-    ];
     protected $table = 'almacenes';
 
-    public function gastos()
-    {
-        return $this->hasMany(GastoOperativo::class);
-    }
-
-    public function ventas()
-    {
-        return $this->hasMany(sale::class);
-    }
+    protected $fillable = [
+        'tenant_id',
+        'nombre',
+        'descripcion',
+        'tipo',
+        'user_id',
+    ];
 }

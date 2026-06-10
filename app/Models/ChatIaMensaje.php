@@ -2,15 +2,21 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ChatIaMensaje extends Model
 {
-    protected $connection = 'tenant';
+    use HasFactory, BelongsToTenant;
+
+    protected $table = 'chat_ia_mensajes';
 
     protected $fillable = [
+        'tenant_id',
         'user_id',
-        'role',
+        'rol',
         'contenido',
+        'tokens_usados',
     ];
 }

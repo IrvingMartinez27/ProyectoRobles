@@ -2,20 +2,23 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class RestockDescarte extends Model
 {
+    use HasFactory, BelongsToTenant;
+
     protected $table = 'restock_descartes';
 
     protected $fillable = [
-        'user_id',
+        'tenant_id',
         'product_id',
-        'talla',
-        'descartado_hasta',
-    ];
-
-    protected $casts = [
-        'descartado_hasta' => 'datetime',
+        'inventory_id',
+        'tipo',
+        'cantidad',
+        'motivo',
+        'user_id',
     ];
 }

@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class box extends Model
 {
-    protected $connection = 'tenant';
+    use HasFactory, BelongsToTenant;
+
+    protected $table = 'boxes';
 
     protected $fillable = [
+        'tenant_id',
         'user_id',
         'fecha_apertura',
         'fecha_cierre',
@@ -16,24 +21,4 @@ class box extends Model
         'monto_final',
         'estado',
     ];
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function sale()
-    {
-        return $this->hasMany(sale::class);
-    }
-
-    public function venta()
-    {
-        return $this->hasMany(sale::class);
-    }
-
-    public function movenment_box()
-    {
-        return $this->hasMany(movement_box::class);
-    }
 }

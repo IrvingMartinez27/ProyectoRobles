@@ -2,24 +2,21 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class client extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
-    protected $connection = 'tenant';
+    protected $table = 'clients';
 
-    protected $fillable = ['name', 'telefono', 'direccion', 'puntos'];
-
-    public function sales()
-    {
-        return $this->hasMany(sale::class);
-    }
-
-    public function totalGastado()
-    {
-        return $this->sales()->sum('total');
-    }
+    protected $fillable = [
+        'tenant_id',
+        'name',
+        'telefono',
+        'direccion',
+        'puntos',
+    ];
 }

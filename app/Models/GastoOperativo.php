@@ -2,28 +2,22 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class GastoOperativo extends Model
 {
-    protected $connection = 'tenant';
+    use HasFactory, BelongsToTenant;
 
-    protected $fillable = [
-        'almacen_id',
-        'concepto',
-        'categoria',
-        'monto',
-        'fecha',
-    ];
     protected $table = 'gastos_operativos';
 
-    protected $casts = [
-        'fecha' => 'date',
-        'monto' => 'decimal:2',
+    protected $fillable = [
+        'tenant_id',
+        'concepto',
+        'monto',
+        'fecha',
+        'categoria',
+        'user_id',
     ];
-
-    public function almacen()
-    {
-        return $this->belongsTo(Almacen::class);
-    }
 }

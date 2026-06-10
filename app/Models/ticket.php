@@ -2,25 +2,19 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Ticket extends Model
+class ticket extends Model
 {
-    protected $connection = 'tenant';
+    use HasFactory, BelongsToTenant;
 
-    protected $fillable = ['sale_id', 'folio'];
+    protected $table = 'tickets';
 
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($ticket) {
-            $ticket->folio = 'TKT-' . strtoupper(Str::random(8));
-        });
-    }
-
-    public function sale()
-    {
-        return $this->belongsTo(sale::class);
-    }
+    protected $fillable = [
+        'tenant_id',
+        'sale_id',
+        'folio',
+    ];
 }
