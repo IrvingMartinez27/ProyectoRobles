@@ -578,7 +578,7 @@
         </div>
         <div class="mp-card">
             <div class="mp-card-header">Resumen de suscripción</div>
-            <div class="mp-row"><span class="mp-key">Plan</span><span class="mp-val">Pro — $499/mes</span></div>
+            <div class="mp-row"><span class="mp-key">Plan</span><span class="mp-val">Pro — $299/mes</span></div>
             <div class="mp-row"><span class="mp-key">Próximo cobro</span><span class="mp-val">Automático</span></div>
             <div class="mp-row"><span class="mp-key">Método</span><span class="mp-val">MercadoPago</span></div>
             <div class="mp-row"><span class="mp-key">Estado</span><span class="mp-val" style="color:#22c55e;"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">check_circle</span> Activo</span></div>
@@ -670,14 +670,18 @@ const flows = {
     voz:{msg:'Di "Air Force One talla 27" y Quivex lo agrega al ticket automáticamente. Sin tocar el teclado.',opts:[{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">rocket_launch</span>',text:'Quiero probarlo gratis',next:'registro'},{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">arrow_back</span>',text:'Ver más funciones',next:'fisica'}]},
     ganancia:{msg:'Quivex te dice tu ganancia neta real: ventas menos costo de proveedor menos gastos. ¡Por fin sabes cuánto te quedas!',opts:[{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">rocket_launch</span>',text:'Quiero ver mis números reales',next:'registro'}]},
     almacenes:{msg:'Con Business tienes hasta 3 almacenes virtuales — Cajuela, Casa, Bodega, lo que necesites.',opts:[{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">rocket_launch</span>',text:'Empezar gratis',next:'registro'},{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">bolt</span>',text:'Ver Business',next:'business'}]},
-    business:{msg:'Business $999/mes: 3 almacenes, rentabilidad real, chat financiero IA, módulo de gastos y exportar PDF.',opts:[{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">rocket_launch</span>',text:'Registrarme ahora',next:'registro'}]},
+    business:{msg:'Business $549/mes: 3 almacenes, rentabilidad real, chat financiero IA, módulo de gastos y exportar PDF.',opts:[{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">rocket_launch</span>',text:'Registrarme ahora',next:'registro'}]},
     registro:{msg:'¡Excelente decisión! 🎉 Sin tarjeta de crédito, sin contratos. En 2 minutos ya estás vendiendo.',opts:[{icon:'<span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;">auto_awesome</span>',text:'Crear cuenta gratis →',next:'go',url:'/register'}]}
 };
 
 function speak(text) {
     if (!synth) return;
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,'').replace(/[🎤💰🚀📦🔄🏪←⚡✨👋🔥🎉]/g,''));
+    const u = new SpeechSynthesisUtterance(
+        text.replace(/<[^>]+>/g,'')
+            .replace(/[🎤💰🚀📦🔄🏪←⚡✨👋🔥🎉]/g,'')
+            .replace(/\$(\d)/g, '$1 pesos')
+    );
     u.lang='es-MX'; u.rate=1.1;
     const v = synth.getVoices().find(x=>x.lang.startsWith('es'));
     if(v) u.voice=v;
