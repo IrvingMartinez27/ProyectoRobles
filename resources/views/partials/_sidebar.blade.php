@@ -119,6 +119,11 @@
            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-150 {{ request()->routeIs('chat.ia.*') ? 'bg-[#1737c8]/10 text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }}">
             <span class="material-symbols-outlined text-[16px]">auto_awesome</span>Chat IA
         </a>
+
+        <a href="{{ route('ticket.studio') }}" onclick="cerrarSidebar()"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all duration-150 {{ request()->routeIs('ticket.studio') ? 'bg-[#1737c8]/10 text-[#1737c8]' : 'text-[#1a1c1c] hover:bg-[#f3f3f4] hover:text-[#1737c8]' }}">
+            <span class="material-symbols-outlined text-[16px]">receipt_long</span>Ticket Studio
+        </a>
         @endif
 
         @endif
@@ -147,6 +152,23 @@
                 </p>
             </div>
         </div>
+
+        {{-- BOTÓN PLANES --}}
+        @php $planActual = Auth::user()->plan ?? 'gratis'; @endphp
+        @if($planActual === 'gratis')
+        <a href="{{ route('planes') }}" onclick="cerrarSidebar()"
+           class="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#1737c8] border border-[#1737c8]/30 bg-[#1737c8]/5 hover:bg-[#1737c8]/10 transition-colors mb-2">
+            <span class="material-symbols-outlined text-sm">workspace_premium</span>
+            Mejorar plan ✨
+        </a>
+        @else
+        <a href="{{ route('planes') }}" onclick="cerrarSidebar()"
+           class="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#747688] border border-[#c4c5da]/20 hover:bg-[#f3f3f4] transition-colors mb-2">
+            <span class="material-symbols-outlined text-sm">workspace_premium</span>
+            Gestionar plan · {{ ucfirst($planActual) }}
+        </a>
+        @endif
+
         <a href="{{ route('logout') }}" id="btn-logout"
            class="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 transition-colors">
             <span class="material-symbols-outlined text-sm">logout</span>Cerrar sesión

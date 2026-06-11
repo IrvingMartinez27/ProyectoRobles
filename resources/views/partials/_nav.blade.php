@@ -98,7 +98,6 @@
 [data-theme="dark"] .nav-btn-icon { border-color:rgba(255,255,255,0.1); color:#9496a8; }
 [data-theme="dark"] .nav-btn-icon:hover { border-color:#1737c8; color:#1737c8; background:rgba(23,55,200,0.1); }
 
-/* Badge campana */
 .notif-badge {
     position:absolute; top:-4px; right:-4px;
     min-width:16px; height:16px; border-radius:999px;
@@ -110,11 +109,9 @@
 .notif-badge.visible { display:flex; }
 .bell-ring { animation:notifBell 0.6s ease; }
 
-/* Panel notificaciones */
 #notif-panel {
-    /* Responsive width */
     position:absolute; right:0; top:calc(100% + 10px);
-    width:calc(100vw - 2rem); max-width: 340px; 
+    width:calc(100vw - 2rem); max-width: 340px;
     background:#fff; border:1px solid rgba(196,197,218,0.2);
     border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.12);
     z-index:100; overflow:hidden;
@@ -122,15 +119,9 @@
     transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
     transform-origin: top right;
 }
-#notif-panel.open {
-    opacity:1; visibility:visible; transform:translateY(0) scale(1);
-}
-@media (min-width: 640px) {
-    #notif-panel { width: 340px; }
-}
+#notif-panel.open { opacity:1; visibility:visible; transform:translateY(0) scale(1); }
+@media (min-width: 640px) { #notif-panel { width: 340px; } }
 
-
-/* Toasts */
 #toast-container {
     position:fixed; bottom:24px; right:24px; z-index:9999;
     display:flex; flex-direction:column; gap:10px; pointer-events:none;
@@ -152,21 +143,25 @@
 {{-- NAV SUPERIOR --}}
 <nav class="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4 w-full bg-white/80 backdrop-blur-xl border-b border-[#c4c5da]/20 transition-colors duration-300">
     <div class="flex items-center gap-3">
+        @auth
         <button onclick="abrirSidebar()" class="nav-btn-icon" title="Menú">
             <span class="material-symbols-outlined text-sm">menu</span>
         </button>
+        @endauth
 
-        <a href="{{ Auth::user()->role === 'admin' ? route('dashboard') : route('sales') }}"
+        <a href="{{ Auth::check() && Auth::user()->role === 'admin' ? route('dashboard') : route('sales') }}"
            class="font-black tracking-tighter text-xl text-[#1a1c1c] hover:opacity-70 transition-opacity">
             Qui<span class="text-[#1737c8]">vex</span>
         </a>
 
+        @auth
         @php $planBadge = Auth::user()->plan ?? 'gratis'; @endphp
         <span class="hidden md:inline-flex nav-plan-badge
             {{ $planBadge === 'business' ? 'bg-amber-100 text-amber-700' : ($planBadge === 'pro' ? 'bg-[#1737c8]/10 text-[#1737c8]' : 'bg-[#f3f3f4] text-[#747688]') }}">
             <span class="material-symbols-outlined" style="font-size:10px;">{{ $planBadge === 'business' ? 'bolt' : ($planBadge === 'pro' ? 'workspace_premium' : 'star') }}</span>
             {{ ucfirst($planBadge) }}
         </span>
+        @endauth
     </div>
 
     <div class="flex items-center gap-2 relative">
@@ -175,15 +170,14 @@
             <span class="material-symbols-outlined text-sm" id="app-theme-icon">dark_mode</span>
         </button>
 
+        @auth
         {{-- CAMPANA DE NOTIFICACIONES (Pro y Business) --}}
-        @if(in_array($planBadge, ['pro', 'business']))
+        @if(in_array($planBadge ?? 'gratis', ['pro', 'business']))
         <div class="static md:relative" id="notif-wrapper">
             <button class="nav-btn-icon" id="notif-btn" onclick="toggleNotifPanel()" title="Notificaciones">
                 <span class="material-symbols-outlined text-sm" id="notif-bell-icon">notifications</span>
                 <span class="notif-badge" id="notif-badge">0</span>
             </button>
-
-            {{-- PANEL --}}
             <div id="notif-panel">
                 <div class="flex items-center justify-between px-4 py-3 border-b border-[#c4c5da]/20">
                     <div>
@@ -241,6 +235,11 @@
                 </a>
             </div>
         </div>
+        @else
+        {{-- Sin sesión: mostrar links de login/registro --}}
+        <a href="/login" class="text-[11px] font-black uppercase tracking-widest text-[#747688] hover:text-[#1a1c1c] transition-colors px-3 py-2">Entrar</a>
+        <a href="/register" class="bg-[#1737c8] text-white px-4 py-2 text-[11px] font-black uppercase tracking-widest rounded-lg hover:opacity-90 transition-all">Registrarse</a>
+        @endauth
     </div>
 </nav>
 
@@ -249,12 +248,16 @@
 
 <script>
 // ── DATOS DEL USUARIO ────────────────────────────────────────
+@auth
 const QVX_USER = {
     nombre:  '{{ explode(" ", Auth::user()->name ?? "")[0] }}',
     tienda:  '{{ Auth::user()->store_name ?? "" }}',
     plan:    '{{ Auth::user()->plan ?? "gratis" }}',
     esPro:   {{ in_array(Auth::user()->plan ?? 'gratis', ['pro', 'business']) ? 'true' : 'false' }},
 };
+@else
+const QVX_USER = { nombre: '', tienda: '', plan: 'gratis', esPro: false };
+@endauth
 
 // ── TEMA ─────────────────────────────────────────────────────
 function setAppTheme(theme) {
@@ -285,7 +288,6 @@ function showToast(titulo, mensaje, color = 'blue', duracion = 5000) {
     const container = document.getElementById('toast-container');
     const c = toastColors[color] || toastColors.blue;
     const id = 'toast-' + Date.now();
-
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.id = id;
@@ -300,10 +302,7 @@ function showToast(titulo, mensaje, color = 'blue', duracion = 5000) {
         <span class="toast-close" onclick="removeToast('${id}')">✕</span>
     `;
     container.appendChild(toast);
-
-    if (duracion > 0) {
-        setTimeout(() => removeToast(id), duracion);
-    }
+    if (duracion > 0) setTimeout(() => removeToast(id), duracion);
 }
 
 function removeToast(id) {
@@ -316,39 +315,17 @@ function removeToast(id) {
 // ── BIENVENIDA / DESPEDIDA ───────────────────────────────────
 function mostrarBienvenida() {
     const hora = new Date().getHours();
-    let saludo, emoji, mensaje;
-
+    let saludo, frases;
     if (hora >= 6 && hora < 12) {
-        saludo = 'Buenos días'; emoji = '🌅';
-        const frases = [
-            '¡Hoy será un gran día para las ventas!',
-            'Empieza el día con todo, el éxito te espera.',
-            '¡A darle con todo! Tu tienda te necesita.',
-        ];
-        mensaje = frases[Math.floor(Math.random() * frases.length)];
+        saludo = 'Buenos días'; frases = ['¡Hoy será un gran día para las ventas!','Empieza el día con todo, el éxito te espera.','¡A darle con todo! Tu tienda te necesita.'];
     } else if (hora >= 12 && hora < 19) {
-        saludo = 'Buenas tardes'; emoji = '☀️';
-        const frases = [
-            '¡Sigue así, vas muy bien!',
-            'La tarde es tuya, aprovéchala al máximo.',
-            '¡Ánimo! Las mejores ventas aún están por venir.',
-        ];
-        mensaje = frases[Math.floor(Math.random() * frases.length)];
+        saludo = 'Buenas tardes'; frases = ['¡Sigue así, vas muy bien!','La tarde es tuya, aprovéchala al máximo.','¡Ánimo! Las mejores ventas aún están por venir.'];
     } else {
-        saludo = 'Buenas noches'; emoji = '🌙';
-        const frases = [
-            'Terminando el día con todo, ¡así se hace!',
-            'El esfuerzo de hoy es el éxito de mañana.',
-            '¡Casi listo! Cierra el día con una venta más.',
-        ];
-        mensaje = frases[Math.floor(Math.random() * frases.length)];
+        saludo = 'Buenas noches'; frases = ['Terminando el día con todo, ¡así se hace!','El esfuerzo de hoy es el éxito de mañana.','¡Casi listo! Cierra el día con una venta más.'];
     }
-
+    const emoji = hora >= 6 && hora < 12 ? '🌅' : hora >= 12 && hora < 19 ? '☀️' : '🌙';
     const titulo = `${emoji} ${saludo}, ${QVX_USER.nombre}`;
-    const desc   = QVX_USER.tienda
-        ? `${QVX_USER.tienda} — ${mensaje}`
-        : mensaje;
-
+    const desc = QVX_USER.tienda ? `${QVX_USER.tienda} — ${frases[Math.floor(Math.random()*frases.length)]}` : frases[Math.floor(Math.random()*frases.length)];
     showToast(titulo, desc, 'blue', 6000);
 }
 
@@ -359,26 +336,16 @@ function configurarDespedida() {
         e.preventDefault();
         const hora = new Date().getHours();
         let saludo, frases;
-
-        if (hora >= 6 && hora < 12) {
-            saludo = '¡Hasta pronto!';
-            frases = ['Que tengas un excelente día.', 'Vuelve pronto, tu tienda te espera.'];
-        } else if (hora >= 12 && hora < 19) {
-            saludo = '¡Hasta luego!';
-            frases = ['Hoy fue un gran día.', '¡Descansa bien, te lo mereces!'];
-        } else {
-            saludo = '¡Buenas noches!';
-            frases = ['Mañana será aún mejor.', '¡Descansa, mañana hay más ventas!'];
-        }
-
-        const frase = frases[Math.floor(Math.random() * frases.length)];
+        if (hora >= 6 && hora < 12) { saludo = '¡Hasta pronto!'; frases = ['Que tengas un excelente día.','Vuelve pronto, tu tienda te espera.']; }
+        else if (hora >= 12 && hora < 19) { saludo = '¡Hasta luego!'; frases = ['Hoy fue un gran día.','¡Descansa bien, te lo mereces!']; }
+        else { saludo = '¡Buenas noches!'; frases = ['Mañana será aún mejor.','¡Descansa, mañana hay más ventas!']; }
+        const frase = frases[Math.floor(Math.random()*frases.length)];
         showToast(`👋 ${saludo} ${QVX_USER.nombre}`, frase, 'purple', 0);
-
         setTimeout(() => { window.location.href = btn.href; }, 1800);
     });
 }
 
-// ── NOTIFICACIONES (campana) ─────────────────────────────────
+// ── NOTIFICACIONES ───────────────────────────────────────────
 let notifPanelOpen = false;
 
 function toggleNotifPanel() {
@@ -398,7 +365,7 @@ function cerrarNotifPanel() {
 async function cargarNotificaciones() {
     if (!QVX_USER.esPro) return;
     try {
-        const res  = await fetch('{{ route("notificaciones.index") }}', {
+        const res = await fetch('{{ Auth::check() ? route("notificaciones.index") : "#" }}', {
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
         });
         const data = await res.json();
@@ -413,25 +380,21 @@ function renderNotificaciones(notifs, total) {
     const label   = document.getElementById('notif-count-label');
     const btnTodo = document.getElementById('btn-leer-todas');
     const bell    = document.getElementById('notif-bell-icon');
+    if (!list) return;
 
-    // Badge
     if (total > 0) {
-        badge.textContent = total > 9 ? '9+' : total;
-        badge.classList.add('visible');
-        bell.textContent = 'notifications_active';
+        if (badge) { badge.textContent = total > 9 ? '9+' : total; badge.classList.add('visible'); }
+        if (bell) bell.textContent = 'notifications_active';
         if (btnTodo) btnTodo.classList.remove('hidden');
-        label.textContent = total === 1 ? '1 notificación' : `${total} notificaciones`;
+        if (label) label.textContent = total === 1 ? '1 notificación' : `${total} notificaciones`;
     } else {
-        badge.classList.remove('visible');
-        bell.textContent = 'notifications';
+        if (badge) badge.classList.remove('visible');
+        if (bell) bell.textContent = 'notifications';
         if (btnTodo) btnTodo.classList.add('hidden');
-        label.textContent = 'Sin notificaciones';
+        if (label) label.textContent = 'Sin notificaciones';
     }
 
-    if (!notifs || notifs.length === 0) {
-        if (empty) empty.style.display = 'block';
-        return;
-    }
+    if (!notifs || notifs.length === 0) { if (empty) empty.style.display = 'block'; return; }
     if (empty) empty.style.display = 'none';
 
     const colorMap = {
@@ -441,11 +404,9 @@ function renderNotificaciones(notifs, total) {
         green: { bg:'#f0fdf4', icon:'#22c55e', border:'#bbf7d0' },
     };
 
-    // Limpiar items anteriores (no el empty)
     list.querySelectorAll('.notif-item').forEach(el => el.remove());
-
     notifs.forEach(n => {
-        const c   = colorMap[n.color] || colorMap.blue;
+        const c = colorMap[n.color] || colorMap.blue;
         const div = document.createElement('div');
         div.className = 'notif-item flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors';
         div.style.cssText = 'transition:background 0.15s ease;';
@@ -465,7 +426,6 @@ function renderNotificaciones(notifs, total) {
         list.appendChild(div);
     });
 
-    // Animar campana si hay nuevas
     if (total > 0) {
         const bellBtn = document.getElementById('notif-btn');
         if (bellBtn) { bellBtn.classList.add('bell-ring'); setTimeout(() => bellBtn.classList.remove('bell-ring'), 600); }
@@ -479,13 +439,13 @@ async function leerNotif(id, btn) {
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
         });
         const item = btn.closest('.notif-item');
-        if (item) { item.style.opacity = '0'; item.style.transform = 'translateX(10px)'; item.style.transition = 'all 0.2s ease'; setTimeout(() => { item.remove(); cargarNotificaciones(); }, 200); }
+        if (item) { item.style.opacity='0'; item.style.transform='translateX(10px)'; item.style.transition='all 0.2s ease'; setTimeout(()=>{ item.remove(); cargarNotificaciones(); },200); }
     } catch(e) { console.error(e); }
 }
 
 async function leerTodasNotifs() {
     try {
-        await fetch('{{ route("notificaciones.leerTodas") }}', {
+        await fetch('{{ Auth::check() ? route("notificaciones.leerTodas") : "#" }}', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' }
         });
@@ -494,7 +454,6 @@ async function leerTodasNotifs() {
     } catch(e) { console.error(e); }
 }
 
-// Cerrar panel al click fuera
 document.addEventListener('click', function(e) {
     const wrapper = document.getElementById('notif-wrapper');
     if (wrapper && !wrapper.contains(e.target)) cerrarNotifPanel();
@@ -504,24 +463,18 @@ document.addEventListener('click', function(e) {
 document.addEventListener('DOMContentLoaded', () => {
     const t = localStorage.getItem('qvx-app-theme') || 'light';
     setAppTheme(t);
-
-    // Despedida al cerrar sesión
     configurarDespedida();
 
-    // Cargar notificaciones iniciales (solo pro/business)
     if (QVX_USER.esPro) {
         setTimeout(() => cargarNotificaciones(), 1500);
-        // Refrescar cada 5 minutos
         setInterval(() => { if (!notifPanelOpen) cargarNotificaciones(); }, 5 * 60 * 1000);
     }
 
-    // SCROLL REVEAL
     const revObs = new IntersectionObserver(entries => {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); } });
     }, { threshold: 0.08 });
     document.querySelectorAll('.section-reveal').forEach(el => revObs.observe(el));
 
-    // TILT 3D
     document.querySelectorAll('.tilt-card').forEach(card => {
         card.addEventListener('mousemove', e => {
             const r = card.getBoundingClientRect();
@@ -530,12 +483,9 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.transform = `perspective(500px) rotateX(${-y*6}deg) rotateY(${x*6}deg) translateY(-2px)`;
             card.style.transition = 'transform 0.1s ease';
         });
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = ''; card.style.transition = 'transform 0.4s ease';
-        });
+        card.addEventListener('mouseleave', () => { card.style.transform = ''; card.style.transition = 'transform 0.4s ease'; });
     });
 
-    // NUM COUNTER
     document.querySelectorAll('.num-counter').forEach(el => {
         const obs = new IntersectionObserver(entries => {
             if (!entries[0].isIntersecting) return;
@@ -557,7 +507,6 @@ document.addEventListener('DOMContentLoaded', () => {
         obs.observe(el);
     });
 
-    // HOVER LIFT
     document.querySelectorAll('.hover-lift').forEach(el => {
         el.addEventListener('mouseenter', () => { el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 24px rgba(23,55,200,0.1)'; });
         el.addEventListener('mouseleave', () => { el.style.transform = ''; el.style.boxShadow = ''; });

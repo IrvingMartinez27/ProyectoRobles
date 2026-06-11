@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\Client\Payment\PaymentClient;
+use MercadoPago\MercadoPagoConfig;
 
 class PagoController extends Controller
 {
@@ -32,7 +35,7 @@ class PagoController extends Controller
         return view('planes', compact('plan', 'tipoSuscripcion', 'vence'));
     }
 
-    // ── CREAR SUSCRIPCIÓN MENSUAL RECURRENTE ──────────────────
+    // ── CREAR PREFERENCIA DE PAGO (Checkout Pro) ─────────────
     public function crearPreferencia(Request $request)
     {
         $user = Auth::user();
@@ -44,58 +47,65 @@ class PagoController extends Controller
 
         $info = $this->planes[$plan];
 
-        $response = \Illuminate\Support\Facades\Http::withToken(env('MP_ACCESS_TOKEN'))
-            ->post('https://api.mercadopago.com/preapproval', [
-                'reason'         => $info['nombre'] . ' — Mensual',
-                'auto_recurring' => [
-                    'frequency'          => 1,
-                    'frequency_type'     => 'months',
-                    'transaction_amount' => $info['precio'],
-                    'currency_id'        => 'MXN',
+        try {
+            MercadoPagoConfig::setAccessToken(env('MP_ACCESS_TOKEN'));
+
+            $client     = new PreferenceClient();
+            $preference = $client->create([
+                'items' => [[
+                    'id'          => "plan_{$plan}",
+                    'title'       => $info['nombre'] . ' — Mensual',
+                    'description' => $info['descripcion'],
+                    'quantity'    => 1,
+                    'unit_price'  => $info['precio'],
+                    'currency_id' => 'MXN',
+                ]],
+                'payer' => ['email' => $user->email],
+                'back_urls' => [
+                    'success' => env('APP_URL') . '/pago/exito-suscripcion',
+                    'failure' => env('APP_URL') . '/pago/fallo',
+                    'pending' => env('APP_URL') . '/pago/pendiente',
                 ],
-                'back_url'           => env('APP_URL') . '/pago/exito-suscripcion',
-                'payer_email'        => $user->email,
-                'external_reference' => $user->id . '|' . $plan,
-                'notification_url'   => env('APP_URL') . '/pago/webhook',
+                'auto_return'          => 'approved',
+                'notification_url'     => env('APP_URL') . '/pago/webhook',
+                'external_reference'   => $user->id . '|' . $plan,
+                'statement_descriptor' => 'QUIVEX',
             ]);
 
-        if ($response->failed()) {
-            Log::error('Error creando suscripción MP', $response->json());
-            return redirect()->route('planes')->with('error', 'No se pudo iniciar la suscripción. Intenta de nuevo.');
+            return redirect($preference->init_point);
+
+        } catch (\Exception $e) {
+            Log::error('Error creando preferencia MP', [
+                'error'   => $e->getMessage(),
+                'plan'    => $plan,
+                'user_id' => $user->id,
+            ]);
+            return redirect()->route('planes')->with('error', 'No se pudo iniciar el pago. Intenta de nuevo.');
         }
-
-        $data    = $response->json();
-        $initUrl = $data['init_point'] ?? null;
-
-        if (!$initUrl) {
-            return redirect()->route('planes')->with('error', 'Error al obtener el link de pago.');
-        }
-
-        return redirect($initUrl);
     }
 
-    // ── ÉXITO SUSCRIPCIÓN ─────────────────────────────────────
+    // ── ÉXITO PAGO ────────────────────────────────────────────
     public function exitoSuscripcion(Request $request)
     {
-        $user          = Auth::user();
-        $preapprovalId = $request->input('preapproval_id');
+        $user      = Auth::user();
+        $paymentId = $request->input('payment_id');
+        $plan      = 'pro';
 
-        if ($user && $preapprovalId) {
+        if ($user && $paymentId) {
             try {
-                $response = \Illuminate\Support\Facades\Http::withToken(env('MP_ACCESS_TOKEN'))
-                    ->get("https://api.mercadopago.com/preapproval/{$preapprovalId}");
+                MercadoPagoConfig::setAccessToken(env('MP_ACCESS_TOKEN'));
+                $paymentClient = new PaymentClient();
+                $payment       = $paymentClient->get($paymentId);
 
-                $data  = $response->json();
-                $ref   = $data['external_reference'] ?? '';
-                $parts = explode('|', $ref);
-                $plan  = $parts[1] ?? 'pro';
+                if ($payment && $payment->external_reference) {
+                    $parts = explode('|', $payment->external_reference);
+                    $plan  = $parts[1] ?? 'pro';
+                }
 
                 DB::connection('mysql')->table('users')->where('id', $user->id)->update([
-                    'plan'              => $plan,
-                    'tipo_suscripcion'  => 'mensual',
-                    'mp_preapproval_id' => $preapprovalId,
-                    'mp_payer_email'    => $data['payer_email'] ?? $user->email,
-                    'plan_vence_en'     => now()->addMonth(),
+                    'plan'             => $plan,
+                    'tipo_suscripcion' => 'mensual',
+                    'plan_vence_en'    => now()->addMonth(),
                 ]);
 
                 if ($user->tenant_id) {
@@ -103,12 +113,15 @@ class PagoController extends Controller
                         ->where('id', $user->tenant_id)
                         ->update(['plan' => $plan]);
                 }
+
+                Log::info("Plan {$plan} activado para usuario {$user->id}");
+
             } catch (\Exception $e) {
-                Log::error('Error activando suscripción: ' . $e->getMessage());
+                Log::error('Error activando plan: ' . $e->getMessage());
             }
         }
 
-        return redirect('/dashboard')->with('success', '¡Suscripción activada! Se renovará automáticamente cada mes.');
+        return redirect('/dashboard')->with('success', '¡Plan ' . ucfirst($plan) . ' activado! Bienvenido.');
     }
 
     // ── CANCELAR SUSCRIPCIÓN ──────────────────────────────────
@@ -147,46 +160,35 @@ class PagoController extends Controller
 
         $tipo = $request->input('type') ?? $request->input('topic');
 
-        if ($tipo === 'subscription_preapproval') {
-            $preapprovalId = $request->input('data.id') ?? $request->input('id');
-
+        if ($tipo === 'payment') {
+            $paymentId = $request->input('data.id') ?? $request->input('id');
             try {
-                $response = \Illuminate\Support\Facades\Http::withToken(env('MP_ACCESS_TOKEN'))
-                    ->get("https://api.mercadopago.com/preapproval/{$preapprovalId}");
+                MercadoPagoConfig::setAccessToken(env('MP_ACCESS_TOKEN'));
+                $paymentClient = new PaymentClient();
+                $payment       = $paymentClient->get($paymentId);
 
-                $data   = $response->json();
-                $status = $data['status'] ?? '';
-                $ref    = $data['external_reference'] ?? '';
-                $parts  = explode('|', $ref);
-                $userId = $parts[0];
-                $plan   = $parts[1] ?? 'pro';
-                $user   = User::find($userId);
+                if ($payment->status === 'approved') {
+                    $parts  = explode('|', $payment->external_reference);
+                    $userId = $parts[0];
+                    $plan   = $parts[1] ?? 'pro';
+                    $user   = User::find($userId);
 
-                if ($user) {
-                    if ($status === 'authorized') {
-                        // Renovación exitosa
+                    if ($user) {
                         DB::connection('mysql')->table('users')->where('id', $userId)->update([
-                            'plan'            => $plan,
-                            'tipo_suscripcion'=> 'mensual',
-                            'plan_vence_en'   => now()->addMonth(),
+                            'plan'             => $plan,
+                            'tipo_suscripcion' => 'mensual',
+                            'plan_vence_en'    => now()->addMonth(),
                         ]);
                         if ($user->tenant_id) {
                             DB::connection('mysql')->table('tenants')
                                 ->where('id', $user->tenant_id)
                                 ->update(['plan' => $plan]);
                         }
-                        Log::info("Suscripción renovada: usuario {$userId}, plan {$plan}");
-
-                    } elseif (in_array($status, ['cancelled', 'paused'])) {
-                        DB::connection('mysql')->table('users')->where('id', $userId)->update([
-                            'mp_preapproval_id' => null,
-                            'tipo_suscripcion'  => 'ninguna',
-                        ]);
-                        Log::info("Suscripción cancelada: usuario {$userId}");
+                        Log::info("Plan {$plan} activado via webhook para usuario {$userId}");
                     }
                 }
             } catch (\Exception $e) {
-                Log::error('Error webhook preapproval: ' . $e->getMessage());
+                Log::error('Error webhook payment: ' . $e->getMessage());
             }
         }
 
