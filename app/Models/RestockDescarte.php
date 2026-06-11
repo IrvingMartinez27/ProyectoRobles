@@ -13,12 +13,22 @@ class RestockDescarte extends Model
     protected $table = 'restock_descartes';
 
     protected $fillable = [
-        'tenant_id',
-        'product_id',
-        'inventory_id',
-        'tipo',
-        'cantidad',
-        'motivo',
-        'user_id',
+        'tenant_id','product_id','inventory_id',
+        'tipo','cantidad','motivo','user_id',
     ];
+
+    public function product()
+    {
+        return $this->belongsTo(product::class);
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(inventory::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

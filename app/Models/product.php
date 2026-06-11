@@ -13,11 +13,21 @@ class product extends Model
     protected $table = 'products';
 
     protected $fillable = [
-        'tenant_id',
-        'name',
-        'precio',
-        'costo',
-        'estado',
-        'category_id',
+        'tenant_id','name','precio','costo','estado','category_id',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(category::class);
+    }
+
+    public function inventories()
+    {
+        return $this->hasMany(inventory::class);
+    }
+
+    public function details()
+    {
+        return $this->hasMany(detail_sale::class);
+    }
 }

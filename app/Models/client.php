@@ -13,10 +13,11 @@ class client extends Model
     protected $table = 'clients';
 
     protected $fillable = [
-        'tenant_id',
-        'name',
-        'telefono',
-        'direccion',
-        'puntos',
+        'tenant_id','name','telefono','direccion','puntos',
     ];
+
+    public function sales()
+    {
+        return $this->hasMany(sale::class);
+    }
 }

@@ -13,12 +13,17 @@ class detail_sale extends Model
     protected $table = 'detail_sales';
 
     protected $fillable = [
-        'tenant_id',
-        'sale_id',
-        'product_id',
-        'cantidad',
-        'precio_unitario',
-        'subtotal',
-        'talla',
+        'tenant_id','sale_id','product_id',
+        'cantidad','precio_unitario','subtotal','talla',
     ];
+
+    public function sale()
+    {
+        return $this->belongsTo(sale::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(product::class);
+    }
 }

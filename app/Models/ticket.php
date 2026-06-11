@@ -13,8 +13,11 @@ class ticket extends Model
     protected $table = 'tickets';
 
     protected $fillable = [
-        'tenant_id',
-        'sale_id',
-        'folio',
+        'tenant_id','sale_id','folio',
     ];
+
+    public function sale()
+    {
+        return $this->belongsTo(sale::class);
+    }
 }

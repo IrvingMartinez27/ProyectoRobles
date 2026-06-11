@@ -13,12 +13,22 @@ class box extends Model
     protected $table = 'boxes';
 
     protected $fillable = [
-        'tenant_id',
-        'user_id',
-        'fecha_apertura',
-        'fecha_cierre',
-        'monto_apertura',
-        'monto_final',
-        'estado',
+        'tenant_id','user_id','fecha_apertura',
+        'fecha_cierre','monto_apertura','monto_final','estado',
     ];
+
+    public function sales()
+    {
+        return $this->hasMany(sale::class);
+    }
+
+    public function movements()
+    {
+        return $this->hasMany(movement_box::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

@@ -13,10 +13,16 @@ class Almacen extends Model
     protected $table = 'almacenes';
 
     protected $fillable = [
-        'tenant_id',
-        'nombre',
-        'descripcion',
-        'tipo',
-        'user_id',
+        'tenant_id','nombre','descripcion','tipo','user_id',
     ];
+
+    public function inventories()
+    {
+        return $this->hasMany(inventory::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

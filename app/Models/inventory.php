@@ -13,13 +13,17 @@ class inventory extends Model
     protected $table = 'inventories';
 
     protected $fillable = [
-        'tenant_id',
-        'product_id',
-        'talla',
-        'stock',
-        'precio_decimal',
-        'almacen_id',
-        'en_transito',
-        'apartado',
+        'tenant_id','product_id','talla','stock',
+        'precio_decimal','almacen_id','en_transito','apartado',
     ];
+
+    public function product()
+    {
+        return $this->belongsTo(product::class);
+    }
+
+    public function almacen()
+    {
+        return $this->belongsTo(Almacen::class);
+    }
 }

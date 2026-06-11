@@ -13,11 +13,11 @@ class GastoOperativo extends Model
     protected $table = 'gastos_operativos';
 
     protected $fillable = [
-        'tenant_id',
-        'concepto',
-        'monto',
-        'fecha',
-        'categoria',
-        'user_id',
+        'tenant_id','concepto','monto','fecha','categoria','user_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

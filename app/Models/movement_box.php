@@ -13,10 +13,11 @@ class movement_box extends Model
     protected $table = 'movement_boxes';
 
     protected $fillable = [
-        'tenant_id',
-        'box_id',
-        'tipo',
-        'monto',
-        'descripcion',
+        'tenant_id','box_id','tipo','monto','descripcion',
     ];
+
+    public function box()
+    {
+        return $this->belongsTo(box::class);
+    }
 }

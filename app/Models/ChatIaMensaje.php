@@ -13,10 +13,11 @@ class ChatIaMensaje extends Model
     protected $table = 'chat_ia_mensajes';
 
     protected $fillable = [
-        'tenant_id',
-        'user_id',
-        'rol',
-        'contenido',
-        'tokens_usados',
+        'tenant_id','user_id','rol','contenido','tokens_usados',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

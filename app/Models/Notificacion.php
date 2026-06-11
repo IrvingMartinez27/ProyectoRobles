@@ -13,12 +13,11 @@ class Notificacion extends Model
     protected $table = 'notificaciones';
 
     protected $fillable = [
-        'tenant_id',
-        'user_id',
-        'tipo',
-        'titulo',
-        'mensaje',
-        'leida',
-        'data',
+        'tenant_id','user_id','tipo','titulo','mensaje','leida','data',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }

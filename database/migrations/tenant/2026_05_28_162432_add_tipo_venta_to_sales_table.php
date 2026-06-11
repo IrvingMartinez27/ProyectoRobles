@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::connection('tenant')->table('sales', function (Blueprint $table) {
+        Schema::table('sales', function (Blueprint $table) {
             $table->string('tipo_venta')->default('menudeo')->after('metodo_pago');
         });
     }
 
     public function down(): void
     {
-        Schema::connection('tenant')->table('sales', function (Blueprint $table) {
+        Schema::table('sales', function (Blueprint $table) {
             $table->dropColumn('tipo_venta');
         });
     }
