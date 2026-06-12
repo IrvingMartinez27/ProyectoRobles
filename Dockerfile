@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev libzip-dev nginx supervisor \
     nodejs npm \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
+    && echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && apt-get clean
 
 # Instalar Composer
@@ -22,8 +24,9 @@ RUN composer install --optimize-autoloader --no-dev --no-interaction
 # Instalar dependencias JS y compilar
 RUN npm install && npm run build
 
-# Permisos
-RUN chown -R www-data:www-data /var/www \
+# Crear carpetas necesarias y permisos
+RUN mkdir -p storage/app/livewire-tmp storage/logs \
+    && chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage
 
 # Configurar Nginx
