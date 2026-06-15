@@ -23,4 +23,6 @@ RUN mkdir -p storage/app/livewire-tmp storage/logs \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
+COPY docker/nginx.conf /opt/docker/etc/nginx/vhost.conf
+
 EXPOSE 80
