@@ -250,7 +250,7 @@ class DashboardController extends Controller
                 ->distinct('client_id')
                 ->count('client_id');
 
-            $clientesNuevosHoy = \App\Models\Client::whereDate('created_at', today())->count();
+            $clientesNuevosHoy = \App\Models\client::whereDate('created_at', today())->count();
 
             $mesIni = Carbon::now()->startOfMonth();
             $mesFin = Carbon::now()->endOfMonth();
