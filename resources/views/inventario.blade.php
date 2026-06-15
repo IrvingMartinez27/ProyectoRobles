@@ -23,12 +23,9 @@
     .dot-poco    { background:#f59e0b; }
     .dot-agotado { background:#ef4444; }
 
-    /* ── ANIMACIONES ─────────────────────────────────── */
     @keyframes fadeInUp  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
     @keyframes slideInRow{ from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
     @keyframes popIn     { 0%{opacity:0;transform:scale(0.9)} 70%{transform:scale(1.02)} 100%{opacity:1;transform:scale(1)} }
-    
-    /* Animaciones fluidas para los modales */
     @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
     @keyframes scaleUpModal { 
         from { opacity: 0; transform: scale(0.95) translateY(10px); } 
@@ -47,7 +44,6 @@
     .anim-header-2 { animation-delay:0.12s; }
     .anim-header-3 { animation-delay:0.19s; }
 
-    /* Tabla desktop */
     .fila-producto { animation:slideInRow 0.4s ease both; transition:background 0.15s; }
     .fila-producto:nth-child(1) {animation-delay:.04s} .fila-producto:nth-child(2) {animation-delay:.07s}
     .fila-producto:nth-child(3) {animation-delay:.10s} .fila-producto:nth-child(4) {animation-delay:.13s}
@@ -60,7 +56,6 @@
     .fila-agotado td { background:#fef2f2; }
     .fila-ok td   { background:#fff; }
 
-    /* Cards móvil */
     .prod-card { animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both; transition:transform .2s ease, box-shadow .2s ease; }
     .prod-card:nth-child(1){animation-delay:.05s} .prod-card:nth-child(2){animation-delay:.10s}
     .prod-card:nth-child(3){animation-delay:.15s} .prod-card:nth-child(4){animation-delay:.20s}
@@ -71,11 +66,11 @@
     .stat-card:nth-child(1){animation-delay:.1s} .stat-card:nth-child(2){animation-delay:.18s}
     .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(23,55,200,.1); }
 
-    /* Zona imagen */
     #zona-imagen     { min-height:120px; }
     #zona-imagen.con-imagen { min-height:180px; }
+    #zona-imagen-editar { min-height:100px; }
+    #zona-imagen-editar.con-imagen { min-height:160px; }
 
-    /* ── DARK MODE ────────────────────────────────────── */
     [data-theme="dark"] body { background:#0f1012!important;color:#f3f3f4!important; }
     [data-theme="dark"] .bg-white { background:#1e2022!important; }
     [data-theme="dark"] .bg-\[\#f9f9f9\] { background:#0f1012!important; }
@@ -111,7 +106,8 @@
     [data-theme="dark"] #modal-mover .bg-white,
     [data-theme="dark"] #modal-nuevo-producto .bg-white,
     [data-theme="dark"] #modal-confirmar-eliminar .bg-white { background:#1e2022!important; }
-    [data-theme="dark"] #zona-imagen { background:#141618!important;border-color:rgba(255,255,255,.1)!important; }
+    [data-theme="dark"] #zona-imagen,
+    [data-theme="dark"] #zona-imagen-editar { background:#141618!important;border-color:rgba(255,255,255,.1)!important; }
     [data-theme="dark"] nav.fixed.bottom-0 { background:rgba(15,16,18,.92)!important;border-color:rgba(255,255,255,.08)!important; }
     [data-theme="dark"] nav.fixed.bottom-0 a { color:rgba(243,243,244,.5)!important; }
     [data-theme="dark"] .qty-btn { border-color:rgba(255,255,255,.1);color:#9496a8; }
@@ -189,7 +185,7 @@
         </div>
     </div>
 
-    {{-- ── CARDS MÓVIL (visible solo en < md) ───────────────── --}}
+    {{-- ── CARDS MÓVIL ───────────────────────────────────────── --}}
     <div class="md:hidden space-y-3" id="cards-movil">
         @forelse($productos ?? [] as $producto)
         @php
@@ -199,7 +195,6 @@
         <div class="prod-card {{ $producto['stock_total'] == 0 ? 'card-agotado' : ($producto['stock_total'] < 10 ? 'card-poco' : '') }} bg-white rounded-2xl border {{ $cardBorder }} p-4"
              data-categoria="{{ $producto['categoria'] }}" data-nombre="{{ strtolower($producto['nombre']) }}">
             <div class="flex items-start gap-3 mb-3">
-                {{-- Imagen --}}
                 <div class="w-12 h-12 rounded-xl bg-[#f3f3f4] shrink-0 overflow-hidden">
                     @if(!empty($producto['imagen']))
                     <img src="{{ $producto['imagen'] }}" alt="{{ $producto['nombre'] }}" class="w-full h-full object-cover"/>
@@ -209,7 +204,6 @@
                     </div>
                     @endif
                 </div>
-                {{-- Info --}}
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5 mb-0.5">
                         <span class="dot {{ $producto['stock_total'] == 0 ? 'dot-agotado' : ($producto['stock_total'] < 10 ? 'dot-poco' : 'dot-ok') }}"></span>
@@ -217,7 +211,6 @@
                     </div>
                     <p class="text-[9px] text-[#747688] uppercase tracking-widest font-bold">{{ ucfirst($producto['categoria']) }}</p>
                 </div>
-                {{-- Badge estado --}}
                 @if($producto['stock_total'] == 0)
                 <span class="inline-block whitespace-nowrap text-[9px] font-black px-2 py-1 bg-red-100 text-red-700 rounded-full uppercase shrink-0">Sin stock</span>
                 @elseif($producto['stock_total'] < 10)
@@ -226,8 +219,6 @@
                 <span class="inline-block whitespace-nowrap text-[9px] font-black px-2 py-1 bg-green-100 text-green-700 rounded-full uppercase shrink-0">OK</span>
                 @endif
             </div>
-
-            {{-- Tallas --}}
             <div class="flex flex-wrap gap-1.5 mb-3">
                 @foreach($producto['tallas'] ?? [] as $talla => $cantidad)
                 <span class="bg-[#f3f3f4] px-2 py-1 text-[10px] font-bold rounded-lg text-[#1a1c1c]">
@@ -236,8 +227,6 @@
                 @endforeach
                 <span class="bg-[#1737c8]/10 text-[#1737c8] px-2 py-1 text-[10px] font-black rounded-lg">Total: {{ $producto['stock_total'] }}</span>
             </div>
-
-            {{-- Acciones --}}
             <div class="flex gap-2">
                 <button onclick="abrirEditar({{ json_encode($producto) }})"
                         class="flex-1 flex items-center justify-center gap-1 border border-[#c4c5da]/40 rounded-xl py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-[#f3f3f4] transition-all text-[#1a1c1c]">
@@ -259,7 +248,7 @@
         @endforelse
     </div>
 
-    {{-- ── TABLA DESKTOP (visible solo en >= md) ─────────────── --}}
+    {{-- ── TABLA DESKTOP ─────────────────────────────────────── --}}
     <div class="hidden md:block overflow-hidden rounded-2xl border border-[#c4c5da]/20 bg-white">
         <table class="w-full text-sm" id="tabla-inventario">
             <thead>
@@ -351,18 +340,37 @@
 
 {{-- ── MODAL EDITAR STOCK ──────────────────────────────────── --}}
 <div id="modal-editar" class="fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm px-4" onclick="if(event.target===this) cerrarEditar()">
-    <div class="bg-white rounded-2xl w-full max-w-lg">
+    <div class="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between px-6 py-5 border-b border-[#c4c5da]/20">
             <div><p class="text-[10px] font-bold uppercase tracking-widest text-[#1737c8] mb-0.5">Inventario</p><h2 class="text-xl font-black tracking-tight text-[#1a1c1c]" id="modal-nombre">Editar stock</h2></div>
             <button onclick="cerrarEditar()" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-[#f3f3f4] transition-all"><span class="material-symbols-outlined text-sm">close</span></button>
         </div>
-        <form method="POST" action="{{ route('inventario.update') }}" class="px-6 py-6 space-y-5">
+        <form method="POST" action="{{ route('inventario.update') }}" class="px-6 py-6 space-y-5" enctype="multipart/form-data">
             @csrf @method('PUT')
             <input type="hidden" name="producto_id" id="modal-producto-id"/>
+
+            {{-- IMAGEN --}}
+            <div>
+                <label class="text-[10px] font-black uppercase tracking-widest text-[#747688] block mb-2">Imagen del producto</label>
+                <div id="zona-imagen-editar" onclick="document.getElementById('input-imagen-editar').click()"
+                     class="border-2 border-dashed border-[#c4c5da]/40 rounded-2xl hover:border-[#1737c8] transition-colors cursor-pointer flex flex-col items-center justify-center py-6 gap-2 relative bg-[#f9f9f9] overflow-hidden">
+                    <img id="preview-imagen-editar" src="" alt="" class="hidden absolute inset-0 w-full h-full object-cover"/>
+                    <div id="zona-placeholder-editar" class="flex flex-col items-center gap-2 pointer-events-none">
+                        <span class="material-symbols-outlined text-3xl text-[#c4c5da]">add_photo_alternate</span>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Cambiar imagen</p>
+                        <p class="text-[9px] text-[#c4c5da]">JPG, PNG o WEBP · Máx. 2MB</p>
+                    </div>
+                    <input type="file" id="input-imagen-editar" name="imagen" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="previsualizarImagenEditar(this)"/>
+                </div>
+                <button type="button" id="btn-quitar-imagen-editar" onclick="quitarImagenEditar()" class="hidden mt-1 text-[9px] font-black uppercase tracking-widest text-red-500 hover:opacity-70 text-left">✕ Quitar nueva imagen</button>
+            </div>
+
+            {{-- TALLAS --}}
             <div>
                 <label class="text-[10px] font-black uppercase tracking-widest text-[#747688] block mb-3">Tallas y existencias</label>
                 <div id="modal-tallas" class="space-y-3"></div>
             </div>
+
             <div class="bg-[#f3f3f4] rounded-xl px-4 py-3 flex justify-between items-center">
                 <span class="text-[10px] font-black uppercase tracking-widest text-[#747688]">Stock total</span>
                 <span class="text-lg font-black text-[#1a1c1c]" id="modal-total">0</span>
@@ -528,6 +536,17 @@
 function abrirEditar(producto) {
     document.getElementById('modal-nombre').textContent     = producto.nombre;
     document.getElementById('modal-producto-id').value      = producto.id;
+
+    // Mostrar imagen actual si existe
+    if (producto.imagen) {
+        document.getElementById('preview-imagen-editar').src = producto.imagen;
+        document.getElementById('preview-imagen-editar').classList.remove('hidden');
+        document.getElementById('zona-placeholder-editar').classList.add('hidden');
+        document.getElementById('zona-imagen-editar').classList.add('con-imagen');
+    } else {
+        quitarImagenEditar();
+    }
+
     const tallasEl = document.getElementById('modal-tallas');
     tallasEl.innerHTML = '';
     Object.entries(producto.tallas ?? {}).forEach(([talla, cantidad]) => {
@@ -551,6 +570,35 @@ function calcularTotal() {
 function cerrarEditar() {
     document.getElementById('modal-editar').classList.remove('activo');
     document.body.style.overflow = '';
+    quitarImagenEditar();
+}
+
+// ── IMAGEN EDITAR ─────────────────────────────────────────────
+function previsualizarImagenEditar(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 2*1024*1024) { alert('Máx. 2MB.'); input.value=''; return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('preview-imagen-editar').src = e.target.result;
+        document.getElementById('preview-imagen-editar').classList.remove('hidden');
+        document.getElementById('zona-placeholder-editar').classList.add('hidden');
+        document.getElementById('btn-quitar-imagen-editar').classList.remove('hidden');
+        document.getElementById('zona-imagen-editar').classList.add('con-imagen');
+    };
+    reader.readAsDataURL(file);
+}
+function quitarImagenEditar() {
+    const input = document.getElementById('input-imagen-editar');
+    if (input) input.value = '';
+    const preview = document.getElementById('preview-imagen-editar');
+    if (preview) { preview.src = ''; preview.classList.add('hidden'); }
+    const placeholder = document.getElementById('zona-placeholder-editar');
+    if (placeholder) placeholder.classList.remove('hidden');
+    const btn = document.getElementById('btn-quitar-imagen-editar');
+    if (btn) btn.classList.add('hidden');
+    const zona = document.getElementById('zona-imagen-editar');
+    if (zona) zona.classList.remove('con-imagen');
 }
 
 // ── MOVER A PARA ENTREGA ──────────────────────────────────────
@@ -572,9 +620,6 @@ function abrirMover(productoId, nombre, tallas) {
         }
     });
     actualizarMaxMover();
-
-    // El inventory_id real lo necesitamos — buscamos por producto_id y talla
-    // Lo pasamos via data attribute en el select
     document.getElementById('mover-inv-id').value = productoId;
     document.getElementById('modal-mover').classList.add('activo');
     document.body.style.overflow = 'hidden';
@@ -612,11 +657,9 @@ function cerrarConfirmarEliminar() {
 function filtrar(categoria, btn) {
     document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
     btn.classList.add('activo');
-    // Tabla
     document.querySelectorAll('.fila-producto').forEach(f => {
         f.style.display = (categoria === 'todos' || f.dataset.categoria === categoria) ? '' : 'none';
     });
-    // Cards móvil
     document.querySelectorAll('.prod-card').forEach(f => {
         f.style.display = (categoria === 'todos' || f.dataset.categoria === categoria) ? '' : 'none';
     });
