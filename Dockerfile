@@ -33,5 +33,5 @@ RUN mkdir -p storage/app/livewire-tmp storage/logs \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
-# 5. Exponer el puerto 8080
-EXPOSE 8080
+# 5. Exponer el puerto 80
+EXPOSE 80
