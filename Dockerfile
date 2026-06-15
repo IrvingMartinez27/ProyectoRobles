@@ -1,9 +1,10 @@
 FROM webdevops/php-nginx:8.2
 
+ENV WEB_DOCUMENT_ROOT=/var/www/html/public
+
 # Instalar dependencias
 RUN apt-get update && apt-get install -y \
     zip unzip nodejs npm \
-    && docker-php-ext-install pdo_mysql bcmath gd zip exif pcntl \
     && echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && apt-get clean
@@ -23,5 +24,3 @@ RUN mkdir -p storage/app/livewire-tmp storage/logs \
     && chmod -R 755 /var/www/html/storage
 
 EXPOSE 80
-
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
