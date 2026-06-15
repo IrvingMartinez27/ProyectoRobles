@@ -22,7 +22,7 @@ COPY . .
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 
 # Instalar dependencias JS y compilar
-RUN npm install && npm run build
+RUN npm install && NODE_OPTIONS="--max-old-space-size=512" npm run build
 
 # Crear carpetas necesarias y permisos
 RUN mkdir -p storage/app/livewire-tmp storage/logs \
