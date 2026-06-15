@@ -1,29 +1,16 @@
-FROM php:8.2-apache
+FROM serversideup/php:8.2-apache
 
-# Habilitar mod_rewrite
-RUN a2enmod rewrite
-
-# Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    git curl zip unzip libpng-dev libonig-dev \
-    libxml2-dev libzip-dev \
-    && docker-php-ext-install pdo_mysql exif pcntl bcmath gd zip \
-    && echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && apt-get clean
-
-# Instalar Node.js 22 desde NodeSource
+# Instalar Node.js 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean
 
+# Límites de subida
+RUN echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Configurar Apache para Laravel
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 WORKDIR /var/www/html
 
