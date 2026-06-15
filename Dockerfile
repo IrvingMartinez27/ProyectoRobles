@@ -4,8 +4,12 @@ USER root
 
 # Instalar Node.js 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
+    && apt-get install -y nodejs libpng-dev libjpeg-dev libwebp-dev \
     && apt-get clean
+
+# Instalar extensión GD
+RUN docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install gd
 
 # Límites de subida
 RUN echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini \
