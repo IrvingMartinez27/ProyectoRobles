@@ -18,7 +18,7 @@ class ReporteController extends Controller
     {
         $plan  = Auth::user()->plan ?? 'gratis';
         $esPro = in_array($plan, ['pro', 'business']);
-        $query = sale::with(['client', 'details.product'])->latest();
+        $query = sale::with(['client', 'details.product'])->orderBy('created_at', 'desc');
 
         if (!$esPro) {
             $query->whereDate('created_at', now()->toDateString());
@@ -64,7 +64,9 @@ class ReporteController extends Controller
         $porMetodo = [];
         if ($esPro) {
             $metodos = (clone $query)->selectRaw('metodo_pago, COUNT(*) as cantidad, SUM(total) as monto')
-                ->groupBy('metodo_pago')->get();
+                ->groupBy('metodo_pago')
+                ->orderBy('metodo_pago')
+                ->get();
             foreach ($metodos as $m) {
                 $porMetodo[$m->metodo_pago ?? 'efectivo'] = [
                     'cantidad' => $m->cantidad,
@@ -88,7 +90,9 @@ class ReporteController extends Controller
         $porTipo = collect();
         if ($esPro) {
             $porTipo = (clone $query)->selectRaw('tipo_venta, COUNT(*) as cantidad, SUM(total) as monto')
-                ->groupBy('tipo_venta')->get()
+                ->groupBy('tipo_venta')
+                ->orderBy('tipo_venta')
+                ->get()
                 ->mapWithKeys(fn($t) => [$t->tipo_venta ?? 'menudeo' => [
                     'cantidad' => $t->cantidad,
                     'monto'    => number_format($t->monto, 2),
@@ -131,9 +135,10 @@ class ReporteController extends Controller
         $user    = Auth::user();
         $periodo = $this->labelPeriodo($request);
 
-        // Agregar porTipo a metrics para el PDF
         $porTipoRaw = (clone $query)->selectRaw('tipo_venta, COUNT(*) as cantidad, SUM(total) as monto')
-            ->groupBy('tipo_venta')->get()
+            ->groupBy('tipo_venta')
+            ->orderBy('tipo_venta')
+            ->get()
             ->mapWithKeys(fn($t) => [$t->tipo_venta ?? 'menudeo' => [
                 'cantidad' => $t->cantidad,
                 'monto'    => $t->monto,
