@@ -1,12 +1,12 @@
 FROM serversideup/php:8.2-fpm-apache
 
-# Instalar Node.js 22
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean
+USER root
+
+# Instalar Node.js
+RUN apk add --no-cache nodejs npm
 
 # Límites de subida
-RUN echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
+RUN echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/uploads.ini
 
 # Instalar Composer
