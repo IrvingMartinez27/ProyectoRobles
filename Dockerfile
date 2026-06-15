@@ -2,8 +2,10 @@ FROM serversideup/php:8.2-fpm-apache
 
 USER root
 
-# Instalar Node.js
-RUN apk add --no-cache nodejs npm
+# Instalar Node.js 22
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean
 
 # Límites de subida
 RUN echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini \
