@@ -9,10 +9,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Instalar extensión GD (El método oficial de ServerSideUp)
+# 2. Instalar extensión GD
 RUN install-php-extensions gd
 
-# 3. Límites de subida (¡Ruta corregida y a prueba de fallos!)
+# 3. Límites de subida
 RUN mkdir -p /usr/local/etc/php/conf.d/ \
     && echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/99-uploads.ini \
     && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/99-uploads.ini
@@ -27,11 +27,11 @@ COPY . .
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 RUN npm install && NODE_OPTIONS="--max-old-space-size=512" npm run build
 
-# 4. Crear carpetas y asignar permisos al usuario correcto
+# 4. Crear carpetas y asignar permisos al usuario correcto (www-data)
 RUN mkdir -p storage/app/livewire-tmp storage/logs \
-    && chown -R webuser:webgroup /var/www/html \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
-# 5. Exponer el puerto 8080 que usa esta imagen por defecto
+# 5. Exponer el puerto 8080
 EXPOSE 8080
