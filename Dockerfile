@@ -1,4 +1,4 @@
-FROM serversideup/php:8.2-apache
+FROM serversideup/php:8.2-fpm-apache
 
 # Instalar Node.js 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
