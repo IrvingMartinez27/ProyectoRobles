@@ -540,6 +540,16 @@ function scrollHaciaCarritoEnMovil() {
     }
 }
 
+function abrirModalCompartir() {
+    document.getElementById('modal-compartir').classList.add('activo');
+    document.body.style.overflow = 'hidden';
+    generarCatalogo('todos');
+}
+function cerrarModalCompartir() {
+    document.getElementById('modal-compartir').classList.remove('activo');
+    document.body.style.overflow = '';
+}
+
 // ── COMPARTIR CATÁLOGO (genera link en lugar de texto) ────────
 function generarCatalogo(categoria) {
     _catalogoCategoria = categoria;
