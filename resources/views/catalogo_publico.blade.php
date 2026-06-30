@@ -128,12 +128,12 @@
 <!-- FILTROS -->
 <div class="filtros">
     <div class="filtros-inner">
-        <button class="filtro-btn activo" onclick="filtrar('todos', this)">Todos ({{ count($productos) }})</button>
+        <button class="filtro-btn {{ $categoriaInicial === 'todos' ? 'activo' : '' }}" onclick="filtrar('todos', this)">Todos ({{ count($productos) }})</button>
         @php
             $cats = $productos->pluck('categoria')->unique()->sort()->values();
         @endphp
         @foreach($cats as $cat)
-        <button class="filtro-btn" onclick="filtrar('{{ $cat }}', this)">{{ ucfirst($cat) }}</button>
+        <button class="filtro-btn {{ $categoriaInicial === $cat ? 'activo' : '' }}" onclick="filtrar('{{ $cat }}', this)">{{ ucfirst($cat) }}</button>
         @endforeach
     </div>
 </div>
@@ -149,7 +149,8 @@
     @else
     <div class="productos-grid" id="grid-productos">
         @foreach($productos as $producto)
-        <div class="producto-card" data-categoria="{{ $producto['categoria'] }}">
+        <div class="producto-card" data-categoria="{{ $producto['categoria'] }}"
+             @if($categoriaInicial !== 'todos' && $producto['categoria'] !== $categoriaInicial) style="display:none;" @endif>
             <div class="card-img">
                 @if($producto['imagen'])
                 <img src="{{ $producto['imagen'] }}" alt="{{ $producto['nombre'] }}" loading="lazy"/>

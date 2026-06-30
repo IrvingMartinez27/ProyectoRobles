@@ -48,13 +48,18 @@ class CatalogoPublicoController extends Controller
             ->filter(fn($p) => $p['stock_total'] > 0)
             ->values();
 
+        // Categoría inicial recibida por query param (?categoria=ropa), usada para
+        // que el link compartido desde el dashboard abra ya filtrado
+        $categoriaInicial = request('categoria', 'todos');
+
         tenancy()->end();
 
         return view('catalogo_publico', [
-            'productos'   => $productos,
-            'store_name'  => $tenant->store_name ?? $owner->store_name,
-            'whatsapp'    => $owner->whatsapp,
-            'tenant_id'   => $tenant_id,
+            'productos'        => $productos,
+            'store_name'       => $tenant->store_name ?? $owner->store_name,
+            'whatsapp'         => $owner->whatsapp,
+            'tenant_id'        => $tenant_id,
+            'categoriaInicial' => $categoriaInicial,
         ]);
     }
 }

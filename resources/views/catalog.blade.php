@@ -504,6 +504,7 @@ const PLAN_CAT = '{{ $plan ?? "gratis" }}';
 const ES_PRO_CAT = PLAN_CAT === 'pro' || PLAN_CAT === 'business';
 const ES_LEALTAD_CAT = {{ $lealtadActivo ? 'true' : 'false' }};
 const STORE_NAME = '{{ Auth::user()->store_name ?? "Mi Tienda" }}';
+const CATALOGO_LINK_BASE = '{{ route("catalogo.publico", Auth::user()->tenant_id) }}';
 
 let carrito = [];
 let productoActual = null;
@@ -539,53 +540,29 @@ function scrollHaciaCarritoEnMovil() {
     }
 }
 
-// ── COMPARTIR CATÁLOGO ────────────────────────────────────────
-function abrirModalCompartir() {
-    document.getElementById('modal-compartir').classList.add('activo');
-    document.body.style.overflow = 'hidden';
-    generarCatalogo('todos');
-}
-function cerrarModalCompartir() {
-    document.getElementById('modal-compartir').classList.remove('activo');
-    document.body.style.overflow = '';
-}
-
+// ── COMPARTIR CATÁLOGO (genera link en lugar de texto) ────────
 function generarCatalogo(categoria) {
     _catalogoCategoria = categoria;
-    
+
     document.querySelectorAll('.cat-share-btn').forEach(b => {
         b.classList.remove('activo', 'bg-[#1a1c1c]', 'text-white', 'border-[#1a1c1c]');
         b.classList.add('border-[#c4c5da]/40', 'text-[#747688]');
     });
-    
-    if(event && event.target) {
+
+    if (event && event.target) {
         event.target.classList.remove('border-[#c4c5da]/40', 'text-[#747688]');
         event.target.classList.add('activo', 'bg-[#1a1c1c]', 'text-white', 'border-[#1a1c1c]');
     }
 
-    const productos = Array.from(document.querySelectorAll('.producto-card[data-categoria]'));
-    const filtrados = productos.filter(p => categoria === 'todos' || p.dataset.categoria === categoria);
+    let link = CATALOGO_LINK_BASE;
+    if (categoria !== 'todos') {
+        link += `?categoria=${categoria}`;
+    }
 
     let msg = `🏪 *${STORE_NAME}*\n`;
-    msg += `📦 Catálogo de productos\n`;
-    msg += `━━━━━━━━━━━━━━━━━━\n\n`;
-
-    filtrados.forEach(card => {
-        const nombre = card.querySelector('h3')?.textContent?.trim();
-        const precio = card.querySelector('.text-\\[\\#1737c8\\].font-black.text-lg')?.textContent?.trim();
-        if (!nombre || !precio) return;
-
-        const tallaBadges = card.querySelectorAll('.flex.flex-wrap.gap-1\\.5 span');
-        const tallasTexto = Array.from(tallaBadges).map(t => t.textContent.trim()).join(' | ');
-
-        msg += `👟 *${nombre}*\n`;
-        msg += `💰 ${precio}\n`;
-        if (tallasTexto) msg += `📏 ${tallasTexto}\n`;
-        msg += `\n`;
-    });
-
-    msg += `━━━━━━━━━━━━━━━━━━\n`;
-    msg += `📩 Para hacer tu pedido responde este mensaje`;
+    msg += `📦 Mira nuestro catálogo y elige tus productos aquí:\n\n`;
+    msg += `${link}\n\n`;
+    msg += `👆 Selecciona lo que te guste y te llevará directo a WhatsApp para hacer tu pedido`;
 
     _catalogoMensaje = msg;
     document.getElementById('preview-catalogo').textContent = msg;
