@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @include('partials._favicon')
     <title>Quivex — El sistema más inteligente para tu tienda o showroom de moda</title>
     <meta name="description" content="Organiza tus tallas y modelos, registra ventas por voz y conoce tu ganancia neta real. Para marcas locales, importaciones y streetwear en México.">
     <link rel="preconnect" href="https://fonts.googleapis.com">

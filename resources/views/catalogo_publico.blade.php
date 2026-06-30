@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@include('partials._favicon')
 <title>{{ $store_name }} — Catálogo</title>
 <meta name="description" content="Catálogo de productos de {{ $store_name }}. Encuentra tus tallas favoritas y pregunta por WhatsApp.">
 <meta property="og:title" content="{{ $store_name }} — Catálogo"/>

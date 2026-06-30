@@ -65,6 +65,7 @@ class ReporteController extends Controller
         if ($esPro) {
             $metodos = (clone $query)->selectRaw('metodo_pago, COUNT(*) as cantidad, SUM(total) as monto')
                 ->groupBy('metodo_pago')
+                ->reorder()
                 ->orderBy('metodo_pago')
                 ->get();
             foreach ($metodos as $m) {
@@ -91,6 +92,7 @@ class ReporteController extends Controller
         if ($esPro) {
             $porTipo = (clone $query)->selectRaw('tipo_venta, COUNT(*) as cantidad, SUM(total) as monto')
                 ->groupBy('tipo_venta')
+                ->reorder()
                 ->orderBy('tipo_venta')
                 ->get()
                 ->mapWithKeys(fn($t) => [$t->tipo_venta ?? 'menudeo' => [
@@ -137,6 +139,7 @@ class ReporteController extends Controller
 
         $porTipoRaw = (clone $query)->selectRaw('tipo_venta, COUNT(*) as cantidad, SUM(total) as monto')
             ->groupBy('tipo_venta')
+            ->reorder()
             ->orderBy('tipo_venta')
             ->get()
             ->mapWithKeys(fn($t) => [$t->tipo_venta ?? 'menudeo' => [
