@@ -73,11 +73,12 @@ class InventarioController extends Controller
             'categoria'  => 'required|string',
             'tallas'     => 'required|array|min:1',
             'cantidades' => 'required|array|min:1',
-            'imagen'     => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+            // 51200 KB = 50MB. Soporta fotos directas de celular sin necesidad de comprimir.
+            'imagen'     => 'nullable|image|mimes:jpeg,png,webp|max:51200',
         ], [
             'imagen.image' => 'El archivo debe ser una imagen.',
             'imagen.mimes' => 'Solo se permiten imágenes JPG, PNG o WEBP.',
-            'imagen.max'   => 'La imagen no puede pesar más de 2MB.',
+            'imagen.max'   => 'La imagen no puede pesar más de 50MB.',
         ]);
 
         // ── ALMACÉN LOCAL POR DEFECTO ─────────────────────────
